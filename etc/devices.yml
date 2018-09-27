@@ -1,0 +1,7 @@
+---
+devices:
+        OpenMVC:
+                Description: Computer Vision
+                Type: Camera
+
+
