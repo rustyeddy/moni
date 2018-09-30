@@ -2,10 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/gocolly/colly"
+	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -15,13 +15,20 @@ type pageInfo struct {
 }
 
 func handleWalk(w http.ResponseWriter, r *http.Request) {
-	url := r.URL.Query().Get("url")
-	if url == "" {
-		log.Errorln("missing URL")
-		return
-	}
+
+	// Using Gorilla mux /walk/{url}
+	vars := mux.Vars(r)
+	url := vars["url"]
+
+	// This is standard {url}
+	// url := r.URL.Query().Get("url")
+	// if url == "" {
+	// 	log.Errorln("missing URL")
+	// 	return
+	// }
+
 	url = "http://" + url
-	fmt.Println("visiting", url)
+	log.Infoln("visiting", url)
 
 	c := colly.NewCollector(
 		colly.MaxDepth(3),
@@ -37,7 +44,7 @@ func handleWalk(w http.ResponseWriter, r *http.Request) {
 	})
 
 	c.OnResponse(func(r *colly.Response) {
-		log.Infoln("response recieved", r.StatusCode)
+		log.Infoln("response recieved", r.Request.URL, r.StatusCode)
 		p.StatusCode = r.StatusCode
 	})
 
