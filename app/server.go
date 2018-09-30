@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -8,21 +9,28 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type pageInfo struct {
-	StatusCode int
-	Links      map[string]int
-}
+// HTTPServer will register routes, open connection and listen for incoming
+func HTTPServer(addrport string) {
 
-func Server(addrport string) {
 	r := mux.NewRouter()
-	r.HandleFunc("/", handleHome)
-	r.HandleWalk("/walk/", handleWalk)
+	r.Handle("/", http.FileServer(http.Dir("./public")))
+	r.HandleFunc("/info", handleInfo)
+	r.HandleFunc("/walk/{url}", handleWalk)
 
+	// listen for connections...
 	log.Infoln("listening on ", addrport)
-	log.Fatal(http.ListenAndServe(addrport, nil))
+	log.Fatal(http.ListenAndServe(addrport, r))
 }
 
-// Send back the home page
-func handleHome(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Handling an HTML request ")
+// Send back diagnostic info
+func handleInfo(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Handling an HTML request ")
+
+	info := make(map[string]string)
+	info["Routes"] = "/, /info, /walk/{url}"
+	msg, err := json.Marshal(&info)
+	if err != nil {
+		fmt.Fprintf(w, err.Error())
+	}
+	fmt.Fprint(w, msg)
 }

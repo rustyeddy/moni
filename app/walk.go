@@ -9,6 +9,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type pageInfo struct {
+	StatusCode int
+	Links      map[string]int
+}
+
 func handleWalk(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query().Get("url")
 	if url == "" {

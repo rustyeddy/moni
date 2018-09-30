@@ -1,5 +1,10 @@
 cmd = inv 
 
 build:
-	go build -o $(cmd)
+	go build 
+
+run:
+	go run *.go
+
+
 
