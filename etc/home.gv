@@ -1,0 +1,19 @@
+graph "home" {
+
+  I -- m -- tpl:I:1 [ color=red ]
+  tpl -- zwx [ color=blue ]
+  zwx -- zgx -- zfx [ color=blue ]
+
+  wireless [ color=cyan style=dotted ]
+
+  // make wireless dotted
+  // [style=invisible]
+  tpl -- w1 [ type=wireless ]
+  tpl -- w2 [ color=cyan style=dotted ]
+  zwx -- w3 [ color=purple style=dotted ]
+  zwx -- w4 [ color=orange style=dotted ]
+
+  zwx [ shape=circle ]
+  tpl [ shape=box ]
+}
+

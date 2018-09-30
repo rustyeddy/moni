@@ -1,0 +1,8 @@
+graph algo {
+      url -> filter -> reject;
+      filter -> Q -> req --> wait;
+      wait -> resp -> parse -> callbacks;
+      callbacks -> resp;
+      callbacks -> html;
+      
+}
