@@ -1,0 +1,6 @@
+---
+inventory:
+  srcdir: ~/src/inv
+  storage: store:/srv/inv/data
+  domains: domains.csv
+  sites: sites.csv
