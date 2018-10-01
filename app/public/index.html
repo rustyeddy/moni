@@ -35,6 +35,9 @@
 <body>
   <div id="graph" style="text-align: center;"></div>
   <script>
-    d3.selectAll("p").style("color", "white");
+    d3.selectAll("p").style("color", function() {
+      return "hsl(" + Math.random() * 360 + ",100%,50%)";
+    });
+
     d3.select("body").style("background-color", "black");
   </script>
