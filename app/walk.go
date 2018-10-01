@@ -29,7 +29,7 @@ func handleWalk(w http.ResponseWriter, r *http.Request) {
 
 	// Create the collector and go get shit!
 	c := colly.NewCollector(
-		colly.MaxDepth(1),
+		colly.MaxDepth(config.Depth),
 	)
 	p := &pageInfo{Links: make(map[string]int)}
 
