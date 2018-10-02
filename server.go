@@ -33,7 +33,7 @@ func StartServer(addrport string, done chan<- bool) {
 	r.HandleFunc("/crawl/{url}", HandleCrawl)
 	r.Handle("/", http.FileServer(http.Dir("./pub")))
 
-	log.Infoln("listening on ", addrport)
+	log.Infoln("Server listening on ", addrport)
 	err := http.ListenAndServe(addrport, r)
 	if err != nil {
 		log.Errorf("Server terminated error %v", err)

@@ -8,7 +8,7 @@ build:
 	make -C $(cmd) build
 
 run:
-	go run $(cmdsrc) serve
+	go run $(cmdsrc) 
 
 mapimg:
 	dot -Tpng -o $(mapimg) $(dotfile)

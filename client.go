@@ -51,11 +51,16 @@ func (cli *Client) Get(url string) {
 }
 
 func StartClient(addr string, done chan<- bool) {
-	cli := NewClient(addr)
+	cli := NewClient("http://localhost:4444/")
+	reader := bufio.NewReader(os.Stdin)
 	for {
-		scanner := bufio.NewScanner(cli.Reader)
-
-		line := scanner.Text()
+		fmt.Print("prompt~> ")
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			log.Errorf("failed to read string %+v", err)
+			done <- true
+			return
+		}
 
 		// Remove whitespace around line
 		input := strings.Trim(line, " \t\n")
@@ -78,6 +83,8 @@ func StartClient(addr string, done chan<- bool) {
 			cli.CrawlUrls(cmds[1:])
 		case "home":
 			cli.Get("/")
+		default:
+			fmt.Println("unknown command: ", cmd)
 		}
 	}
 	done <- true

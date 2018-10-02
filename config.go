@@ -15,7 +15,7 @@ type Configuration struct {
 	Addrport string
 	Pubdir   string
 	Depth    int
-	Daemon   bool
+	Client   bool
 }
 
 var (
@@ -29,10 +29,10 @@ func init() {
 
 	flag.StringVar(&Config.Addrport, "addr", ":4444", "Run an Daemon in the background")
 	flag.IntVar(&Config.Depth, "depth", 1, "Max crawl depth")
-	flag.BoolVar(&Config.Daemon, "client", true, "Run an inventory client v daemon")
+	flag.BoolVar(&Config.Client, "cli", false, "Run a command line client")
 	flag.StringVar(&Config.Pubdir, "dir", "./pub", "Run an Daemon in the background")
 }
 
 func GetConfiguration() *Configuration {
-	return &Config // make a copy
+	return &Config
 }
