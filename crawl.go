@@ -11,8 +11,39 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+/*
+  1. filterChannel <- newURL
+
+  2. if reject(newURL) goto 1.
+
+  3. visitChannel <- newURL
+
+  4. Page = NewPage(newURL)
+
+  5. RecordPage(p)  // used by filter
+
+  6. VisitPage(p)
+     - Page.Start = time.Now()
+     - callback: OnRequest()
+
+  7. RecvReply(resp)
+     - callback: OnResponse
+     - Page.End = time.Now() // record end of RTT
+
+  8. Parse(resp)
+
+  8.1 callback: OnDocument
+  8.2 callback: OnElement["href"]
+      - anchor, aLink = LinkFromResp(resp)
+      - FilterChan <- aLink
+  8.3 callback: OnHTML
+
+  9. StorageChan <-DOM
+*/
+
 var (
-	CrawlDepth int = 1
+	Visited    PageMap = make(PageMap)
+	CrawlDepth int     = 1
 )
 
 func HandleCrawl(w http.ResponseWriter, r *http.Request) {
@@ -54,7 +85,7 @@ func Crawl(url string) (p *Page) {
 	// Create the collector and go get shit!
 	c := colly.NewCollector(
 		//colly.MaxDepth(config.Depth),
-		colly.MaxDepth(5),
+		colly.MaxDepth(3),
 	)
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
