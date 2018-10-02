@@ -12,7 +12,7 @@ var (
 )
 
 func main() {
-	config = inventory.Config
+	config = inv.Config
 
 	flag.Parse()
 
@@ -20,9 +20,7 @@ func main() {
 	switch {
 	case config.Daemon:
 		done = make(chan bool)
-
-		fmt.Println("Running new server...")
-		inventory.StartServer(config.Addrport, done)
+		inv.StartServer(config.Addrport, done)
 	}
 
 	_ = <-done

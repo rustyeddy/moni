@@ -11,4 +11,4 @@ Inventory Utility.
 
 */
 
-package inventory
+package inv

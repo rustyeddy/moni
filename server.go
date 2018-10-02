@@ -1,4 +1,4 @@
-package inventory
+package inv
 
 import (
 	"encoding/json"
@@ -31,8 +31,11 @@ func StartServer(addrport string, done chan<- bool) {
 		log.Fatalf("Server must have a port to listen with")
 	}
 	r = mux.NewRouter()
-	r.HandleFunc("/crawl", HandleCrawl)
-	r.Handle("/", http.FileServer(http.Dir("./pub")))
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("Home Handler")
+	})
+	r.HandleFunc("/crawl/{url}", HandleCrawl)
+	// r.Handle("/", http.FileServer(http.Dir("./pub")))
 
 	log.Infoln("listening on ", addrport)
 	err := http.ListenAndServe(addrport, r)

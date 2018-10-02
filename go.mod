@@ -1,4 +1,4 @@
-module github/rustyeddy/inventory
+module github.com/rustyeddy/inv
 
 require (
 	github.com/PuerkitoBio/goquery v1.4.1 // indirect

@@ -1,4 +1,4 @@
-package inventory
+package inv
 
 import (
 	"flag"
