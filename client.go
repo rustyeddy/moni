@@ -53,7 +53,8 @@ func (cli *Client) Get(url string) {
 func StartClient(addr string, done chan<- bool) {
 	cli := NewClient("http://localhost:4444/")
 	reader := bufio.NewReader(os.Stdin)
-	for {
+	running := true
+	for running {
 		fmt.Print("prompt~> ")
 		line, err := reader.ReadString('\n')
 		if err != nil {
@@ -83,10 +84,14 @@ func StartClient(addr string, done chan<- bool) {
 			cli.CrawlUrls(cmds[1:])
 		case "home":
 			cli.Get("/")
+		case "exit":
+			fmt.Println("  exiting ..., breaking read loop!")
+			running = false
 		default:
 			fmt.Println("unknown command: ", cmd)
 		}
 	}
+	fmt.Println("client is exiting")
 	done <- true
 }
 

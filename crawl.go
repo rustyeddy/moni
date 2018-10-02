@@ -2,7 +2,6 @@ package inv
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -21,7 +20,6 @@ func HandleCrawl(w http.ResponseWriter, r *http.Request) {
 	// Using Gorilla mux /walk/{url}
 	vars := mux.Vars(r)
 	url := vars["url"]
-	fmt.Println("  Handle Crawl ", url)
 
 	// TODO: check for "http://" prefix
 	if !strings.HasPrefix(url, "http") {
@@ -36,35 +34,36 @@ func HandleCrawl(w http.ResponseWriter, r *http.Request) {
 	*/
 
 	// Make this a go routine
-	p := Crawl(url)
-	b, err := json.Marshal(p)
+	Crawl(url)
+
+	// Done crawling make json object to send back
+	jbytes, err := json.Marshal(Visited)
 	if err != nil {
 		log.Errorln("failed to serialize response:", err)
 		return
 	}
 
 	w.Header().Add("Content-Type", "application/json")
-	w.Write(b)
+	w.Write(jbytes)
 
 }
 
-func Crawl(url string) (p *PageInfo) {
-	log.Infoln("visiting", url)
+func Crawl(url string) (p *Page) {
+	log.Infoln("crawling", url)
 
 	// Create the collector and go get shit!
 	c := colly.NewCollector(
 		colly.MaxDepth(CrawlDepth),
 	)
 
-	p = &PageInfo{
-		Links: make(map[string]int),
-	}
-
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		link := e.Request.AbsoluteURL(e.Attr("href"))
-		if link != "" {
-			p.Links[link]++
+		if link == "" {
+			// do we even want to record these?
+			log.Infoln("  link is nil %+v\n", e)
+			//return
 		}
+		p.Links[link]++
 		e.Request.Visit(link)
 	})
 
@@ -73,6 +72,7 @@ func Crawl(url string) (p *PageInfo) {
 		log.Infoln("response recieved", link, r.StatusCode)
 		p.StatusCode = r.StatusCode
 		p.End = time.Now()
+		p.Crawled = true
 	})
 
 	c.OnError(func(r *colly.Response, err error) {
@@ -81,6 +81,14 @@ func Crawl(url string) (p *PageInfo) {
 		p.End = time.Now()
 	})
 
+	// Get the page we'll use for this walk
+	if p = Visited.Get(url); p == nil {
+		p = &Page{
+			URL:   url,
+			Links: make(map[string]int),
+		}
+		Visited[url] = p
+	}
 	p.Start = time.Now()
 	c.Visit(url)
 	return p

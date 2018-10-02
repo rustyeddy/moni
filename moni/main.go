@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 
 	"github.com/rustyeddy/inv"
 )
@@ -19,10 +18,6 @@ func main() {
 
 	// Copy of our config from inventory config
 	config = inv.GetConfiguration()
-
-	if !config.Client {
-		log.Fatalf("failed to turn config.Daemon off %+v\n ", config)
-	}
 
 	// Declare the done channel to communicate when the
 	// server has completed
