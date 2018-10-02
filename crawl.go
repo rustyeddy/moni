@@ -53,14 +53,15 @@ func Crawl(url string) (p *Page) {
 
 	// Create the collector and go get shit!
 	c := colly.NewCollector(
-		colly.MaxDepth(CrawlDepth),
+		//colly.MaxDepth(config.Depth),
+		colly.MaxDepth(5),
 	)
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		link := e.Request.AbsoluteURL(e.Attr("href"))
 		if link == "" {
 			// do we even want to record these?
-			log.Infoln("  link is nil %+v\n", e)
+			log.Infof("  link is nil %+v\n", e)
 			//return
 		}
 		p.Links[link]++
