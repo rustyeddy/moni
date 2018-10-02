@@ -2,11 +2,20 @@ package inv
 
 import "time"
 
-type PageMap map[string]*Page
+// ===================================================================
+type Page struct {
+	URL     string
+	Content []byte
+	Links   map[string]int
 
-var (
-	Visited PageMap = make(PageMap)
-)
+	Crawled    bool
+	StatusCode int
+	Start      time.Time
+	End        time.Time
+}
+
+// ********************************************************************
+type PageMap map[string]*Page
 
 func (pm PageMap) Get(url string) (p *Page) {
 	if p, e := Visited[url]; e {
@@ -17,13 +26,4 @@ func (pm PageMap) Get(url string) (p *Page) {
 
 func (pm PageMap) Set(url string, p *Page) {
 	Visited[url] = p
-}
-
-type Page struct {
-	URL        string
-	StatusCode int
-	Links      map[string]int
-	Crawled    bool
-	Start      time.Time
-	End        time.Time
 }

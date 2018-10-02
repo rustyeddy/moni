@@ -23,7 +23,8 @@ var (
    Use the runtime/trace and net/http/pprof packages
 */
 
-// HTTPServer will register routes, open connection and listen for incoming
+// StartServer registers the handlers for the API routes
+// and to return files from the static website.
 func StartServer(addrport string, done chan<- bool) {
 	if addrport == "" {
 		log.Fatalf("Server must have a port to listen with")
