@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gocolly/colly"
@@ -17,15 +18,24 @@ var (
 
 func HandleCrawl(w http.ResponseWriter, r *http.Request) {
 
-	fmt.Println("  Handle Crawl ")
-
 	// Using Gorilla mux /walk/{url}
 	vars := mux.Vars(r)
 	url := vars["url"]
 	fmt.Println("  Handle Crawl ", url)
 
 	// TODO: check for "http://" prefix
-	url = "http://" + url
+	if !strings.HasPrefix(url, "http") {
+		url = "http://" + url
+	}
+
+	/*
+		go Filter(filterCh <-chan)
+		go Crawl(filterCh, storeCh)
+		go Store(storeCh)
+		filterCh <- url
+	*/
+
+	// Make this a go routine
 	p := Crawl(url)
 	b, err := json.Marshal(p)
 	if err != nil {
@@ -45,7 +55,10 @@ func Crawl(url string) (p *PageInfo) {
 	c := colly.NewCollector(
 		colly.MaxDepth(CrawlDepth),
 	)
-	p = &PageInfo{Links: make(map[string]int)}
+
+	p = &PageInfo{
+		Links: make(map[string]int),
+	}
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		link := e.Request.AbsoluteURL(e.Attr("href"))

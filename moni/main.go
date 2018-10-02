@@ -12,15 +12,25 @@ var (
 )
 
 func main() {
+
+	// Copy of our config from inventory config
 	config = inv.Config
 
+	// Parse command line args setting config values
+	// as set in config.go
 	flag.Parse()
 
+	// Declare the done channel to communicate when the
+	// server has completed
 	var done chan bool
+
+	// Figure what command we are going to run
+	// with what specific arguments.
 	switch {
 	case config.Daemon:
-		done = make(chan bool)
-		inv.StartServer(config.Addrport, done)
+		go inv.StartServer(config.Addrport, done)
+	default:
+		go inv.StartClient(config.Addrport, done)
 	}
 
 	_ = <-done
