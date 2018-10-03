@@ -15,6 +15,9 @@ build: go.mod
 run:
 	go run $(cmdsrc) 
 
+install:
+	make -C $(cmd) install
+
 mapimg:
 	dot -Tpng -o $(mapimg) $(dotfile)
 
