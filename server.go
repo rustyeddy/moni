@@ -1,7 +1,10 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
@@ -27,7 +30,29 @@ func NewServer(addrport string) (srv *Server) {
 
 	log.Infoln("Creating HTTP Router")
 	srv.Router = mux.NewRouter()
-	srv.HandleFunc("/crawl/{url}", HandleCrawl)
+
+	srv.HandleFunc("/crawl/{url}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		url := vars["url"]
+
+		if !strings.HasPrefix("http", url) {
+			url = "http://" + url
+		}
+
+		srv.Infoln("crawl", r.URL)
+		page, err := Crawl(url)
+		if err != nil {
+			fmt.Fprintf(w, "url", err)
+		}
+
+		jbytes, err := json.Marshal(page)
+		if err != nil {
+			srv.Errorln("marshal json", url, err)
+		}
+
+		w.Header().Add("Content-Type", "application/json")
+		w.Write(jbytes)
+	})
 
 	return srv
 }

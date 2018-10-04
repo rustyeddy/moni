@@ -96,13 +96,11 @@ func (cli *Client) Start(done chan<- bool) {
 
 func (cli *Client) CrawlUrls(urls []string) {
 	for _, url := range urls {
-		page := Crawl(url)
-		if page == nil {
-			log.Errorln("Crawl failed ", url)
-		} else {
-			fmt.Printf("%s: %+v\n", page)
+		page, err := Crawl(url)
+		if err != nil {
+			log.Errorln("Crawl failed ", url, err)
 		}
-		// Page is not alone
+		fmt.Printf("%s: %+v\n", page)
 	}
 }
 
