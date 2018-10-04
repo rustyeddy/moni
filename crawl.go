@@ -1,4 +1,4 @@
-package inv
+package main
 
 import (
 	"encoding/json"
@@ -8,6 +8,8 @@ import (
 
 	"github.com/gocolly/colly"
 	"github.com/gorilla/mux"
+
+	//"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -48,12 +50,10 @@ var (
 
 func HandleCrawl(w http.ResponseWriter, r *http.Request) {
 
-	// Using Gorilla mux /walk/{url}
 	vars := mux.Vars(r)
 	url := vars["url"]
 
-	// TODO: check for "http://" prefix
-	if !strings.HasPrefix(url, "http") {
+	if !strings.HasPrefix("http", url) {
 		url = "http://" + url
 	}
 
@@ -91,9 +91,7 @@ func Crawl(url string) (p *Page) {
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		link := e.Request.AbsoluteURL(e.Attr("href"))
 		if link == "" {
-			// do we even want to record these?
-			log.Infof("  link is nil %+v\n", e)
-			//return
+			return
 		}
 		p.Links[link]++
 		e.Request.Visit(link)

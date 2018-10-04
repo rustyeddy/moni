@@ -1,4 +1,4 @@
-package inv
+package main
 
 import (
 	"net/http"
@@ -9,35 +9,39 @@ import (
 
 type Server struct {
 	Addrport string // config option
-	Pubdir   string // config option
-
 	*mux.Router
 	*log.Logger
 }
 
-var (
-	r *mux.Router
-)
-
-/*
-   Use the runtime/trace and net/http/pprof packages
-*/
-
 // StartServer registers the handlers for the API routes
 // and to return files from the static website.
-func StartServer(addrport string, done chan<- bool) {
+func NewServer(addrport string) (srv *Server) {
 	if addrport == "" {
 		log.Fatalf("Server must have a port to listen with")
 	}
 
-	r = mux.NewRouter()
-	r.HandleFunc("/crawl/{url}", HandleCrawl)
-	r.Handle("/", http.FileServer(http.Dir("./pub")))
-
-	log.Infoln("Server listening on ", addrport)
-	err := http.ListenAndServe(addrport, r)
-	if err != nil {
-		log.Errorf("Server terminated error %v", err)
+	srv = &Server{
+		Addrport: addrport,
+		Logger:   log.New(),
 	}
+
+	/*
+		log.Infoln("Creating HTTP Router")
+		srv.Router = mux.NewRouter()
+		srv.Router.HandleFunc("/crawl/{url}", HandleCrawl)
+	*/
+	return srv
+}
+
+func (srv *Server) Start(done chan<- bool) {
+	log.Infoln("Server listening on ", srv.Addrport)
+
+	r := mux.NewRouter()
+	// r.HandleFunc("/crawl/{url}", HandleCrawl)
+	r.HandleFunc("/crawl/{url}", HandleCrawl)
+	http.Handle("/", r)
+
+	//err := http.ListenAndServe(srv.Addrport, r)
+	//err := http.ListenAndServe(srv.Addrport, srv.Router)
 	done <- true
 }

@@ -1,4 +1,4 @@
-package inv
+package main
 
 import (
 	"bufio"
@@ -50,8 +50,7 @@ func (cli *Client) Get(url string) {
 	log.Infof("Wrote %d to reader", n)
 }
 
-func StartClient(addr string, done chan<- bool) {
-	cli := NewClient("http://localhost:4444/")
+func (cli *Client) Start(done chan<- bool) {
 	reader := bufio.NewReader(os.Stdin)
 	running := true
 	for running {

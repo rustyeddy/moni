@@ -1,22 +1,21 @@
-cmd = moni
-cmd/src = moni/main.go
-mapimg = ~/Desktop/home.png 
+cmd = inv
+mapimg = ~/Desktop/home.png
 
 dotfile = etc/home.gv
 
-all: build
+all:build
 
 go.mod:
 	mod init github.com/rustyeddy/inv
 
-build: go.mod
-	make -C $(cmd) build
+build: 
+	go build 
 
 run:
-	go run $(cmdsrc) 
+	go run *.go
 
 install:
-	make -C $(cmd) install
+	go install
 
 mapimg:
 	dot -Tpng -o $(mapimg) $(dotfile)

@@ -1,4 +1,4 @@
-package inv
+package main
 
 type SiteMap map[string]*Site
 

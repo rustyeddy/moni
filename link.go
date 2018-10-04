@@ -1,4 +1,4 @@
-package inv
+package main
 
 type Link struct {
 	Anchor string

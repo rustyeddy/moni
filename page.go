@@ -1,4 +1,4 @@
-package inv
+package main
 
 import "time"
 
