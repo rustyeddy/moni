@@ -25,23 +25,23 @@ func NewServer(addrport string) (srv *Server) {
 		Logger:   log.New(),
 	}
 
-	/*
-		log.Infoln("Creating HTTP Router")
-		srv.Router = mux.NewRouter()
-		srv.Router.HandleFunc("/crawl/{url}", HandleCrawl)
-	*/
+	log.Infoln("Creating HTTP Router")
+	srv.Router = mux.NewRouter()
+	srv.HandleFunc("/crawl/{url}", HandleCrawl)
+
 	return srv
 }
 
+// Start your engines
 func (srv *Server) Start(done chan<- bool) {
 	log.Infoln("Server listening on ", srv.Addrport)
 
-	r := mux.NewRouter()
+	// r := mux.NewRouter()
 	// r.HandleFunc("/crawl/{url}", HandleCrawl)
-	r.HandleFunc("/crawl/{url}", HandleCrawl)
-	http.Handle("/", r)
+	// r.HandleFunc("/crawl/{url}", HandleCrawl)
+	http.Handle("/", srv.Router)
 
 	//err := http.ListenAndServe(srv.Addrport, r)
-	//err := http.ListenAndServe(srv.Addrport, srv.Router)
+	http.ListenAndServe(srv.Addrport, srv.Router)
 	done <- true
 }

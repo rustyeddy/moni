@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -36,4 +37,8 @@ func (srv *StaticServer) Start(done chan<- bool) {
 		log.Errorf("Server terminated error %v", err)
 	}
 	done <- true
+}
+
+func HandleFile(w http.ResponseWriter, fname string) {
+	fmt.Fprintf(w, fname)
 }

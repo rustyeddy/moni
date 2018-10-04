@@ -4,24 +4,36 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
+	log "github.com/mgutz/logxi/v1"
 )
 
 func main() {
 	// Parse command line args setting config values
 	// as set in config.go
 	flag.Parse()
-	start2()
+	//start2()
+	srv := NewServer(":4444")
+
+	done := make(chan bool)
+	srv.Start(done)
 }
 
 func start2() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Wee I go!")
+		// A little preprocessing and logging never hurt anybody
+		log.Info("Request / %s", r.URL)
+
+		cmds := strings.Split(r.URL.String(), "/")
+		HandleFile(w, cmds[1])
 	})
+
 	r.HandleFunc("/crawl/{url}", HandleCrawl)
 	http.Handle("/", r)
+
 	http.ListenAndServe(":4444", r)
 }
 
