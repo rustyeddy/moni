@@ -55,7 +55,7 @@ func Crawl(url string) (p *Page, err error) {
 	)
 
 	c.OnRequest(func(r *colly.Request) {
-
+		log.Infoln("  visiting site ", r.URL)
 	})
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
