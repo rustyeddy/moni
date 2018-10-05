@@ -11,13 +11,23 @@ import (
 	"github.com/gorilla/mux"
 
 	//"github.com/gorilla/mux"
+	"github.com/rustyeddy/store"
 	log "github.com/sirupsen/logrus"
 )
 
 var (
 	Visited    PageMap = make(PageMap)
 	CrawlDepth int     = 1
+	Store      *store.Store
 )
+
+func init() {
+	var err error
+	Store, err = store.UseStore("/srv/inv/")
+	if err != nil {
+		log.Fatalln("Could not use /srv/inv for storage ")
+	}
+}
 
 // CrawlHandler will handle incoming HTTP request to crawl a URL
 func CrawlHandler(w http.ResponseWriter, r *http.Request) {
@@ -34,6 +44,12 @@ func CrawlHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Fprintf(w, "url", err)
 		return
+	}
+
+	// record the page now
+	_, err = Store.StoreObject("page", page)
+	if err != nil {
+		log.Errorln("Failed to create local store")
 	}
 
 	jbytes, err := json.Marshal(page)

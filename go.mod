@@ -23,6 +23,7 @@ require (
 	github.com/nicksnyder/go-i18n v1.10.0 // indirect
 	github.com/pelletier/go-toml v1.2.0 // indirect
 	github.com/rogpeppe/godef v1.0.0 // indirect
+	github.com/rustyeddy/store v0.0.0-20181005184349-ead091448cae
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect
 	github.com/sirupsen/logrus v1.1.0
 	github.com/sqs/goreturns v0.0.0-20180302073349-83e02874ec12 // indirect

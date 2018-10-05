@@ -52,6 +52,9 @@ github.com/pelletier/go-toml v1.2.0/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/9
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/rogpeppe/godef v1.0.0 h1:+3JM5juQRFS/Vifg5lMHkAtRELpcGicuZXdBmf7NIhE=
 github.com/rogpeppe/godef v1.0.0/go.mod h1:FWOCnfqToTbJkUGS32JdUoCuBBjtBQ3ZawrP7InscsM=
+github.com/rustyeddy/stash v0.0.0-20180814070106-e8cbcc2f7ecf/go.mod h1:QJysOdNTjPgWoaGpH37xdY8ZGvLWHsfRSJvEdNyplLM=
+github.com/rustyeddy/store v0.0.0-20181005184349-ead091448cae h1:OP2x9nme6hUMzox3/aEb8kIge5/w0vURZhbd2h0j3I8=
+github.com/rustyeddy/store v0.0.0-20181005184349-ead091448cae/go.mod h1:I+QTJc8VqwPMu2f70w8xB4Z3wPKsERNkG0VN7gXTmoM=
 github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca h1:NugYot0LIVPxTvN8n+Kvkn6TrbMyxQiuvKdEwFdR9vI=
 github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca/go.mod h1:uugorj2VCxiV1x+LzaIdVa9b4S4qGAcH6cbhh4qVxOU=
 github.com/sirupsen/logrus v1.1.0 h1:65VZabgUiV9ktjGM5nTq0+YurgTyX+YI2lSSfDjI+qU=
