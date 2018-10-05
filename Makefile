@@ -14,6 +14,9 @@ build:
 run:
 	go run *.go
 
+serve:
+	go run *.go -http
+
 install:
 	go install
 

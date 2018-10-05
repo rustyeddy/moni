@@ -1,55 +1,55 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gocolly/colly"
+	"github.com/gorilla/mux"
 
 	//"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
-
-/*
-  1. filterChannel <- newURL
-
-  2. if reject(newURL) goto 1.
-
-  3. visitChannel <- newURL
-
-  4. Page = NewPage(newURL)
-
-  5. RecordPage(p)  // used by filter
-
-  6. VisitPage(p)
-     - Page.Start = time.Now()
-     - callback: OnRequest()
-
-  7. RecvReply(resp)
-     - callback: OnResponse
-     - Page.End = time.Now() // record end of RTT
-
-  8. Parse(resp)
-
-  8.1 callback: OnDocument
-  8.2 callback: OnElement["href"]
-      - anchor, aLink = LinkFromResp(resp)
-      - FilterChan <- aLink
-  8.3 callback: OnHTML
-
-  9. StorageChan <-DOM
-*/
 
 var (
 	Visited    PageMap = make(PageMap)
 	CrawlDepth int     = 1
 )
 
+// CrawlHandler will handle incoming HTTP request to crawl a URL
+func CrawlHandler(w http.ResponseWriter, r *http.Request) {
+
+	// 1. Extract and sanitize the URL from the request and sanitize it
+	vars := mux.Vars(r)
+	url := vars["url"]
+	if !strings.HasPrefix("http", url) {
+		url = "http://" + url
+	}
+
+	log.Infoln("crawl", url)
+	page, err := Crawl(url)
+	if err != nil {
+		fmt.Fprintf(w, "url", err)
+		return
+	}
+
+	jbytes, err := json.Marshal(page)
+	if err != nil {
+		log.Errorln("marshal json", url, err)
+	}
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(jbytes)
+}
+
 func Crawl(url string) (p *Page, err error) {
 	log.Infoln("crawling", url)
 
 	// Create the collector and go get shit!
 	c := colly.NewCollector(
-		colly.MaxDepth(Config.Depth),
+		colly.MaxDepth(3),
 	)
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
@@ -57,7 +57,8 @@ func Crawl(url string) (p *Page, err error) {
 		if link == "" {
 			return
 		}
-		p.Links[link]++
+		anchor := e.Text
+		p.Links[link] = append(p.Links[link], anchor)
 		e.Request.Visit(link)
 	})
 
@@ -79,7 +80,7 @@ func Crawl(url string) (p *Page, err error) {
 	if p = Visited.Get(url); p == nil {
 		p = &Page{
 			URL:   url,
-			Links: make(map[string]int),
+			Links: make(map[string][]string),
 		}
 		Visited[url] = p
 	}

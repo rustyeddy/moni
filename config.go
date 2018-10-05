@@ -11,8 +11,7 @@ type ConfigLogger struct {
 }
 
 type Configuration struct {
-	Log         ConfigLogger
-	Addrport    string
+	ConfigLogger
 	Pubdir      string // Where to serve the static files from
 	Depth       int
 	HttpAddr    string
@@ -27,12 +26,12 @@ var (
 )
 
 func init() {
-	flag.StringVar(&Config.Log.Output, "output", "stdout", "Were to send log output")
-	flag.StringVar(&Config.Log.Level, "level", "warn", "Log level to set")
-	flag.StringVar(&Config.Log.Format, "format", "json", "Format to print log files")
+	flag.StringVar(&Config.Output, "output", "stdout", "Were to send log output")
+	flag.StringVar(&Config.Level, "level", "warn", "Log level to set")
+	flag.StringVar(&Config.Format, "format", "json", "Format to print log files")
 
 	// use flags
-	flag.StringVar(&Config.HttpAddr, "http-addr", ":4444", " an Daemon in the background")
+	flag.StringVar(&Config.HttpAddr, "http-addr", ":3232", " an Daemon in the background")
 	flag.StringVar(&Config.StaticAddr, "static-addr", ":5555", "Run an Daemon in the background")
 
 	flag.BoolVar(&Config.StartStatic, "static", false, "Start the static server ")
