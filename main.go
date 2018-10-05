@@ -24,6 +24,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", AppHandler)
 	r.HandleFunc("/crawl/{url}", CrawlHandler)
+	r.HandleFunc("/update/{info}", UpdateHandler)
 
 	srv := &http.Server{
 		Addr: "0.0.0.0:8080",
