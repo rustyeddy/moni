@@ -63,7 +63,8 @@ func Crawl(url string) (p *Page, err error) {
 		if link == "" {
 			return
 		}
-		p.Links[link] = e.Request.Visit(link)
+		p.Links[link]++
+		e.Request.Visit(link)
 	})
 
 	c.OnResponse(func(r *colly.Response) {

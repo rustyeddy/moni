@@ -22,6 +22,7 @@ func main() {
 	flag.Parse()
 
 	r := mux.NewRouter()
+	r.HandleFunc("/", AppHandler)
 	r.HandleFunc("/crawl/{url}", CrawlHandler)
 
 	srv := &http.Server{

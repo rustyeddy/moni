@@ -18,6 +18,7 @@ type Configuration struct {
 	StaticAddr  string
 	StartHttp   bool
 	StartStatic bool
+	StoreDir    string
 	Client      bool
 }
 
@@ -40,6 +41,7 @@ func init() {
 	flag.IntVar(&Config.Depth, "depth", 1, "Max crawl depth")
 	flag.BoolVar(&Config.Client, "cli", false, "Run a command line client")
 	flag.StringVar(&Config.Pubdir, "dir", "./pub", "Run an Daemon in the background")
+	flag.StringVar(&Config.StoreDir, "store", "/srv/inv", "Directory for Store to use")
 }
 
 func GetConfiguration() *Configuration {
