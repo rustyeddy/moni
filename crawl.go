@@ -44,22 +44,26 @@ func CrawlHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(jbytes)
 }
 
+// Crawl will visit the given URL, and depending on configuration
+// options potentially walk internal links.
 func Crawl(url string) (p *Page, err error) {
 	log.Infoln("crawling", url)
 
 	// Create the collector and go get shit!
 	c := colly.NewCollector(
-		colly.MaxDepth(3),
+		colly.MaxDepth(2),
 	)
+
+	c.OnRequest(func(r *colly.Request) {
+
+	})
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		link := e.Request.AbsoluteURL(e.Attr("href"))
 		if link == "" {
 			return
 		}
-		anchor := e.Text
-		p.Links[link] = append(p.Links[link], anchor)
-		e.Request.Visit(link)
+		p.Links[link] = e.Request.Visit(link)
 	})
 
 	c.OnResponse(func(r *colly.Response) {
@@ -80,7 +84,7 @@ func Crawl(url string) (p *Page, err error) {
 	if p = Visited.Get(url); p == nil {
 		p = &Page{
 			URL:   url,
-			Links: make(map[string][]string),
+			Links: make(map[string]int),
 		}
 		Visited[url] = p
 	}

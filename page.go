@@ -6,7 +6,7 @@ import "time"
 type Page struct {
 	URL     string
 	Content []byte
-	Links   map[string][]string
+	Links   map[string]int
 
 	Crawled    bool
 	StatusCode int

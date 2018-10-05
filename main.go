@@ -12,6 +12,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
+/*
+	colly.Async(true),
+	colly.Debugger(&debug.LogDebugger{})
+*/
 func main() {
 	var wait time.Duration
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
@@ -19,7 +23,6 @@ func main() {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/crawl/{url}", CrawlHandler)
-	r.HandleFunc("/shutdown", ShutdownHandler)
 
 	srv := &http.Server{
 		Addr: "0.0.0.0:8080",
