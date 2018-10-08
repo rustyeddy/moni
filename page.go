@@ -7,6 +7,7 @@ type Page struct {
 	URL     string
 	Content []byte
 	Links   map[string]int
+	Ignored map[string]int
 
 	Crawled    bool
 	StatusCode int

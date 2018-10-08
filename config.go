@@ -2,6 +2,9 @@ package main
 
 import (
 	"flag"
+
+	"github.com/rustyeddy/inv/store"
+	log "github.com/sirupsen/logrus"
 )
 
 type ConfigLogger struct {
@@ -20,11 +23,25 @@ type Configuration struct {
 	StartStatic bool
 	StoreDir    string
 	Client      bool
+	Profile     bool
 }
 
 var (
 	Config Configuration
+	st     *store.Store
 )
+
+func Storage() *store.Store {
+	var err error
+	if st == nil {
+		st, err = store.UseStore(Config.StoreDir)
+		if err != nil {
+			log.Warningln("failed to get storage", Config.StoreDir)
+			return nil
+		}
+	}
+	return st
+}
 
 func init() {
 	flag.StringVar(&Config.Output, "output", "stdout", "Were to send log output")
@@ -42,6 +59,8 @@ func init() {
 	flag.BoolVar(&Config.Client, "cli", false, "Run a command line client")
 	flag.StringVar(&Config.Pubdir, "dir", "./pub", "Run an Daemon in the background")
 	flag.StringVar(&Config.StoreDir, "store", "/srv/inv", "Directory for Store to use")
+
+	flag.BoolVar(&Config.Profile, "prof", false, "Profile our http server")
 }
 
 func GetConfiguration() *Configuration {
