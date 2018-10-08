@@ -13,9 +13,15 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type CrawlJob struct {
+	ID  string
+	URL string
+	*PageInfo
+}
+
 var (
-	Visited    PageMap = make(PageMap)
-	CrawlDepth int     = 1
+	Visited    PageInfomap = make(PageInfomap)
+	CrawlDepth int         = 1
 )
 
 // CrawlHandler will handle incoming HTTP request to crawl a URL
@@ -40,9 +46,8 @@ func CrawlHandler(w http.ResponseWriter, r *http.Request) {
 	// Determine an index to store the page under. The URL is perfect
 	// except that it will likely contain '/' which conflict with the
 	// pathname.  Hence our index must not contain slashes.
-	st := Storage()
 	name := nameFromURL(url)
-	_, err = st.StoreObject(name, page)
+	_, err = Storage.StoreObject(name, page)
 	if err != nil {
 		log.Errorln("Failed to create local store")
 	}
@@ -56,7 +61,7 @@ func CrawlHandler(w http.ResponseWriter, r *http.Request) {
 
 // Crawl will visit the given URL, and depending on configuration
 // options potentially walk internal links.
-func Crawl(urlstr string) (p *Page, err error) {
+func Crawl(urlstr string) (p *PageInfo, err error) {
 	log.Infoln("crawling", urlstr)
 
 	// Create the collector and go get shit!
@@ -109,7 +114,7 @@ func Crawl(urlstr string) (p *Page, err error) {
 
 	// Get the page we'll use for this walk
 	if p = Visited.Get(urlstr); p == nil {
-		p = &Page{
+		p = &PageInfo{
 			URL:     urlstr,
 			Links:   make(map[string]int),
 			Ignored: make(map[string]int),

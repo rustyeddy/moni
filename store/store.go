@@ -118,7 +118,6 @@ func (s *Store) StoreObject(name string, data interface{}) (obj *Object, err err
 	obj.Store = s // back pointer to store
 	obj.Name = name
 	obj.Path = s.Path + "/" + name + ".json"
-	fmt.Printf("NOT obj --> %+v\n", obj)
 
 	// Now write to the file
 	err = ioutil.WriteFile(obj.Path, jbuf, 0644)

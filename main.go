@@ -11,11 +11,20 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/rustyeddy/inv/store"
+)
+
+var (
+
+	// See config.go for specific configuration variables
+	Config  Configuration
+	Storage *store.Store
+
+	Pages PageInfomap = make(PageInfomap)
+	Sites Sitemap     = make(Sitemap)
 )
 
 func main() {
-	var wait time.Duration
-	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
 	flag.Parse()
 
 	r := mux.NewRouter()
@@ -32,8 +41,13 @@ func main() {
 		r.HandleFunc("/debug/pprof/trace", pprof.Trace)
 	}
 
+	var err error
+	if Storage, err = store.UseStore(Config.StoreDir); err != nil {
+		log.Fatalf("failed to use store", Config.StoreDir, err)
+	}
+
 	srv := &http.Server{
-		Addr: "0.0.0.0:8080",
+		Addr: "0.0.0.0:8888",
 		// Good practice to set timeouts to avoid Slowloris attacks.
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
@@ -57,7 +71,7 @@ func main() {
 	<-c
 
 	// Create a deadline to wait for.
-	ctx, cancel := context.WithTimeout(context.Background(), wait)
+	ctx, cancel := context.WithTimeout(context.Background(), Config.Wait)
 	defer cancel()
 	// Doesn't block if no connections, but will otherwise wait
 	// until the timeout deadline.

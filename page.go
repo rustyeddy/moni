@@ -3,7 +3,7 @@ package main
 import "time"
 
 // ===================================================================
-type Page struct {
+type PageInfo struct {
 	URL     string
 	Content []byte
 	Links   map[string]int
@@ -11,20 +11,33 @@ type Page struct {
 
 	Crawled    bool
 	StatusCode int
-	Start      time.Time
-	End        time.Time
+
+	Start time.Time
+	End   time.Time
 }
 
 // ********************************************************************
-type PageMap map[string]*Page
+type PageInfomap map[string]*PageInfo
 
-func (pm PageMap) Get(url string) (p *Page) {
+func GetPageInfo(url string) (pi *PageInfo) {
+	if pi, ex := Pages[url]; !ex {
+		pi = &PageInfo{
+			URL:     url,
+			Links:   make(map[string]int),
+			Ignored: make(map[string]int),
+		}
+		Pages[url] = pi
+	}
+	return pi
+}
+
+func (pm PageInfomap) Get(url string) (p *PageInfo) {
 	if p, e := Visited[url]; e {
 		return p
 	}
 	return nil
 }
 
-func (pm PageMap) Set(url string, p *Page) {
+func (pm PageInfomap) Set(url string, p *PageInfo) {
 	Visited[url] = p
 }
