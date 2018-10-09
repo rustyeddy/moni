@@ -125,14 +125,3 @@ func Crawl(urlstr string) (p *PageInfo, err error) {
 	c.Visit(urlstr)
 	return p, nil
 }
-
-func nameFromURL(urlstr string) (name string) {
-	u, err := url.Parse(urlstr)
-	if err != nil {
-		log.Errorln(err)
-		return
-	}
-	name = u.Hostname()
-	name = strings.Replace(name, ".", "-", -1)
-	return name
-}

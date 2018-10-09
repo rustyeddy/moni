@@ -38,6 +38,13 @@ func (pm PageInfomap) Get(url string) (p *PageInfo) {
 	return nil
 }
 
+func (pm PageInfomap) Exists(url string) bool {
+	if p := pm.Get(url); p != nil {
+		return true
+	}
+	return false
+}
+
 func (pm PageInfomap) Set(url string, p *PageInfo) {
 	Visited[url] = p
 }

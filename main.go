@@ -22,7 +22,12 @@ var (
 
 	Pages PageInfomap = make(PageInfomap)
 	Sites Sitemap     = make(Sitemap)
+	ACL   AccessList
 )
+
+func init() {
+	ACL = make(map[string]bool)
+}
 
 func main() {
 	flag.Parse()
