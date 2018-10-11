@@ -47,13 +47,13 @@ func PrepareURL(urlstr string) (pi *Page) {
 	}
 
 	// Check if we will allow crawling this hostname
-	if !ACL.IsAllowed(ustr) {
-		log.Infoln("rejected url ~ unallowed hostname", ustr)
+	allowed := ACL.IsAllowed(ustr)
+	if !allowed {
+		log.Infof("reject url %s not allowed", ustr)
 		return nil
 	}
-
 	// Get (or create) a PageInfo struct for the given URL
-	pi = Pages.Get(ustr)
+	pi = GetPage(ustr)
 	if pi == nil {
 		log.Errorln("rejected url ~ get page failed", ustr)
 		return nil

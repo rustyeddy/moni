@@ -11,6 +11,9 @@ go.mod:
 build: 
 	go build 
 
+buildv: 
+	go build -v
+
 run:
 	go run *.go
 

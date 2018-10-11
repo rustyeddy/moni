@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -23,7 +24,8 @@ type Page struct {
 type Pagemap map[string]*Page
 
 func GetPage(url string) (pi *Page) {
-	if pi, ex := Pages[url]; !ex {
+	var ex bool
+	if pi, ex = Pages[url]; !ex {
 		pi = &Page{
 			URL:     url,
 			Links:   make(map[string]*Page),
@@ -31,6 +33,7 @@ func GetPage(url string) (pi *Page) {
 		}
 		Pages[url] = pi
 	}
+	fmt.Printf(" returning page %+v\n", pi)
 	return pi
 }
 

@@ -36,6 +36,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", AppHandler)
 	r.HandleFunc("/crawl/{url}", CrawlHandler)
+	r.HandleFunc("/acl", ACLHandler)
 	r.HandleFunc("/update/", UpdateHandler)
 
 	// Set the profile handlers if we have flagged them to be turned on
