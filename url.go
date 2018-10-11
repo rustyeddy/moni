@@ -7,39 +7,18 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// PreparseURL will clean up the URL if needed and determine
-// if the page represented by the URL needs scanning.  For example,
-// if the URL has just been crawled, we do not want to crawl it again.
-// Or it could be a URL that we do not want to crawl (like amazon.com for
-// example).
-func PrepareURL(urlstr string) (pi *PageInfo) {
+// NormalizeURL will make sure a scheme (protocol) is prepended
+// go domains that do not already sport a scheme.
+func NormalizeURL(urlstr string) (u *url.URL, ustr string) {
+	var err error
 
 	// Parse the string into the parts of the url
-	u, err := url.Parse(urlstr)
+	u, err = url.Parse(urlstr)
 	if err != nil {
-		log.Errorln("failed to parse url", urlstr, err)
-		return
+		log.Errorln("reject url ~ failed parse", urlstr, err)
+		return nil, ""
 	}
-	log.Debugf("PrepareURL URL: %+v", u)
-
-	// Check if we will allow crawling this hostname
-	if ACL.Reject(u.Hostname()) {
-		log.Infoln("ACL Rejects hostname", urlstr)
-		return
-	}
-
-	// Get (or create) a PageInfo struct for the given URL
-	pi = Pages.Get(u.Hostname())
-	if pi == nil {
-		log.Errorln("Expected page for %s got ()", urlstr)
-		return
-	}
-
-	// If the page has recently been crawled we wont do it again
-	if pi.Crawled {
-		log.Debugln("rejecting url", urlstr)
-		return
-	}
+	log.Debugf("PrepareURL URL: %+v, hostname %s", u, u.Hostname())
 
 	// make sure only have either http and https schemes. If the url has
 	// no scheme, colly will reject it, so we'll add the http scheme.
@@ -48,10 +27,46 @@ func PrepareURL(urlstr string) (pi *PageInfo) {
 		u.Scheme = "http"
 	case "http", "https":
 	default:
-		log.Warn("unsupported scheme", u.Scheme)
-		return
+		ACL.Unsupported[urlstr]++
+		log.Infof("unsupported scheme %s", u.Scheme)
+		return nil, ""
+	}
+	return u, u.String()
+}
+
+// PreparseURL will clean up the URL if needed and determine
+// if the page represented by the URL needs scanning.  For example,
+// if the URL has just been crawled, we do not want to crawl it again.
+// Or it could be a URL that we do not want to crawl (like amazon.com for
+// example).
+func PrepareURL(urlstr string) (pi *Page) {
+
+	u, ustr := NormalizeURL(urlstr)
+	if u == nil {
+		log.Errorln("failed to normalize ", urlstr)
 	}
 
+	// Check if we will allow crawling this hostname
+	if !ACL.IsAllowed(ustr) {
+		log.Infoln("rejected url ~ unallowed hostname", ustr)
+		return nil
+	}
+
+	// Get (or create) a PageInfo struct for the given URL
+	pi = Pages.Get(ustr)
+	if pi == nil {
+		log.Errorln("rejected url ~ get page failed", ustr)
+		return nil
+	}
+
+	// If the page has recently been crawled we wont do it again
+	if pi.Crawled {
+		log.Debugln("rejecting url ~ recently crawled", ustr)
+		return nil
+	}
+
+	// Ugly should be more better
+	pi.URL = ustr
 	return pi
 }
 

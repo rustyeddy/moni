@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/rustyeddy/store"
+	"github.com/rustyeddy/inv/store"
 )
 
 var (

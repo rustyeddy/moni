@@ -100,7 +100,7 @@ func (cli *Client) CrawlUrls(urls []string) {
 		if err != nil {
 			log.Errorln("Crawl failed ", url, err)
 		}
-		fmt.Printf("%s: %+v\n", page)
+		fmt.Printf("%s: %+v\n", url, page)
 	}
 }
 

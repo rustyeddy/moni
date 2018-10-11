@@ -20,14 +20,15 @@ var (
 	Config  Configuration
 	Storage *store.Store
 
-	Pages PageInfomap = make(PageInfomap)
-	Sites Sitemap     = make(Sitemap)
-	ACL   AccessList
-)
+	Pages Pagemap = make(Pagemap)
+	Sites Sitemap = make(Sitemap)
 
-func init() {
-	ACL = make(map[string]bool)
-}
+	ACL AccessList = AccessList{
+		Allowed:     make(map[string]int),
+		Rejected:    make(map[string]int),
+		Unsupported: make(map[string]int),
+	}
+)
 
 func main() {
 	flag.Parse()
@@ -48,7 +49,7 @@ func main() {
 
 	var err error
 	if Storage, err = store.UseStore(Config.StoreDir); err != nil {
-		log.Fatalf("failed to use store", Config.StoreDir, err)
+		log.Fatal("failed to use store", Config.StoreDir, err)
 	}
 
 	srv := &http.Server{

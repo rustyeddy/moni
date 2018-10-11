@@ -1,12 +1,15 @@
 package main
 
-import "time"
+import (
+	"time"
+)
 
 // ===================================================================
-type PageInfo struct {
-	URL     string
+type Page struct {
+	URL string
+
 	Content []byte
-	Links   map[string]int
+	Links   map[string]*Page
 	Ignored map[string]int
 
 	Crawled    bool
@@ -17,13 +20,13 @@ type PageInfo struct {
 }
 
 // ********************************************************************
-type PageInfomap map[string]*PageInfo
+type Pagemap map[string]*Page
 
-func GetPageInfo(url string) (pi *PageInfo) {
+func GetPage(url string) (pi *Page) {
 	if pi, ex := Pages[url]; !ex {
-		pi = &PageInfo{
+		pi = &Page{
 			URL:     url,
-			Links:   make(map[string]int),
+			Links:   make(map[string]*Page),
 			Ignored: make(map[string]int),
 		}
 		Pages[url] = pi
@@ -31,20 +34,20 @@ func GetPageInfo(url string) (pi *PageInfo) {
 	return pi
 }
 
-func (pm PageInfomap) Get(url string) (p *PageInfo) {
+func (pm Pagemap) Get(url string) (p *Page) {
 	if p, e := Visited[url]; e {
 		return p
 	}
 	return nil
 }
 
-func (pm PageInfomap) Exists(url string) bool {
+func (pm Pagemap) Exists(url string) bool {
 	if p := pm.Get(url); p != nil {
 		return true
 	}
 	return false
 }
 
-func (pm PageInfomap) Set(url string, p *PageInfo) {
+func (pm Pagemap) Set(url string, p *Page) {
 	Visited[url] = p
 }

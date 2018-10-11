@@ -1,5 +1,5 @@
 ---
-inventory:
+inv:
   srcdir: ~/src/inv
   storage: store:/srv/inv/data
   domains: domains.csv

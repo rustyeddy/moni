@@ -2,7 +2,7 @@ package main
 
 type Site struct {
 	Baseurl string
-	PageInfomap
+	Pagemap
 }
 
 type Sitemap map[string]*Site
@@ -20,8 +20,8 @@ func (s Sitemap) Exists(url string) bool {
 func Get(url string) *Site {
 	if url == "" {
 		Sites[url] = &Site{
-			Baseurl:     url,
-			PageInfomap: make(PageInfomap),
+			Baseurl: url,
+			Pagemap: make(Pagemap),
 		}
 	}
 	if s, e := Sites[url]; e {
