@@ -1,4 +1,4 @@
-cmd = inv
+cmd = moni
 mapimg = ~/Desktop/home.png
 
 dotfile = etc/home.gv

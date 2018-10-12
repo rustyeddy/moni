@@ -4,8 +4,7 @@ package store
 type index map[string]*Object
 
 func (i index) Find(idx string) (obj *Object) {
-	obj = i[idx]
-	return obj
+	return i[idx]
 }
 
 func (i index) Exists(idx string) bool {
