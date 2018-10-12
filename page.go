@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // ===================================================================
@@ -32,8 +33,8 @@ func GetPage(url string) (pi *Page) {
 			Ignored: make(map[string]int),
 		}
 		Pages[url] = pi
+		log.Debugf("Created page %s ~> ", url)
 	}
-	fmt.Printf(" returning page %+v\n", pi)
 	return pi
 }
 

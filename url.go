@@ -52,6 +52,7 @@ func PrepareURL(urlstr string) (pi *Page) {
 		log.Infof("reject url %s not allowed", ustr)
 		return nil
 	}
+
 	// Get (or create) a PageInfo struct for the given URL
 	pi = GetPage(ustr)
 	if pi == nil {

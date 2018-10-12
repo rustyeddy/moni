@@ -97,7 +97,7 @@ func Crawl(urlstr string) (p *Page, err error) {
 			p.Ignored[link]++
 			return
 		}
-		p.Links[link] = GetPage(link)
+		p.Links[link] = pi
 		e.Request.Visit(link)
 	})
 
