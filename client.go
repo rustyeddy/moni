@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 
@@ -50,7 +51,7 @@ func (cli *Client) Get(url string) {
 	log.Infof("Wrote %d to reader", n)
 }
 
-func (cli *Client) Start(done chan<- bool) {
+func (cli *Client) Start() {
 	reader := bufio.NewReader(os.Stdin)
 	running := true
 	for running {
@@ -58,15 +59,13 @@ func (cli *Client) Start(done chan<- bool) {
 		line, err := reader.ReadString('\n')
 		if err != nil {
 			log.Errorf("failed to read string %+v", err)
-			done <- true
-			return
+			continue
 		}
 
 		// Remove whitespace around line
 		input := strings.Trim(line, " \t\n")
 		if input == "" {
-			// Ignore blank lines
-			continue
+			continue // ignore blank lines
 		}
 
 		// Chop string into an array of words
@@ -79,7 +78,7 @@ func (cli *Client) Start(done chan<- bool) {
 
 		cmd := cmds[0]
 		switch cmd {
-		case "walk":
+		case "crawl":
 			cli.CrawlUrls(cmds[1:])
 		case "home":
 			cli.Get("/")
@@ -91,16 +90,31 @@ func (cli *Client) Start(done chan<- bool) {
 		}
 	}
 	fmt.Println("client is exiting")
-	done <- true
 }
 
 func (cli *Client) CrawlUrls(urls []string) {
 	for _, url := range urls {
-		page, err := Crawl(url)
+
+		// Prepare a request
+		req, err := http.NewRequest("GET", "/crawl/"+url, nil) // nil is io.Reader (body)
 		if err != nil {
-			log.Errorln("Crawl failed ", url, err)
+			log.Errorln("Client ~ failed to create an http.NewRequest")
+			return
 		}
-		fmt.Printf("%s: %+v\n", url, page)
+		w := httptest.NewRecorder()
+
+		// CrawlHandler is the same function called by the HTTP server!
+		// which takes care of sanitizing the URL(s) and other house
+		// keeping functions, we will just reuse it from the command line.
+		CrawlHandler(w, req)
+
+		// Let Us handle the result
+		resp := w.Result()
+		body, err := ioutil.ReadAll(resp.Body)
+
+		fmt.Println(resp.StatusCode)
+		fmt.Println(resp.Header.Get("Content-Type"))
+		fmt.Println(string(body))
 	}
 }
 

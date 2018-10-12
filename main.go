@@ -38,41 +38,65 @@ func main() {
 	// the flow of main clean, though a quick look at configs and flags
 	// in config.go will be useful
 
-	// Setup storage
+	// ====================================================================
+	// Setup storage (default local storage, look for redis or mongo)
 	Storage := initStorage(Config.StoreDir)
 	AssertNotNil(Storage)
 
-	// Create the router home page server
-	srv := httpServer()
+	// ====================================================================
+	// Create and run the server if the program is supposed to
+	var srv *http.Server
+	if Config.Serve {
+		srv = httpServer()
+		go startServer(srv)
+	}
 
-	// Run our server in a goroutine so that it doesn't block.
-	go func() {
-		if err := srv.ListenAndServe(); err != nil {
-			log.Println(err)
+	// ====================================================================
+	// Create loop in a command prompt performing what ever is needed
+	var cli *Client
+	if Config.Cli {
+		cli = NewClient(Config.Addrport)
+		go cli.Start()
+	}
+
+	// ========================================================================
+	// Process commands from the command line
+	if len(os.Args) > 0 {
+		// Run a single command in the foreground
+		switch os.Args[0] {
+		case "crawl":
+			cli := NewClient(Config.Addrport)
+			go cli.CrawlUrls(os.Args)
 		}
-	}()
+	}
 
-	c := make(chan os.Signal, 1)
+	// ====================================================================
 	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
 	// SIGKILL, SIGQUIT or SIGTERM (Ctrl+/) will not be caught.
-	signal.Notify(c, os.Interrupt)
+	if Config.Cli || Config.Serve {
 
-	// Block until we receive our signal.
-	<-c
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt)
 
-	// Start cleaning up before we shut down.  Make sure we flush all data
-	// we want flushed ...
+		// Block until we receive our signal.
+		<-c
 
-	// Create a deadline to wait for.
-	ctx, cancel := context.WithTimeout(context.Background(), Config.Wait)
-	defer cancel()
-	// Doesn't block if no connections, but will otherwise wait
-	// until the timeout deadline.
-	srv.Shutdown(ctx)
-	// Optionally, you could run srv.Shutdown in a goroutine and block on
-	// <-ctx.Done() if your application should wait for other services
-	// to finalize based on context cancellation.
-	log.Println("shutting down")
+		// Start cleaning up before we shut down.  Make sure we flush all data
+		// we want flushed ...
+		Storage.Shutdown()
+
+		// Create a deadline to wait for.
+		ctx, cancel := context.WithTimeout(context.Background(), Config.Wait)
+		defer cancel()
+		// Doesn't block if no connections, but will otherwise wait
+		// until the timeout deadline.
+		srv.Shutdown(ctx)
+		// Optionally, you could run srv.Shutdown in a goroutine and block on
+		// <-ctx.Done() if your application should wait for other services
+		// to finalize based on context cancellation.
+		log.Println("shutting down")
+
+	}
 	os.Exit(0)
 }
 
@@ -106,6 +130,14 @@ func httpServer() *http.Server {
 		Handler:      r, // Pass our instance of gorilla/mux in.
 	}
 	return srv
+}
+
+func startServer(srv *http.Server) (err error) {
+	// Run our server in a goroutine so that it doesn't block.
+	if err = srv.ListenAndServe(); err != nil {
+		log.Println(err)
+	}
+	return err
 }
 
 func initStorage(dir string) (storage *store.Store) {

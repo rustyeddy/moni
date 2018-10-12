@@ -255,3 +255,10 @@ func (s *Store) indexPaths(pattern string) (err error) {
 func (s *Store) Count() int {
 	return len(s.Index())
 }
+
+// ==============================================================================
+
+func (s *Store) Shutdown() {
+	// Flush in memory data
+	// Shutdown connections
+}

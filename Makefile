@@ -9,10 +9,10 @@ go.mod:
 	mod init github.com/rustyeddy/inv
 
 build: 
-	go build 
+	go build -o $(cmd)
 
 buildv: 
-	go build -v
+	go build -v $(cmd)
 
 run:
 	go run *.go
