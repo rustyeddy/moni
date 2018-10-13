@@ -6,12 +6,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"net/http/pprof"
 	"os"
 	"os/signal"
-	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/rustyeddy/inv/store"
 )
 
@@ -32,12 +29,17 @@ var (
 )
 
 func main() {
-	flag.Parse()
+
+	var (
+		srv *http.Server
+		cli *Client
+	)
 
 	// Flags are all handled in the config.go file just because there
 	// are lots of them with some post processing bits, perfer to keep
 	// the flow of main clean, though a quick look at configs and flags
 	// in config.go will be useful
+	flag.Parse()
 
 	// ====================================================================
 	// Setup storage (default local storage, look for redis or mongo)
@@ -46,16 +48,13 @@ func main() {
 
 	// ====================================================================
 	// Create and run the server if the program is supposed to
-	var srv *http.Server
 	if Config.Serve {
 		srv = httpServer()
-		fmt.Printf("starting http server %+v\n", srv)
 		go startServer(srv)
 	}
 
 	// ====================================================================
 	// Create loop in a command prompt performing what ever is needed
-	var cli *Client
 	if Config.Cli {
 		cli = NewClient(Config.Addrport)
 		go cli.Start()
@@ -108,41 +107,6 @@ func main() {
 func ShutdownHandler(w http.ResponseWriter, r *http.Request) {
 	// Time to write out all open files
 	os.Exit(2)
-}
-
-func httpServer() *http.Server {
-	r := mux.NewRouter()
-	r.HandleFunc("/", AppHandler)
-	r.HandleFunc("/crawl/{url}", CrawlHandler)
-	r.HandleFunc("/acl", ACLHandler)
-	r.HandleFunc("/update/", UpdateHandler)
-
-	// Set the profile handlers if we have flagged them to be turned on
-	if Config.Profile {
-		r.HandleFunc("/debug/pprof/", pprof.Index)
-		r.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-		r.HandleFunc("/debug/pprof/profile", pprof.Profile)
-		r.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-		r.HandleFunc("/debug/pprof/trace", pprof.Trace)
-	}
-
-	srv := &http.Server{
-		Addr: Config.Addrport,
-		// Good practice to set timeouts to avoid Slowloris attacks.
-		WriteTimeout: time.Second * 15,
-		ReadTimeout:  time.Second * 15,
-		IdleTimeout:  time.Second * 60,
-		Handler:      r, // Pass our instance of gorilla/mux in.
-	}
-	return srv
-}
-
-func startServer(srv *http.Server) (err error) {
-	// Run our server in a goroutine so that it doesn't block.
-	if err = srv.ListenAndServe(); err != nil {
-		log.Println(err)
-	}
-	return err
 }
 
 func initStorage(dir string) (storage *store.Store) {
