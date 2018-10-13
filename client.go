@@ -54,8 +54,11 @@ func (cli *Client) Get(url string) {
 func (cli *Client) Start() {
 	reader := bufio.NewReader(os.Stdin)
 	running := true
+
 	for running {
+
 		fmt.Print("prompt~> ")
+
 		line, err := reader.ReadString('\n')
 		if err != nil {
 			log.Errorf("failed to read string %+v", err)
@@ -93,6 +96,7 @@ func (cli *Client) Start() {
 }
 
 func (cli *Client) CrawlUrls(urls []string) {
+	r := httpServer().Handler
 	for _, url := range urls {
 
 		// Prepare a request
@@ -106,7 +110,8 @@ func (cli *Client) CrawlUrls(urls []string) {
 		// CrawlHandler is the same function called by the HTTP server!
 		// which takes care of sanitizing the URL(s) and other house
 		// keeping functions, we will just reuse it from the command line.
-		CrawlHandler(w, req)
+		r.ServeHTTP(w, req)
+		// get called with vars set properly -> CrawlHandler(w, req)
 
 		// Let Us handle the result
 		resp := w.Result()

@@ -28,12 +28,17 @@ func CrawlHandler(w http.ResponseWriter, r *http.Request) {
 	// 1. Extract and sanitize the URL from the request and sanitize it
 	vars := mux.Vars(r)
 	_, ustr := NormalizeURL(vars["url"])
+	if ustr == "" {
+		fmt.Fprintf(w, "error needs url")
+		return
+	}
 
 	// Add this URL to the allowed list so PrepareURL does not reject
 	// this url
 	ACL.AllowHost(ustr)
 
 	// Now prepare the URL and get a page back
+	log.Println("Calling Prepare ", ustr)
 	pi := PrepareURL(ustr)
 	if pi == nil {
 		log.Errorf("url rejected %s", ustr)

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/pprof"
@@ -48,6 +49,7 @@ func main() {
 	var srv *http.Server
 	if Config.Serve {
 		srv = httpServer()
+		fmt.Printf("starting http server %+v\n", srv)
 		go startServer(srv)
 	}
 
@@ -61,12 +63,15 @@ func main() {
 
 	// ========================================================================
 	// Process commands from the command line
-	if len(os.Args) > 0 {
+	nargs := len(flag.Args())
+	if nargs > 0 {
+		fmt.Println("Crawling ...  ")
+
 		// Run a single command in the foreground
-		switch os.Args[0] {
+		switch flag.Arg(0) {
 		case "crawl":
 			cli := NewClient(Config.Addrport)
-			go cli.CrawlUrls(os.Args)
+			cli.CrawlUrls(os.Args)
 		}
 	}
 

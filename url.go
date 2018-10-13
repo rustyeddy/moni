@@ -11,6 +11,10 @@ import (
 // go domains that do not already sport a scheme.
 func NormalizeURL(urlstr string) (u *url.URL, ustr string) {
 	var err error
+	if urlstr == "" {
+		log.Errorln("Stop sending me blank URLs idiot")
+		return nil, ""
+	}
 
 	// Parse the string into the parts of the url
 	u, err = url.Parse(urlstr)
