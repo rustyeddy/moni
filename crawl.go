@@ -1,9 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/gocolly/colly"
@@ -11,83 +12,33 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type CrawlJob struct {
-	ID  string
-	URL string
-	*Page
-}
-
 var (
 	Visited    Pagemap = make(Pagemap)
 	CrawlDepth int     = 1
 )
 
-// CrawlHandler will handle incoming HTTP request to crawl a URL
-func CrawlHandler(w http.ResponseWriter, r *http.Request) {
-
-	// 1. Extract and sanitize the URL from the request and sanitize it
-	vars := mux.Vars(r)
-	_, ustr := NormalizeURL(vars["url"])
-	if ustr == "" {
-		fmt.Fprintf(w, "error needs url")
-		return
-	}
-
-	// Add this URL to the allowed list so PrepareURL does not reject
-	// this url
-	ACL.AllowHost(ustr)
-
-	// Now prepare the URL and get a page back
-	log.Println("Calling Prepare ", ustr)
-	pi := PrepareURL(ustr)
-	if pi == nil {
-		log.Errorf("url rejected %s", ustr)
-		fmt.Fprintf(w, "url rejected %s", ustr)
-		return
-	}
-
-	// TODO: this is where we create a Job and give them a token
-	// to look back later.
-	log.Infoln("crawl", ustr)
-	page, err := Crawl(ustr)
-	if err != nil {
-		fmt.Fprint(w, "ustr", err)
-		return
-	}
-
-	// Determine an index to store the page under. The URL is perfect
-	// except that it will likely contain '/' which conflict with the
-	// pathname.  Hence our index must not contain slashes.
-	name := nameFromURL(ustr)
-	_, err = Storage.StoreObject(name, page)
-	if err != nil {
-		log.Errorln("Failed to create local store")
-		fmt.Fprintf(w, "Internal Error %s", ustr)
-		return
-	}
-
-	jbytes, err := json.Marshal(page)
-	if err != nil {
-		log.Errorln("marshal json", ustr, err)
-		fmt.Fprintf(w, "Internal Error")
-	}
-
-	w.Header().Add("Content-Type", "application/json")
-	w.Write(jbytes)
-}
-
 // Crawl will visit the given URL, and depending on configuration
 // options potentially walk internal links.
-func Crawl(urlstr string) (p *Page, err error) {
-	log.Infoln("crawling", urlstr)
+func Crawl(pg *Page) {
 
-	// Create the collector and go get shit!
+	// Create the collector and go get shit! (preserve?)
 	c := colly.NewCollector(
 		colly.MaxDepth(2),
 	)
 
 	c.OnRequest(func(r *colly.Request) {
-		log.Infoln("Visiting site ", r.URL)
+		ustr := r.URL.String()
+		u, err := NormalizeURL(ustr)
+		if err != nil {
+			log.Errorf("normalizing url %s => %v", r.URL, err)
+			return
+		}
+		site := SiteFromURL(u)
+		if site == nil {
+			log.Errorln("failed to get site ", r.URL)
+			return
+		}
+		log.Infof("Visiting site %s ", site.URL)
 	})
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
@@ -95,41 +46,132 @@ func Crawl(urlstr string) (p *Page, err error) {
 		if link == "" {
 			return
 		}
-		pi := PrepareURL(link)
-		if pi == nil {
-			// The link has been filtered for one
-			// reason or another, we will move along
-			p.Ignored[link]++
+
+		u, err := NormalizeURL(link)
+		if err != nil {
+			log.Errorf("expected url got error %v", err)
 			return
 		}
-		p.Links[link] = pi
-		e.Request.Visit(link)
+		hp := Hostport(u)
+
+		newpg := CrawlOrNot(u)
+		if newpg == nil {
+			// The link has been filtered for one
+			// reason or another, we will move along
+			log.Debugf("  ignoring %s ", hp)
+			pg.Ignored[hp]++
+			return
+		}
+		pg.Links[hp] = newpg
+		e.Request.Visit(newpg.URL)
 	})
 
 	c.OnResponse(func(r *colly.Response) {
 		link := r.Request.URL
 		log.Infoln("  response from", link, "status", r.StatusCode)
-		p.StatusCode = r.StatusCode
-		p.End = time.Now()
-		p.Crawled = true
+		pg.StatusCode = r.StatusCode
+		pg.Finish = time.Now()
 	})
 
 	c.OnError(func(r *colly.Response, err error) {
 		log.Infoln("error:", r.StatusCode, err)
-		p.StatusCode = r.StatusCode
-		p.End = time.Now()
+		pg.StatusCode = r.StatusCode
+		pg.Finish = time.Now()
 	})
 
-	// Get the page we'll use for this walk
-	if p = Visited.Get(urlstr); p == nil {
-		p = &Page{
-			URL:     urlstr,
-			Links:   make(map[string]*Page),
-			Ignored: make(map[string]int),
-		}
-		Visited[urlstr] = p
+	pg.Start = time.Now()
+	c.Visit(pg.URL)
+}
+
+// CrawlOrNot will determine if the provided url is allowed to be crawled,
+// and if enough time has passed before the url can be scanned again
+func CrawlOrNot(url *url.URL) (pi *Page) {
+
+	// Check if we will allow crawling this hostname
+	hp := Hostport(url)
+
+	allowed := ACL.IsAllowed(hp)
+	if !allowed {
+		log.Debugf("  not allowed %s add reason ..", hp)
+		return nil
 	}
-	p.Start = time.Now()
-	c.Visit(urlstr)
-	return p, nil
+
+	if pi = GetPage(url); pi == nil {
+		log.Errorf("page not found url %s hostport %s", url.String(), hp)
+		return nil
+	}
+
+	if !pi.crawl {
+		log.Debugf("  %s not ready to crawl ~ crawl bit off ", hp)
+		return nil
+	}
+	return pi
+}
+
+// CrawlHandler will handle incoming HTTP request to crawl a URL
+func CrawlHandler(w http.ResponseWriter, r *http.Request) {
+
+	// Prepare for Execution
+	// ====================================================================
+
+	// Get host URL from mux.vars
+	vars := mux.Vars(r)
+
+	// Normalize the URL and fill in a scheme it does not exist
+	url, err := NormalizeURL(vars["url"])
+	if err != nil {
+		fmt.Fprintf(w, "I had a problem with the url %v", url)
+		return
+	}
+
+	// Add this host to the allowed host name, that way CrawlOrNot
+	// will not reject the hostname.  TODO: set a config to allow
+	// this to be turned on or off.
+	hname := Hostport(url)
+	ACL.AllowHost(hname)
+
+	// CrawlOrNot will determine if we are permited to crawl this
+	// link. If we are permitted, is the link ready to be crawled.
+	// CrawlOrNot will figure that our and return a job ready to
+	// be scheduled (or just played).
+	//
+	// If the url has too recently been scanned we will return
+	// null for the job, however a copy of the scan will is
+	// available and will be returned to the caller.
+	ustr := url.String()
+	page := CrawlOrNot(url)
+	if page == nil {
+		log.Errorf("url rejected %s", ustr)
+		fmt.Fprintf(w, "url rejected %s", ustr)
+		return
+	}
+
+	// ^^^ This is where the job gets queued (written to the job channel) ^^^
+	// vvv This is where the (next free?) Crawler grabs a crawl job
+	Crawl(page)
+
+	// Cache the results ...  We'll replace any '/'
+	// in the URL with '-' and store the results in
+	// a cache.
+	name := nameFromURL(ustr)
+	obj, err := Storage.StoreObject(name, page)
+	if err != nil {
+		log.Errorln("Failed to create local store")
+		fmt.Fprintf(w, "Internal Error %s", ustr)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(obj.Buffer)
+}
+
+func nameFromURL(urlstr string) (name string) {
+	u, err := url.Parse(urlstr)
+	if err != nil {
+		log.Errorln(err)
+		return
+	}
+	name = u.Hostname()
+	name = strings.Replace(name, ".", "-", -1)
+	return name
 }

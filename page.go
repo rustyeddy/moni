@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/url"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -14,26 +15,33 @@ type Page struct {
 	Links   map[string]*Page
 	Ignored map[string]int
 
-	Crawled    bool
-	StatusCode int
+	LastCrawled time.Time
+	StatusCode  int
 
-	Start time.Time
-	End   time.Time
+	Start  time.Time
+	Finish time.Time
+
+	*Site
 }
 
 // ********************************************************************
 type Pagemap map[string]*Page
 
-func GetPage(url string) (pi *Page) {
+// GetPage will sanitize the url, either find or create the
+// corresponding page structure.  If the URL is deep, we also
+// find the corresponding site structure.
+func GetPage(url *url.URL) (pi *Page) {
+	ustr := url.String()
 	var ex bool
-	if pi, ex = Pages[url]; !ex {
+	if pi, ex = Pages[ustr]; !ex {
 		pi = &Page{
-			URL:     url,
+			URL:     url.String(),
 			Links:   make(map[string]*Page),
 			Ignored: make(map[string]int),
+			Site:    SiteFromURL(url),
 		}
-		Pages[url] = pi
-		log.Debugf("Created page %s ~> ", url)
+		Pages[ustr] = pi
+		log.Infof("Created page %v", pi.URL)
 	}
 	return pi
 }

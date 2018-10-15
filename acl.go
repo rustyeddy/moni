@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -18,50 +17,44 @@ type AccessList struct {
 	Unsupported map[string]int
 }
 
-func (acl *AccessList) AllowHost(ustr string) {
-	u, _ := NormalizeURL(ustr)
-	if u == nil {
+// AllowHost will naively take only the host, ignoring port,
+// and other fields to just the host.
+func (acl *AccessList) AllowHost(h string) {
+	if h == "" {
 		log.Errorln("AllowHost normalizedURL failed to")
 		return
 	}
-	hname := u.Hostname()
-	acl.Allowed[hname]++
+	acl.Allowed[h]++
 }
 
-func (acl *AccessList) RejectHost(ustr string) {
-	u, _ := NormalizeURL(ustr)
-	if ustr == "" {
+// Reject takes the host name and creates an acl entry.
+// And naively ignores things like scheme and port, etc.
+func (acl *AccessList) RejectHost(h string) {
+	if h == "" {
 		log.Errorln("RejectHost NormalizedURL failed")
 		return
 	}
-	hname := u.Hostname()
-	acl.Rejected[hname]++
+	acl.Rejected[h]++
 }
 
-func (acl *AccessList) IsAllowed(ustr string) (allow bool) {
-	u, err := url.Parse(ustr)
-	if err != nil {
-		return false
-	}
-	hname := u.Hostname()
-	if hname == "" {
-		acl.Rejected[hname]++
-		return false
-	}
-
-	if _, ex := acl.Allowed[hname]; ex {
-		acl.Allowed[hname]++
+// IsAllowed matches the url against the acl to determine
+// if this site (or url) is allowed to be crawled.  IsAllowed
+// can assume the  url has been normalized
+func (acl *AccessList) IsAllowed(hp string) (allow bool) {
+	if _, ex := acl.Allowed[hp]; ex {
+		acl.Allowed[hp]++
 		return true
 	}
 
-	if _, ex := acl.Rejected[hname]; ex {
-		acl.Rejected[hname]++
+	if _, ex := acl.Rejected[hp]; ex {
+		acl.Allowed[hp]++
 	} else {
-		acl.Rejected[hname]++
+		acl.Rejected[hp]++
 	}
 	return false
 }
 
+// ACLHandler will respond to ACL requests
 func ACLHandler(w http.ResponseWriter, r *http.Request) {
 
 	jbytes, err := json.Marshal(&ACL)
@@ -70,11 +63,5 @@ func ACLHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "internal error")
 	} else {
 		w.Write(jbytes)
-	}
-
-	// Now lets try to store this thing
-	_, err = Storage.StoreObject("acl", &ACL)
-	if err != nil {
-		log.Errorf("ACL Handler ~ failed to store ACL")
 	}
 }

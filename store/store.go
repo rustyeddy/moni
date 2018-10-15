@@ -8,8 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"mime"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,59 +15,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 )
-
-// ====================================================================
-//                        Store
-// ====================================================================
-
-// Store is the main structure of this package.  It has a name and
-// maintains a path, ObjectIndex and some house keeping private fields
-type Store struct {
-	Path    string // basedir of this store
-	Name    string // the name of the store provider
-	Created string
-	index
-}
-
-// UseStore creates and returns a new storage container.  If a dir
-// already exists, that directory will be used.  If the directory
-// does not exist it will be created.
-func UseStore(path string) (s *Store, err error) {
-	path = filepath.Clean(path)
-	s = &Store{
-		Path:    path,
-		Name:    NameFromPath(path),
-		Created: timeStamp(),
-		index:   make(index),
-	}
-
-	// Determine if we are using an existing directory or need
-	// to create a new one.
-	// TODO - XXX - Add a permission check.
-	if _, err = os.Stat(path); os.IsNotExist(err) {
-		// create the path that did not previously exist
-		if err := os.MkdirAll(path, 0755); err != nil {
-			return nil, fmt.Errorf("mkdir %s: %v", path, err)
-		}
-	}
-	// We already have the store get an index
-	s.buildIndex()
-	log.Debugln(s.String())
-	return s, nil
-}
-
-// String a simple summary of our store
-func (s *Store) String() string {
-	return fmt.Sprintf("name: %s path %s, object count: %d",
-		s.Name, s.Path, len(s.Index()))
-}
-
-func (s *Store) Index() index {
-	if s.index == nil {
-		s.buildIndex()
-	}
-	return s.index
-}
 
 // timeStamp returns a timestamp in a modified RFC3339 format,
 // basically remove all colons ':' from filename, since they have a
@@ -125,41 +70,6 @@ func (s *Store) StoreObject(name string, data interface{}) (obj *Object, err err
 		return nil, fmt.Errorf("  Store.Object write failed %s -> %v", obj.Path, err)
 	}
 	s.Set(name, obj)
-	return obj, nil
-}
-
-// FetchObject unmarshal the contents of the file using the type
-// template passed in by otype.  The original Go object will be
-// is decoded if desired (e.g. JSON), and a Go object is returned. Nil
-// is returned if thier is a problem, such as no object existing.
-func (s *Store) FetchObject(name string, otype interface{}) (obj *Object, err error) {
-
-	if obj = s.Get(name); obj == nil {
-		return nil, fmt.Errorf("Fetch Object does NOT EXIST")
-	}
-
-	// If our buffer is nil, we will need to fetch the data from the store.
-	if obj.Buffer == nil {
-		obj.Buffer, err = ioutil.ReadFile(obj.Path)
-		if err != nil {
-			return nil, fmt.Errorf("  FetchObject failed reading %s -> %v\n", obj.Path, err)
-		}
-	}
-	log.Debugf("  ++ found %d bytes from %s ", len(obj.Buffer), obj.Path)
-
-	// Determine the content type we are dealing with
-	ext := filepath.Ext(obj.Path)
-	if ext != "" {
-		if obj.ContentType = mime.TypeByExtension(ext); obj.ContentType == "" {
-			obj.ContentType = http.DetectContentType(obj.Buffer)
-		}
-	}
-
-	if obj.ContentType == "application/json" {
-		if err := json.Unmarshal(obj.Buffer, otype); err != nil {
-			return nil, fmt.Errorf("%s: %v", name, err)
-		}
-	}
 	return obj, nil
 }
 

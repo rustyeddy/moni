@@ -61,9 +61,27 @@ func GetConfiguration() *Configuration {
 	return &Config
 }
 
+// SaveFile will write the configuration out to our Storage as JSON.  As of
+// now we are using the Storage interface to save our configurations.  Hence,
+// we will use a label name and not a filename, although the label name can
+// look like a filename..  That is a label can be "config.json" but it can
+// NOT have any leading path '/' characters
 func (c *Configuration) SaveFile() {
 	_, err := Storage.StoreObject(c.ConfigFile, c)
 	if err != nil {
 		log.Errorln("Failed writing configuration", c.ConfigFile, err)
 	}
+}
+
+// ReadFile fetches our configuration object from our storage container,
+// if needed, the object will be converted from JSON to a Go object before
+// being returned.
+func (c *Configuration) ReadFile() {
+	cfg, err := Storage.FetchObject(c.ConfigFile, c)
+	if err != nil {
+		log.Errorf("Fetch object failed %v", err)
+		return
+	}
+	// handle config upates
+	log.Errorf("TODO incorporate config changes %+v\n", cfg)
 }

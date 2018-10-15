@@ -1,13 +1,50 @@
 package main
 
-/*
+import (
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+)
+
+func TestCrawlHandler(t *testing.T) {
+
+	// Craft up a request with the URL we want to test
+	req := httptest.NewRequest("GET", "http://example.com:8888/crawl/example.com", nil)
+	w := httptest.NewRecorder()
+
+	// Now crawl
+	CrawlHandler(w, req)
+
+	// Look at the response
+	resp := w.Result()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Errorf("failed to read body %v", err)
+	}
+	if resp.StatusCode != 200 {
+		t.Errorf("expected (200) got (%d)", resp.StatusCode)
+	}
+
+	ctype := resp.Header.Get("Content-Type")
+	if ctype != "application/json" {
+		t.Errorf("expected content type (application/json) got (%s)", ctype)
+	}
+
+	data := string(body)
+	if data != "foo" {
+		t.Errorf("expected body (%s) got (%s)", "foo", data)
+	}
+}
+
 // handler keeps failing ???
 func TestACLHandler(t *testing.T) {
 	// Create a request to pass to our handler. We don't have any query parameters for now, so we'll
 	// pass 'nil' as the third parameter.
 	req, err := http.NewRequest("GET", "/acl", nil)
 	if err != nil {
-		t.Fatal(err)
+		t.Errorf("failed to create new test %v", err)
 	}
 
 	// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
@@ -33,4 +70,3 @@ func TestACLHandler(t *testing.T) {
 			bod, expected)
 	}
 }
-*/

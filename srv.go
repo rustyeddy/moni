@@ -9,6 +9,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// httpServer creates the router, registers the handlers then
+// creates the server, primed and ready to be started.  We pass the
+// *http.Server back to the caller, allowing it (main as of this
+// writing) it to `go startServer(srv)` start the server as a
+// Go Routine().
 func httpServer() *http.Server {
 	r := mux.NewRouter()
 	r.HandleFunc("/", AppHandler)
@@ -25,6 +30,7 @@ func httpServer() *http.Server {
 		r.HandleFunc("/debug/pprof/trace", pprof.Trace)
 	}
 
+	// Create the Server itself
 	srv := &http.Server{
 		Addr: Config.Addrport,
 		// Good practice to set timeouts to avoid Slowloris attacks.
@@ -36,6 +42,8 @@ func httpServer() *http.Server {
 	return srv
 }
 
+// startServer actually starts the server, most likely as a Go routine
+// background function.
 func startServer(srv *http.Server) (err error) {
 	// Run our server in a goroutine so that it doesn't block.
 	if err = srv.ListenAndServe(); err != nil {
