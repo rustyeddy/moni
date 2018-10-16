@@ -1,10 +1,7 @@
 package main
 
 import (
-	"net/url"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // ===================================================================
@@ -30,24 +27,22 @@ type Pagemap map[string]*Page
 // GetPage will sanitize the url, either find or create the
 // corresponding page structure.  If the URL is deep, we also
 // find the corresponding site structure.
-func GetPage(url *url.URL) (pi *Page) {
-	ustr := url.String()
+func GetPage(ustr string) (pi *Page) {
 	var ex bool
 	if pi, ex = Pages[ustr]; !ex {
 		pi = &Page{
-			URL:     url.String(),
+			URL:     ustr,
 			Links:   make(map[string]*Page),
 			Ignored: make(map[string]int),
-			Site:    SiteFromURL(url),
+			Site:    SiteFromURL(ustr),
 		}
 		Pages[ustr] = pi
-		log.Infof("Created page %v", pi.URL)
 	}
 	return pi
 }
 
 func (pm Pagemap) Get(url string) (p *Page) {
-	if p, e := Visited[url]; e {
+	if p, e := Pages[url]; e {
 		return p
 	}
 	return nil
@@ -61,5 +56,5 @@ func (pm Pagemap) Exists(url string) bool {
 }
 
 func (pm Pagemap) Set(url string, p *Page) {
-	Visited[url] = p
+	Pages[url] = p
 }

@@ -13,13 +13,14 @@ import (
 )
 
 var (
-	Visited    Pagemap = make(Pagemap)
-	CrawlDepth int     = 1
+	CrawlDepth int = 1
 )
 
 // Crawl will visit the given URL, and depending on configuration
 // options potentially walk internal links.
 func Crawl(pg *Page) {
+
+	var site *Site
 
 	// Create the collector and go get shit! (preserve?)
 	c := colly.NewCollector(
@@ -28,17 +29,17 @@ func Crawl(pg *Page) {
 
 	c.OnRequest(func(r *colly.Request) {
 		ustr := r.URL.String()
-		u, err := NormalizeURL(ustr)
+		ustr, err := NormalizeURL(ustr)
 		if err != nil {
 			log.Errorf("normalizing url %s => %v", r.URL, err)
 			return
 		}
-		site := SiteFromURL(u)
+		site = SiteFromURL(ustr)
 		if site == nil {
 			log.Errorln("failed to get site ", r.URL)
 			return
 		}
-		log.Infof("Visiting site %s ", site.URL)
+		log.Debugf("Visiting site %s ", site.URL)
 	})
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
@@ -47,36 +48,37 @@ func Crawl(pg *Page) {
 			return
 		}
 
-		u, err := NormalizeURL(link)
+		// Parsing and converting seems necessary
+		ustr, err := NormalizeURL(link)
 		if err != nil {
 			log.Errorf("expected url got error %v", err)
 			return
 		}
-		hp := Hostport(u)
-
-		newpg := CrawlOrNot(u)
+		newpg := CrawlOrNot(ustr)
 		if newpg == nil {
 			// The link has been filtered for one
 			// reason or another, we will move along
-			log.Debugf("  ignoring %s ", hp)
-			pg.Ignored[hp]++
+			log.Debugf("  ignoring %s ", ustr)
+			pg.Ignored[ustr]++
 			return
 		}
-		pg.Links[hp] = newpg
+		pg.Links[ustr] = newpg
 		e.Request.Visit(newpg.URL)
 	})
 
 	c.OnResponse(func(r *colly.Response) {
-		link := r.Request.URL
-		log.Infoln("  response from", link, "status", r.StatusCode)
+		link := r.Request.URL.String()
+		log.Debugln("  response from", link, "status", r.StatusCode)
 		pg.StatusCode = r.StatusCode
 		pg.Finish = time.Now()
+		Pages[link] = pg
 	})
 
 	c.OnError(func(r *colly.Response, err error) {
 		log.Infoln("error:", r.StatusCode, err)
 		pg.StatusCode = r.StatusCode
 		pg.Finish = time.Now()
+		Pages[r.Request.URL.String()] = pg
 	})
 
 	pg.Start = time.Now()
@@ -85,24 +87,21 @@ func Crawl(pg *Page) {
 
 // CrawlOrNot will determine if the provided url is allowed to be crawled,
 // and if enough time has passed before the url can be scanned again
-func CrawlOrNot(url *url.URL) (pi *Page) {
+func CrawlOrNot(urlstr string) (pi *Page) {
 
-	// Check if we will allow crawling this hostname
-	hp := Hostport(url)
-
-	allowed := ACL.IsAllowed(hp)
+	allowed := ACL.IsAllowed(urlstr)
 	if !allowed {
-		log.Debugf("  not allowed %s add reason ..", hp)
+		log.Debugf("  not allowed %s add reason ..", urlstr)
 		return nil
 	}
 
-	if pi = GetPage(url); pi == nil {
-		log.Errorf("page not found url %s hostport %s", url.String(), hp)
+	if pi = GetPage(urlstr); pi == nil {
+		log.Errorf("page not found url %s", urlstr)
 		return nil
 	}
 
 	if !pi.crawl {
-		log.Debugf("  %s not ready to crawl ~ crawl bit off ", hp)
+		log.Debugf("  %s not ready to crawl ~ crawl bit off ", urlstr)
 		return nil
 	}
 	return pi
@@ -117,29 +116,25 @@ func CrawlHandler(w http.ResponseWriter, r *http.Request) {
 	// Get host URL from mux.vars
 	vars := mux.Vars(r)
 
+	ustr := vars["url"]
+
 	// Normalize the URL and fill in a scheme it does not exist
-	url, err := NormalizeURL(vars["url"])
+	ustr, err := NormalizeURL(ustr)
 	if err != nil {
-		fmt.Fprintf(w, "I had a problem with the url %v", url)
+		fmt.Fprintf(w, "I had a problem with the url %v", ustr)
 		return
 	}
 
-	// Add this host to the allowed host name, that way CrawlOrNot
-	// will not reject the hostname.  TODO: set a config to allow
-	// this to be turned on or off.
-	hname := Hostport(url)
-	ACL.AllowHost(hname)
+	// This conversion back to string is necessary and simple domain
+	// name like "example.com" will be placeded in the url.URL.Path
+	// field instead of the Host field.  However url.String() makes
+	// everything right.
+	ACL.AllowHost(ustr)
 
-	// CrawlOrNot will determine if we are permited to crawl this
-	// link. If we are permitted, is the link ready to be crawled.
-	// CrawlOrNot will figure that our and return a job ready to
-	// be scheduled (or just played).
-	//
 	// If the url has too recently been scanned we will return
 	// null for the job, however a copy of the scan will is
 	// available and will be returned to the caller.
-	ustr := url.String()
-	page := CrawlOrNot(url)
+	page := CrawlOrNot(ustr)
 	if page == nil {
 		log.Errorf("url rejected %s", ustr)
 		fmt.Fprintf(w, "url rejected %s", ustr)
@@ -148,6 +143,7 @@ func CrawlHandler(w http.ResponseWriter, r *http.Request) {
 
 	// ^^^ This is where the job gets queued (written to the job channel) ^^^
 	// vvv This is where the (next free?) Crawler grabs a crawl job
+
 	Crawl(page)
 
 	// Cache the results ...  We'll replace any '/'

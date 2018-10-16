@@ -1,11 +1,7 @@
 package main
 
-import (
-	"net/url"
-)
-
 type Site struct {
-	*url.URL
+	URL  string
 	Home *Page
 	Pagemap
 
@@ -17,16 +13,11 @@ type Sitemap map[string]*Site
 
 // SiteFromURL will create and index the site based on
 // hostname:port.
-func SiteFromURL(u *url.URL) (s *Site) {
-	u2 := &url.URL{}
-	u2.Host = u.Host // Can be host:port
-	u2.Scheme = u.Scheme
-	if u2.Scheme == "" {
-		u2.Scheme = "http"
-	}
+func SiteFromURL(ustr string) (s *Site) {
 	s = &Site{
-		URL:     u2,
+		URL:     ustr,
 		Pagemap: make(Pagemap),
+		crawl:   true, // assume
 	}
 	return s
 }

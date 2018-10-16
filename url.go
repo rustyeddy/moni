@@ -6,21 +6,17 @@ import (
 	"net/url"
 )
 
-func Hostport(u *url.URL) string {
-	return u.Hostname() + ":" + u.Port()
-}
-
 // NormalizeURL will make sure a scheme (protocol) is prepended
 // go domains that do not already sport a scheme.
-func NormalizeURL(urlstr string) (u *url.URL, err error) {
+func NormalizeURL(urlstr string) (ustr string, err error) {
 	if urlstr == "" {
-		return nil, errors.New("blank URL")
+		return "", errors.New("blank URL")
 	}
 
 	// Parse the string into the parts of the url
-	u, err = url.Parse(urlstr)
+	u, err := url.Parse(urlstr)
 	if err != nil {
-		return nil, fmt.Errorf("parse url %s -> %v", urlstr, err)
+		return "", fmt.Errorf("parse url %s -> %v", urlstr, err)
 	}
 
 	// make sure only have either http and https schemes. If the url has
@@ -32,7 +28,8 @@ func NormalizeURL(urlstr string) (u *url.URL, err error) {
 		u.Scheme = "http"
 	default:
 		ACL.Unsupported[urlstr]++
-		return nil, fmt.Errorf("unsuported scheme %s ", u.Scheme)
+		return "", fmt.Errorf("unsuported scheme %s ", u.Scheme)
 	}
-	return u, nil
+	ustr = u.String()
+	return ustr, nil
 }

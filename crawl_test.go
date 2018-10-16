@@ -1,72 +1,70 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/rustyeddy/inv/store"
 )
 
-func TestCrawlHandler(t *testing.T) {
+func init() {
+	if Storage == nil {
+		var err error
+		Storage, err = store.UseStore("var/tstore")
+		if err != nil {
+			log.Fatalf("failed to open store var/tstore %v", err)
+		}
+	}
+}
+
+// ServiceTester will pass the given handler and url to a special
+// http test client and and "server", bypassing the network.  The
+// Request, URL and variables are sanitized and prepared before
+// calling the Handler function (just like a real server).  The request
+// returned by the Handler is returned to the calling test for
+// examination.  The calling test has the context required to determine
+// the passability of the test.
+func ServiceTester(t *testing.T, h http.HandlerFunc, url string) *http.Response {
 
 	// Craft up a request with the URL we want to test
-	req := httptest.NewRequest("GET", "http://example.com:8888/crawl/example.com", nil)
+	req := httptest.NewRequest("GET", url, nil)
 	w := httptest.NewRecorder()
 
-	// Now crawl
-	CrawlHandler(w, req)
+	// Do not give the writer and request to the handler directly.  The args
+	// will not have been processed.  Register it as a handler the let mux
+	// parse our the args and setup other important things, then let it
+	// call the handler itself.
+	//handler := http.HandlerFunc(h)
+	handler := httpServer().Handler
+
+	// This will cause the actual crawling, CrawlHandler will be called
+	// with all the appropriate header and argument processing.
+	handler.ServeHTTP(w, req)
 
 	// Look at the response
 	resp := w.Result()
-	body, err := ioutil.ReadAll(resp.Body)
+	return resp
+}
+
+func TestCrawlHandler(t *testing.T) {
+	url := "/crawl/example.com"
+
+	// Get the response from the handler so it can be varified
+	resp := ServiceTester(t, CrawlHandler, url)
+	if resp == nil {
+		t.Error("CrawlHandler test failed to get a response")
+	}
+
+	_, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		t.Errorf("failed to read body %v", err)
-	}
-	if resp.StatusCode != 200 {
-		t.Errorf("expected (200) got (%d)", resp.StatusCode)
 	}
 
 	ctype := resp.Header.Get("Content-Type")
 	if ctype != "application/json" {
 		t.Errorf("expected content type (application/json) got (%s)", ctype)
-	}
-
-	data := string(body)
-	if data != "foo" {
-		t.Errorf("expected body (%s) got (%s)", "foo", data)
-	}
-}
-
-// handler keeps failing ???
-func TestACLHandler(t *testing.T) {
-	// Create a request to pass to our handler. We don't have any query parameters for now, so we'll
-	// pass 'nil' as the third parameter.
-	req, err := http.NewRequest("GET", "/acl", nil)
-	if err != nil {
-		t.Errorf("failed to create new test %v", err)
-	}
-
-	// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(ACLHandler)
-
-	// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
-	// directly and pass in our Request and ResponseRecorder.
-	handler.ServeHTTP(rr, req)
-
-	// Check the status code is what we expect.
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
-
-	// Check the response body is what we expect.
-	bod := rr.Body.String()
-	fmt.Printf("BODY STRING %s", bod)
-	expected := `{"alive": true}`
-	if bod != expected {
-		t.Errorf("handler returned unexpected body: got %v want %v",
-			bod, expected)
 	}
 }

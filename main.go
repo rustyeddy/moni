@@ -19,7 +19,7 @@ var (
 	Storage *store.Store
 
 	Sites Sitemap = make(Sitemap) // Pages segmented by site
-	Pages Pagemap = make(Pagemap) // Direct index of all pages
+	Pages Pagemap = make(Pagemap)
 
 	ACL AccessList = AccessList{
 		Allowed:     make(map[string]int),
@@ -29,7 +29,6 @@ var (
 )
 
 func main() {
-
 	var (
 		// We will have a server if we are running in background,
 		// we will have a client if we are running in the foreground.
