@@ -39,3 +39,14 @@ func (i index) NameObjects() (names []string, objects []*Object) {
 	}
 	return names, objects
 }
+
+// FilterNames returns the index names that match the given filter
+func (i index) FilterNames(filter func(fname string) string) (names []string, objs []*Object) {
+	for idx, obj := range i {
+		if n := filter(idx); n != "" {
+			names = append(names, n)
+			objs = append(objs, obj)
+		}
+	}
+	return names, objs
+}

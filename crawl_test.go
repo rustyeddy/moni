@@ -1,24 +1,10 @@
 package main
 
 import (
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/rustyeddy/inv/store"
-	log "github.com/sirupsen/logrus"
 )
-
-func init() {
-	if Storage == nil {
-		var err error
-		Storage, err = store.UseStore("var/tstore")
-		if err != nil {
-			log.Fatalf("failed to open store var/tstore %v", err)
-		}
-	}
-}
 
 // ServiceTester will pass the given handler and url to a special
 // http test client and and "server", bypassing the network.  The
@@ -58,11 +44,24 @@ func TestCrawlHandler(t *testing.T) {
 		t.Error("CrawlHandler test failed to get a response")
 	}
 
-	_, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Errorf("failed to read body %v", err)
+	body := GetBody(resp)
+	if body == nil {
+		t.Errorf("Crawl handler failed to read the body")
 	}
+	body = body
+	ctype := resp.Header.Get("Content-Type")
+	if ctype != "application/json" {
+		t.Errorf("expected content type (application/json) got (%s)", ctype)
+	}
+}
 
+func TestCrawlListHandler(t *testing.T) {
+	url := "/crawls"
+	resp := ServiceTester(t, CrawlListHandler, url)
+	body := GetBody(resp)
+	if body == nil {
+		t.Errorf("Crawl list handler failed to read the body")
+	}
 	ctype := resp.Header.Get("Content-Type")
 	if ctype != "application/json" {
 		t.Errorf("expected content type (application/json) got (%s)", ctype)

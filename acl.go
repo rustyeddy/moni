@@ -20,9 +20,15 @@ func GetHostname(h string) (host string) {
 	var err error
 	var u *url.URL
 
+	// why does url.Parse move the hostname 'gum.com' to a page?
 	if u, err = url.Parse(h); err != nil {
-		log.Errorf("failed to parse hostname", err)
+		log.Errorln("failed to parse hostname", err)
 		return ""
+	}
+	// TODO Ugly stuff see above
+	if u.Host == "" && u.Scheme == "" && u.Path != "" {
+		u.Host = u.Path
+		u.Path = ""
 	}
 	return u.Hostname()
 }
@@ -34,7 +40,7 @@ func (acl *AccessList) AllowHost(h string) {
 		acl.Allowed[host]++
 		log.Debugln("added host ", host, " to Allowed list")
 	} else {
-		log.Errorln("failed ot add host", host, "allowed list")
+		log.Errorln("failed to add host", host, "allowed list")
 	}
 }
 

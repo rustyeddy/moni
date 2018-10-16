@@ -18,6 +18,7 @@ func httpServer() *http.Server {
 	r := mux.NewRouter()
 	r.HandleFunc("/", AppHandler)
 	r.HandleFunc("/crawl/{url}", CrawlHandler)
+	r.HandleFunc("/crawls", CrawlListHandler)
 	r.HandleFunc("/acl", ACLHandler)
 	r.HandleFunc("/update/", UpdateHandler)
 

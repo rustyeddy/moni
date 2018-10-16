@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -16,16 +17,15 @@ import (
 type Client struct {
 	Baseurl string
 	Format  string
-
 	io.Reader
 	io.Writer
 }
 
-func NewClient(baseurl string) (c *Client) {
+func NewClient(wr io.Writer, baseurl string) (c *Client) {
 	c = &Client{
 		Baseurl: baseurl,
 		Reader:  os.Stdin, // Bydefault, of course
-		Writer:  os.Stdout,
+		Writer:  wr,
 		Format:  "text",
 	}
 	return c
@@ -77,21 +77,29 @@ func (cli *Client) Start() {
 			log.Warnln("nothing to work with, continuing...")
 			continue
 		}
-		running = cli.Do(args)
+
+		// Both of these need to be checked
+		verb := strings.ToLower(args[0])
+		switch verb {
+		case "get", "put", "delete", "post":
+		default:
+			log.Errorln("unsupported HTTP verb ", verb)
+			continue
+		}
+		url := args[1]
+		resp := cli.Do(verb, url)
+		fmt.Printf("resp: %+v\n", resp)
 	}
 }
 
-func (cli *Client) Do(args []string) bool {
-	cmd := args[0]
-	url := args[1]
-
+func (cli *Client) Do(cmd string, url string) (resp *http.Response) {
 	r := httpServer().Handler
 
 	// Prepare a request
 	req, err := http.NewRequest(cmd, url, nil)
 	if err != nil {
 		log.Errorln("Client ~ failed to create an http.NewRequest")
-		return true
+		return nil
 	}
 	w := httptest.NewRecorder()
 
@@ -102,40 +110,52 @@ func (cli *Client) Do(args []string) bool {
 
 	// get called with vars set properly -> CrawlHandler(w, req)
 	// Let Us handle the result
-	resp := w.Result()
+	resp = w.Result()
+	if resp == nil {
+		log.Errorln("failed to get a response")
+		return nil
+	}
+	return resp
+}
+
+func GetBody(resp *http.Response) (b []byte) {
+	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		JSONError(w, err)
+		log.Errorf("reading http response body %v", err)
+		return nil
 	}
-	fmt.Fprintln(w, body)
-	fmt.Println("client is exiting")
-	return true
+	return body
 }
 
 func (cli *Client) CrawlUrl(url string) {
-	r := httpServer().Handler
+	resp := cli.Do("get", "/crawl/"+url)
+	body := GetBody(resp)
 
-	// Prepare a request
-	req, err := http.NewRequest("GET", "/crawl/"+url, nil) // nil is io.Reader (body)
+	// TODO ~ Turn this into some pretty print stuff
+	// Accept a writer
+	fmt.Fprintln(cli.Writer, "Crawl URL ", url)
+	fmt.Fprintln(cli.Writer, "  status ", resp.StatusCode)
+	fmt.Fprintln(cli.Writer, resp.Header.Get("Content-Type"))
+	fmt.Fprintln(cli.Writer, string(body))
+}
+
+func (cli *Client) CrawlList() (cl []string) {
+	resp := cli.Do("get", "/crawls")
+	body := GetBody(resp)
+
+	err := json.Unmarshal(body, &cl)
 	if err != nil {
-		log.Errorln("Client ~ failed to create an http.NewRequest")
-		return
+		log.Errorf("failed unraveling JSON in CrawlList %+v ", err)
+		return nil
 	}
-	w := httptest.NewRecorder()
 
-	// CrawlHandler is the same function called by the HTTP server!
-	// which takes care of sanitizing the URL(s) and other house
-	// keeping functions, we will just reuse it from the command line.
-	r.ServeHTTP(w, req)
-
-	// get called with vars set properly -> CrawlHandler(w, req)
-	// Let Us handle the result
-	resp := w.Result()
-	body, err := ioutil.ReadAll(resp.Body)
-
-	fmt.Println(resp.StatusCode)
-	fmt.Println(resp.Header.Get("Content-Type"))
-	fmt.Println(string(body))
+	fmt.Fprintln(cli.Writer, "Recent crawls ")
+	for _, idx := range cl {
+		fmt.Fprintln(cli.Writer, "\t", idx)
+	}
+	fmt.Fprintln(cli.Writer, "")
+	return cl
 }
 
 func (cli *Client) GetHome(url string, args []string) {

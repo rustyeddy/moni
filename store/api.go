@@ -125,3 +125,11 @@ func (s *Store) Index() index {
 	}
 	return s.index
 }
+
+// FilterNames just makes sure index is built and calls the
+// respective index function
+func (s *Store) FilterNames(f func(name string) string) (names []string, objs []*Object) {
+	i := s.Index()
+	names, objs = i.FilterNames(f)
+	return names, objs
+}

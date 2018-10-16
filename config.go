@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"time"
 
@@ -67,7 +68,12 @@ func GetConfiguration() *Configuration {
 // look like a filename..  That is a label can be "config.json" but it can
 // NOT have any leading path '/' characters
 func (c *Configuration) SaveFile() {
-	_, err := Storage.StoreObject(c.ConfigFile, c)
+	s := getStorage()
+	if s == nil {
+		log.Errorln("Failed saving config ", c.ConfigFile)
+		return
+	}
+	_, err := s.StoreObject("config", c)
 	if err != nil {
 		log.Errorln("Failed writing configuration", c.ConfigFile, err)
 	}
@@ -76,12 +82,11 @@ func (c *Configuration) SaveFile() {
 // ReadFile fetches our configuration object from our storage container,
 // if needed, the object will be converted from JSON to a Go object before
 // being returned.
-func (c *Configuration) ReadFile() {
-	cfg, err := Storage.FetchObject("config.json", c)
+func (c *Configuration) ReadFile() error {
+	s := getStorage() // fatal if nul
+	_, err := s.FetchObject("config", c)
 	if err != nil {
-		log.Errorf("Fetch failed for %s ~> %v", "config.json", err)
-		return
+		return errors.New("failed to read config from store")
 	}
-	// handle config upates
-	log.Errorf("TODO incorporate config changes %+v\n", cfg)
+	return nil
 }

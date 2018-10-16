@@ -144,19 +144,24 @@ func CrawlHandler(w http.ResponseWriter, r *http.Request) {
 	// ~~~ This is where the (next free?) Crawler grabs a crawl job ~~~
 	Crawl(page)
 
-	// Cache the results ...  We'll replace any '/'
-	// in the URL with '-' and store the results in
-	// a cache.
-	name := nameFromURL(ustr)
-	obj, err := Storage.StoreObject(name, page)
+	// Write the results back to the caller
+	writeJSON(w, page)
+
+	// Cache the results ...  We'll replace '/' with '-' and
+	// store the results in the cache store.
+	storePageCrawl(page)
+}
+
+// Cache the page if there is an error we just won't have a
+// cached page and will need to refetch.  Can get ugly if
+// the page is fetched a lot.
+func storePageCrawl(pg *Page) {
+	name := nameFromURL(pg.URL)
+	st := getStorage()
+	_, err := st.StoreObject(name, pg)
 	if err != nil {
 		log.Errorln("Failed to create local store")
-		fmt.Fprintf(w, "Internal Error %s", ustr)
-		return
 	}
-
-	w.Header().Add("Content-Type", "application/json")
-	w.Write(obj.Buffer)
 }
 
 func nameFromURL(urlstr string) (name string) {
@@ -168,4 +173,24 @@ func nameFromURL(urlstr string) (name string) {
 	name = u.Hostname()
 	name = strings.Replace(name, ".", "-", -1)
 	return name
+}
+
+// CrawlListHandler will return a list of all recent crawls.
+// As stored in our storage (json) file.
+func CrawlListHandler(w http.ResponseWriter, r *http.Request) {
+	st := getStorage()
+	pat := "crawl-"
+	patlen := len(pat)
+
+	crawls, _ := st.FilterNames(func(name string) string {
+		if len(name) < patlen {
+			return ""
+		}
+		if name[0:patlen] == pat {
+			return name
+		}
+		return ""
+	})
+	// We have objs also ...
+	writeJSON(w, crawls)
 }

@@ -8,15 +8,15 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/rustyeddy/inv/store"
+	"github.com/rustyeddy/moni/store"
 )
 
 var (
 
 	// See config.go for all configuration variables and all the flags
-	Config  Configuration
-	Storage *store.Store
-	Pages   Pagemap = make(Pagemap)
+	Config Configuration
+	Pages  Pagemap = make(Pagemap)
+	st     *store.Store
 
 	ACL AccessList = AccessList{
 		Allowed:     make(map[string]int),
@@ -24,6 +24,16 @@ var (
 		Unsupported: make(map[string]int),
 	}
 )
+
+func getStorage() *store.Store {
+	var err error
+	if st == nil {
+		if st, err = store.UseStore(Config.StoreDir); err != nil {
+			log.Fatalf("Fataling getting our storage %s", Config.StoreDir)
+		}
+	}
+	return st
+}
 
 func main() {
 	var (
@@ -61,7 +71,6 @@ func main() {
 		// and handler directly avoiding the TCP RTT.
 		srv *http.Server
 		cli *Client
-		err error
 	)
 
 	// Flags are all handled in the config.go file just because there
@@ -75,9 +84,8 @@ func main() {
 	// will default to local storage (if we have it).  If we are running as
 	// a serverless app, we may not have a local filesystem, hence s3, gcp
 	// or DO spaces(?) must be configured
-	if Storage, err = store.UseStore(Config.StoreDir); err != nil {
-		log.Fatalf("failed to use store dir %s => err %v", Config.StoreDir, err)
-	}
+	st := getStorage()
+
 	// ====================================================================
 	// Read our configurations and various Data if they exist.  If they
 	// do NOT exist, we will start with reasonable defaults.  If Config
@@ -95,7 +103,7 @@ func main() {
 	// ====================================================================
 	// Create loop in a command prompt performing what ever is needed
 	if Config.Cli {
-		cli = NewClient(Config.Addrport)
+		cli = NewClient(os.Stdout, Config.Addrport)
 		go cli.Start()
 	}
 
@@ -103,12 +111,14 @@ func main() {
 	// Process commands from the command line
 	nargs := len(flag.Args())
 	if nargs > 0 {
-
 		// Run a single command in the foreground
 		switch flag.Arg(0) {
 		case "crawl":
-			cli := NewClient(Config.Addrport)
+			cli := NewClient(os.Stdout, Config.Addrport)
 			cli.CrawlUrl(flag.Arg(1))
+		case "crawls":
+			cli := NewClient(os.Stdout, Config.Addrport)
+			cli.CrawlList()
 		}
 	}
 
@@ -125,7 +135,7 @@ func main() {
 
 		// Start cleaning up before we shut down.  Make sure we flush all data
 		// we want flushed ...
-		Storage.Shutdown()
+		st.Shutdown()
 
 		// Create a deadline to wait for.
 		ctx, cancel := context.WithTimeout(context.Background(), Config.Wait)
