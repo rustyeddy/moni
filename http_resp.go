@@ -7,8 +7,8 @@ import (
 	log "github.com/mgutz/logxi/v1"
 )
 
-/*
 // Write the response as HTML
+/*
 func writeHTML(w http.ResponseWriter, title string, body string) {
 	if Config.Hasfiles {
 		t, err := template.ParseFiles("tmpl/index.html")
@@ -23,7 +23,8 @@ func writeHTML(w http.ResponseWriter, title string, body string) {
 	}
 }
 */
-// Write the response as JSON
+
+// Write the response back to the caller as JSON
 func writeJSON(w http.ResponseWriter, obj interface{}) {
 	var jbytes []byte
 	var err error

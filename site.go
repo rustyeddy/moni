@@ -31,18 +31,3 @@ func (s Sitemap) Exists(url string) bool {
 	_, ex := s.Find(url)
 	return ex
 }
-
-/*
-func (s Sitemap) Get(urlstr string) *Site {
-	if urlstr != "" {
-		Sites[urlstr] = &Site{
-			URL:     url.Parse(url),
-			Pagemap: make(Pagemap),
-		}
-	}
-	if s, e := Sites[url]; e {
-		return s
-	}
-	return nil
-}
-*/

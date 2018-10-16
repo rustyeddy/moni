@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"net/http"
 
 	log "github.com/sirupsen/logrus"
@@ -56,12 +54,5 @@ func (acl *AccessList) IsAllowed(hp string) (allow bool) {
 
 // ACLHandler will respond to ACL requests
 func ACLHandler(w http.ResponseWriter, r *http.Request) {
-
-	jbytes, err := json.Marshal(&ACL)
-	if err != nil {
-		log.Errorf("failed to marshal ACL %v", err)
-		fmt.Fprintln(w, "internal error")
-	} else {
-		w.Write(jbytes)
-	}
+	writeJSON(w, &ACL)
 }
