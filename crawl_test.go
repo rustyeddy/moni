@@ -2,12 +2,12 @@ package main
 
 import (
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/rustyeddy/inv/store"
+	log "github.com/sirupsen/logrus"
 )
 
 func init() {

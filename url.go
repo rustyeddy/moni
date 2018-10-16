@@ -28,7 +28,7 @@ func NormalizeURL(urlstr string) (ustr string, err error) {
 		u.Scheme = "http"
 	default:
 		ACL.Unsupported[urlstr]++
-		return "", fmt.Errorf("unsuported scheme %s ", u.Scheme)
+		return "", nil
 	}
 	ustr = u.String()
 	return ustr, nil

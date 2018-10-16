@@ -77,9 +77,9 @@ func (c *Configuration) SaveFile() {
 // if needed, the object will be converted from JSON to a Go object before
 // being returned.
 func (c *Configuration) ReadFile() {
-	cfg, err := Storage.FetchObject(c.ConfigFile, c)
+	cfg, err := Storage.FetchObject("config.json", c)
 	if err != nil {
-		log.Errorf("Fetch object failed %v", err)
+		log.Errorf("Fetch failed for %s ~> %v", "config.json", err)
 		return
 	}
 	// handle config upates

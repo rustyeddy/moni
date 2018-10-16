@@ -1,12 +1,9 @@
 package main
 
+/*
 type Site struct {
-	URL  string
-	Home *Page
+	URL string
 	Pagemap
-
-	crawl     bool
-	crawlJobs []CrawlJob // List of crawl jobs
 }
 
 type Sitemap map[string]*Site
@@ -17,7 +14,6 @@ func SiteFromURL(ustr string) (s *Site) {
 	s = &Site{
 		URL:     ustr,
 		Pagemap: make(Pagemap),
-		crawl:   true, // assume
 	}
 	return s
 }
@@ -31,3 +27,4 @@ func (s Sitemap) Exists(url string) bool {
 	_, ex := s.Find(url)
 	return ex
 }
+*/

@@ -20,11 +20,9 @@ var (
 // options potentially walk internal links.
 func Crawl(pg *Page) {
 
-	var site *Site
-
 	// Create the collector and go get shit! (preserve?)
 	c := colly.NewCollector(
-		colly.MaxDepth(2),
+		colly.MaxDepth(3),
 	)
 
 	c.OnRequest(func(r *colly.Request) {
@@ -34,12 +32,6 @@ func Crawl(pg *Page) {
 			log.Errorf("normalizing url %s => %v", r.URL, err)
 			return
 		}
-		site = SiteFromURL(ustr)
-		if site == nil {
-			log.Errorln("failed to get site ", r.URL)
-			return
-		}
-		log.Debugf("Visiting site %s ", site.URL)
 	})
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
@@ -54,6 +46,7 @@ func Crawl(pg *Page) {
 			log.Errorf("expected url got error %v", err)
 			return
 		}
+
 		newpg := CrawlOrNot(ustr)
 		if newpg == nil {
 			// The link has been filtered for one
@@ -63,7 +56,12 @@ func Crawl(pg *Page) {
 			return
 		}
 		pg.Links[ustr] = newpg
-		e.Request.Visit(newpg.URL)
+
+		if newpg.crawl {
+			fmt.Println("  link: requesting visit ", newpg.URL)
+			e.Request.Visit(newpg.URL)
+			newpg.crawl = false
+		}
 	})
 
 	c.OnResponse(func(r *colly.Response) {
@@ -71,14 +69,21 @@ func Crawl(pg *Page) {
 		log.Debugln("  response from", link, "status", r.StatusCode)
 		pg.StatusCode = r.StatusCode
 		pg.Finish = time.Now()
+		pg.crawl = false
 		Pages[link] = pg
+
+		dur := pg.Finish.Sub(pg.Start)
+		fmt.Printf("  %s: returned duration %s\n", link, time.Duration(dur))
 	})
 
 	c.OnError(func(r *colly.Response, err error) {
 		log.Infoln("error:", r.StatusCode, err)
 		pg.StatusCode = r.StatusCode
 		pg.Finish = time.Now()
-		Pages[r.Request.URL.String()] = pg
+		pg.crawl = false
+		link := r.Request.URL.String()
+		Pages[link] = pg
+		fmt.Println("  link: ERROR ", link)
 	})
 
 	pg.Start = time.Now()

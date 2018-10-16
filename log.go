@@ -1,7 +1,6 @@
 package main
 
-import "errors"
-
+/*
 type MoniError struct {
 	msg string
 }
@@ -30,3 +29,4 @@ func AssertNotNil(obj interface{}) error {
 	}
 	return nil
 }
+*/

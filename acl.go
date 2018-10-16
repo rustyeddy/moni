@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"net/url"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -15,40 +16,50 @@ type AccessList struct {
 	Unsupported map[string]int
 }
 
+func GetHostname(h string) (host string) {
+	var err error
+	var u *url.URL
+
+	if u, err = url.Parse(h); err != nil {
+		log.Errorf("failed to parse hostname", err)
+		return ""
+	}
+	return u.Hostname()
+}
+
 // AllowHost will naively take only the host, ignoring port,
 // and other fields to just the host.
 func (acl *AccessList) AllowHost(h string) {
-	if h == "" {
-		log.Errorln("AllowHost normalizedURL failed to")
-		return
+	if host := GetHostname(h); host != "" {
+		acl.Allowed[host]++
+		log.Debugln("added host ", host, " to Allowed list")
+	} else {
+		log.Errorln("failed ot add host", host, "allowed list")
 	}
-	acl.Allowed[h]++
 }
 
 // Reject takes the host name and creates an acl entry.
 // And naively ignores things like scheme and port, etc.
 func (acl *AccessList) RejectHost(h string) {
-	if h == "" {
-		log.Errorln("RejectHost NormalizedURL failed")
-		return
+	if host := GetHostname(h); host != "" {
+		acl.Rejected[host]++
+		log.Debugln("RejectHost ", h)
+	} else {
+		log.Errorln("RejectHost failed to get host for ", h)
 	}
-	acl.Rejected[h]++
+	return
 }
 
 // IsAllowed matches the url against the acl to determine
 // if this site (or url) is allowed to be crawled.  IsAllowed
 // can assume the  url has been normalized
-func (acl *AccessList) IsAllowed(hp string) (allow bool) {
-	if _, ex := acl.Allowed[hp]; ex {
-		acl.Allowed[hp]++
+func (acl *AccessList) IsAllowed(urlstr string) (allow bool) {
+	host := GetHostname(urlstr)
+	if _, ex := acl.Allowed[host]; ex {
+		acl.Allowed[host]++
 		return true
 	}
-
-	if _, ex := acl.Rejected[hp]; ex {
-		acl.Allowed[hp]++
-	} else {
-		acl.Rejected[hp]++
-	}
+	acl.Rejected[host]++
 	return false
 }
 

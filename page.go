@@ -12,13 +12,12 @@ type Page struct {
 	Links   map[string]*Page
 	Ignored map[string]int
 
+	StatusCode int
+
+	crawl       bool
 	LastCrawled time.Time
-	StatusCode  int
-
-	Start  time.Time
-	Finish time.Time
-
-	*Site
+	Start       time.Time
+	Finish      time.Time
 }
 
 // ********************************************************************
@@ -34,7 +33,7 @@ func GetPage(ustr string) (pi *Page) {
 			URL:     ustr,
 			Links:   make(map[string]*Page),
 			Ignored: make(map[string]int),
-			Site:    SiteFromURL(ustr),
+			crawl:   true,
 		}
 		Pages[ustr] = pi
 	}

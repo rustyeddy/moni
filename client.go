@@ -58,7 +58,6 @@ func (cli *Client) Start() {
 	for running {
 
 		fmt.Print("prompt~> ")
-
 		line, err := reader.ReadString('\n')
 		if err != nil {
 			log.Errorf("failed to read string %+v", err)
@@ -72,55 +71,71 @@ func (cli *Client) Start() {
 		}
 
 		// Chop string into an array of words
-		cmds := strings.Fields(input)
-		if cmds == nil || len(cmds) == 0 {
+		args := strings.Fields(input)
+		if args == nil || len(args) == 0 {
 			// No commands, nothing to do
 			log.Warnln("nothing to work with, continuing...")
 			continue
 		}
-
-		cmd := cmds[0]
-		switch cmd {
-		case "crawl":
-			cli.CrawlUrls(cmds[1:])
-		case "home":
-			cli.Get("/")
-		case "exit":
-			fmt.Println("  exiting ..., breaking read loop!")
-			running = false
-		default:
-			fmt.Println("unknown command: ", cmd)
-		}
+		running = cli.Do(args)
 	}
-	fmt.Println("client is exiting")
 }
 
-func (cli *Client) CrawlUrls(urls []string) {
+func (cli *Client) Do(args []string) bool {
+	cmd := args[0]
+	url := args[1]
+
 	r := httpServer().Handler
-	for _, url := range urls {
 
-		// Prepare a request
-		req, err := http.NewRequest("GET", "/crawl/"+url, nil) // nil is io.Reader (body)
-		if err != nil {
-			log.Errorln("Client ~ failed to create an http.NewRequest")
-			return
-		}
-		w := httptest.NewRecorder()
-
-		// CrawlHandler is the same function called by the HTTP server!
-		// which takes care of sanitizing the URL(s) and other house
-		// keeping functions, we will just reuse it from the command line.
-		r.ServeHTTP(w, req)
-		// get called with vars set properly -> CrawlHandler(w, req)
-
-		// Let Us handle the result
-		resp := w.Result()
-		body, err := ioutil.ReadAll(resp.Body)
-
-		fmt.Println(resp.StatusCode)
-		fmt.Println(resp.Header.Get("Content-Type"))
-		fmt.Println(string(body))
+	// Prepare a request
+	req, err := http.NewRequest(cmd, url, nil)
+	if err != nil {
+		log.Errorln("Client ~ failed to create an http.NewRequest")
+		return true
 	}
+	w := httptest.NewRecorder()
+
+	// CrawlHandler is the same function called by the HTTP server!
+	// which takes care of sanitizing the URL(s) and other house
+	// keeping functions, we will just reuse it from the command line.
+	r.ServeHTTP(w, req)
+
+	// get called with vars set properly -> CrawlHandler(w, req)
+	// Let Us handle the result
+	resp := w.Result()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		JSONError(w, err)
+	}
+	fmt.Fprintln(w, body)
+	fmt.Println("client is exiting")
+	return true
+}
+
+func (cli *Client) CrawlUrl(url string) {
+	r := httpServer().Handler
+
+	// Prepare a request
+	req, err := http.NewRequest("GET", "/crawl/"+url, nil) // nil is io.Reader (body)
+	if err != nil {
+		log.Errorln("Client ~ failed to create an http.NewRequest")
+		return
+	}
+	w := httptest.NewRecorder()
+
+	// CrawlHandler is the same function called by the HTTP server!
+	// which takes care of sanitizing the URL(s) and other house
+	// keeping functions, we will just reuse it from the command line.
+	r.ServeHTTP(w, req)
+
+	// get called with vars set properly -> CrawlHandler(w, req)
+	// Let Us handle the result
+	resp := w.Result()
+	body, err := ioutil.ReadAll(resp.Body)
+
+	fmt.Println(resp.StatusCode)
+	fmt.Println(resp.Header.Get("Content-Type"))
+	fmt.Println(string(body))
 }
 
 func (cli *Client) GetHome(url string, args []string) {

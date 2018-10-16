@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -17,9 +16,7 @@ var (
 	// See config.go for all configuration variables and all the flags
 	Config  Configuration
 	Storage *store.Store
-
-	Sites Sitemap = make(Sitemap) // Pages segmented by site
-	Pages Pagemap = make(Pagemap)
+	Pages   Pagemap = make(Pagemap)
 
 	ACL AccessList = AccessList{
 		Allowed:     make(map[string]int),
@@ -64,6 +61,7 @@ func main() {
 		// and handler directly avoiding the TCP RTT.
 		srv *http.Server
 		cli *Client
+		err error
 	)
 
 	// Flags are all handled in the config.go file just because there
@@ -77,9 +75,9 @@ func main() {
 	// will default to local storage (if we have it).  If we are running as
 	// a serverless app, we may not have a local filesystem, hence s3, gcp
 	// or DO spaces(?) must be configured
-	Storage := initStorage(Config.StoreDir)
-	AssertNotNil(Storage)
-
+	if Storage, err = store.UseStore(Config.StoreDir); err != nil {
+		log.Fatalf("failed to use store dir %s => err %v", Config.StoreDir, err)
+	}
 	// ====================================================================
 	// Read our configurations and various Data if they exist.  If they
 	// do NOT exist, we will start with reasonable defaults.  If Config
@@ -105,13 +103,12 @@ func main() {
 	// Process commands from the command line
 	nargs := len(flag.Args())
 	if nargs > 0 {
-		fmt.Println("Crawling ...  ")
 
 		// Run a single command in the foreground
 		switch flag.Arg(0) {
 		case "crawl":
 			cli := NewClient(Config.Addrport)
-			cli.CrawlUrls(os.Args)
+			cli.CrawlUrl(flag.Arg(1))
 		}
 	}
 
@@ -148,14 +145,4 @@ func main() {
 func ShutdownHandler(w http.ResponseWriter, r *http.Request) {
 	// Time to write out all open files
 	os.Exit(2)
-}
-
-func initStorage(dir string) (storage *store.Store) {
-	// Setup Storage ~ depending on what we have configured we are
-	// going to be reading and storing lots of stuff
-	var err error
-	if Storage, err = store.UseStore(Config.StoreDir); err != nil {
-		log.Fatal("failed to use store", Config.StoreDir, err)
-	}
-	return storage
 }

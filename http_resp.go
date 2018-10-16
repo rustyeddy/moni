@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	log "github.com/mgutz/logxi/v1"
+	log "github.com/sirupsen/logrus"
 )
 
 // Write the response as HTML
@@ -38,12 +38,12 @@ func writeJSON(w http.ResponseWriter, obj interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write(jbytes)
 	if err != nil {
-		JSONError(w, err.Error())
+		JSONError(w, err)
 	}
 }
 
-func JSONError(w http.ResponseWriter, err string) {
-	http.Error(w, err, 500)
+func JSONError(w http.ResponseWriter, err error) {
+	http.Error(w, err.Error(), 500)
 	log.Error(err)
 }
 
