@@ -129,7 +129,7 @@ func GetBody(resp *http.Response) (b []byte) {
 }
 
 func (cli *Client) CrawlUrl(url string) {
-	resp := cli.Do("get", "/crawl/"+url)
+	resp := cli.Do("post", "/crawl/"+url)
 	body := GetBody(resp)
 
 	// TODO ~ Turn this into some pretty print stuff
@@ -141,7 +141,7 @@ func (cli *Client) CrawlUrl(url string) {
 }
 
 func (cli *Client) CrawlList() (cl []string) {
-	resp := cli.Do("get", "/crawls")
+	resp := cli.Do("get", "/crawlids")
 	body := GetBody(resp)
 
 	err := json.Unmarshal(body, &cl)
@@ -150,12 +150,27 @@ func (cli *Client) CrawlList() (cl []string) {
 		return nil
 	}
 
-	fmt.Fprintln(cli.Writer, "Recent crawls ")
+	fmt.Fprintln(cli.Writer, "Recent CrawlIds ")
 	for _, idx := range cl {
 		fmt.Fprintln(cli.Writer, "\t", idx)
 	}
-	fmt.Fprintln(cli.Writer, "")
 	return cl
+}
+
+func (cli *Client) CrawlId(cid string) (p *Page) {
+	var pg *Page
+	resp := cli.Do("get", "/crawlid/"+cid)
+	body := GetBody(resp)
+
+	err := json.Unmarshal(body, pg)
+	if err != nil {
+		log.Errorf("failed unraveling JSON in CrawlId %+v ", err)
+		return nil
+	}
+
+	fmt.Fprintln(cli.Writer, "Crawl ", cid)
+	fmt.Fprintf(cli.Writer, "%+v\n", pg)
+	return pg
 }
 
 func (cli *Client) GetHome(url string, args []string) {

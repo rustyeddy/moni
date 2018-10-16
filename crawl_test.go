@@ -13,10 +13,10 @@ import (
 // returned by the Handler is returned to the calling test for
 // examination.  The calling test has the context required to determine
 // the passability of the test.
-func ServiceTester(t *testing.T, h http.HandlerFunc, url string) *http.Response {
+func ServiceTester(t *testing.T, h http.HandlerFunc, verb string, url string) *http.Response {
 
 	// Craft up a request with the URL we want to test
-	req := httptest.NewRequest("GET", url, nil)
+	req := httptest.NewRequest(verb, url, nil)
 	w := httptest.NewRecorder()
 
 	// Do not give the writer and request to the handler directly.  The args
@@ -39,7 +39,7 @@ func TestCrawlHandler(t *testing.T) {
 	url := "/crawl/example.com"
 
 	// Get the response from the handler so it can be varified
-	resp := ServiceTester(t, CrawlHandler, url)
+	resp := ServiceTester(t, CrawlHandler, "POST", url)
 	if resp == nil {
 		t.Error("CrawlHandler test failed to get a response")
 	}
@@ -56,8 +56,22 @@ func TestCrawlHandler(t *testing.T) {
 }
 
 func TestCrawlListHandler(t *testing.T) {
-	url := "/crawls"
-	resp := ServiceTester(t, CrawlListHandler, url)
+	url := "/crawlids"
+	resp := ServiceTester(t, CrawlListHandler, "get", url)
+	body := GetBody(resp)
+	if body == nil {
+		t.Errorf("Crawl list handler failed to read the body")
+	}
+	ctype := resp.Header.Get("Content-Type")
+	if ctype != "application/json" {
+		t.Errorf("expected content type (application/json) got (%s)", ctype)
+	}
+}
+
+func TestCrawlIdHandler(t *testing.T) {
+	// XXX - Read one from the list
+	url := "/crawlid/crawl-mojavetropicofilming-com"
+	resp := ServiceTester(t, CrawlListHandler, "get", url)
 	body := GetBody(resp)
 	if body == nil {
 		t.Errorf("Crawl list handler failed to read the body")

@@ -16,9 +16,8 @@ import (
 // is decoded if desired (e.g. JSON), and a Go object is returned. Nil
 // is returned if thier is a problem, such as no object existing.
 func (s *Store) FetchObject(name string, otype interface{}) (obj *Object, err error) {
-
 	if obj = s.Get(name); obj == nil {
-		return nil, fmt.Errorf("Fetch Object does NOT EXIST")
+		return nil, fmt.Errorf("Fetch Object does NOT EXIST %s", name)
 	}
 
 	// If our buffer is nil, we will need to fetch the data from the store.

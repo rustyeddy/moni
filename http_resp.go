@@ -43,6 +43,7 @@ func writeJSON(w http.ResponseWriter, obj interface{}) {
 }
 
 func JSONError(w http.ResponseWriter, err error) {
+	w.Header().Set("Content-Type", "application/json")
 	http.Error(w, err.Error(), 500)
 	log.Error(err)
 }

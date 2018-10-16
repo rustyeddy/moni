@@ -156,7 +156,7 @@ func CrawlHandler(w http.ResponseWriter, r *http.Request) {
 // cached page and will need to refetch.  Can get ugly if
 // the page is fetched a lot.
 func storePageCrawl(pg *Page) {
-	name := nameFromURL(pg.URL)
+	name := NameFromURL(pg.URL)
 	st := getStorage()
 	_, err := st.StoreObject(name, pg)
 	if err != nil {
@@ -164,7 +164,7 @@ func storePageCrawl(pg *Page) {
 	}
 }
 
-func nameFromURL(urlstr string) (name string) {
+func NameFromURL(urlstr string) (name string) {
 	u, err := url.Parse(urlstr)
 	if err != nil {
 		log.Errorln(err)
@@ -191,6 +191,26 @@ func CrawlListHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return ""
 	})
-	// We have objs also ...
+	if crawls == nil {
+		crawls = []string{}
+	}
 	writeJSON(w, crawls)
+}
+
+// CrawlListHandler will return a list of all recent crawls.
+// As stored in our storage (json) file.
+func CrawlIdHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract the url(s) that we are going to walk
+	vars := mux.Vars(r)
+	cid := vars["cid"]
+	st := getStorage()
+
+	var page *Page
+	obj, err := st.FetchObject(cid, page)
+	if err != nil {
+		JSONError(w, err)
+		return
+	}
+	fmt.Printf("dump obj %+v\n", obj)
+	writeJSON(w, page)
 }

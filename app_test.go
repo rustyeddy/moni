@@ -6,7 +6,7 @@ import (
 )
 
 func TestAppHandler(t *testing.T) {
-	resp := ServiceTester(t, AppHandler, "/")
+	resp := ServiceTester(t, AppHandler, "get", "/")
 	if resp == nil {
 		t.Error("Failed appHandler /")
 	}

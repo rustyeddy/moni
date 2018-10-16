@@ -119,6 +119,10 @@ func main() {
 		case "crawls":
 			cli := NewClient(os.Stdout, Config.Addrport)
 			cli.CrawlList()
+
+		case "view":
+			cli := NewClient(os.Stdout, Config.Addrport)
+			cli.CrawlId(flag.Arg(1))
 		}
 	}
 

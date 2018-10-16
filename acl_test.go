@@ -35,11 +35,11 @@ func TestACL(t *testing.T) {
 	}
 }
 
-func TestACLHandler(t *testing.T) {
+func TestGetACLHandler(t *testing.T) {
 	// By creating an HTTP test client and receiver we can mock up URL
 	// requests and pass the to the server which then passes the URL to
 	// router (mux) and back to the callback (handler).  Beautiful.
-	resp := ServiceTester(t, ACLHandler, "/acl")
+	resp := ServiceTester(t, ACLHandler, "get", "/acl")
 	if resp == nil {
 		t.Error("CrawlHandler test failed to get a response")
 		return

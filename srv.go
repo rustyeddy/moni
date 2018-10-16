@@ -17,9 +17,12 @@ import (
 func httpServer() *http.Server {
 	r := mux.NewRouter()
 	r.HandleFunc("/", AppHandler)
+
 	r.HandleFunc("/crawl/{url}", CrawlHandler)
-	r.HandleFunc("/crawls", CrawlListHandler)
+	r.HandleFunc("/crawlid/{cid}", CrawlIdHandler)
+	r.HandleFunc("/crawlids", CrawlListHandler)
 	r.HandleFunc("/acl", ACLHandler)
+
 	r.HandleFunc("/update/", UpdateHandler)
 
 	// Set the profile handlers if we have flagged them to be turned on
