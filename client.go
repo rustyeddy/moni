@@ -116,10 +116,6 @@ func (cli *Client) CrawlUrls(urls []string) {
 		// Let Us handle the result
 		resp := w.Result()
 		body, err := ioutil.ReadAll(resp.Body)
-
-		fmt.Println(resp.StatusCode)
-		fmt.Println(resp.Header.Get("Content-Type"))
-		fmt.Println(string(body))
 	}
 }
 

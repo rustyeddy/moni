@@ -8,3 +8,4 @@ _site/
 inv
 moni
 var/store-tests
+var/tstore
