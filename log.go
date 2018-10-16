@@ -1,32 +1,48 @@
 package main
 
-/*
-type MoniError struct {
-	msg string
+import "fmt"
+
+const (
+	NilObjectError = iota
+	NotSupportedError
+	NotFoundError
+)
+
+type Error struct {
+	errnum int
+	msg    string
 }
 
 var (
-	ErrorNil      MoniError = MoniError{"expected (obj) got ()"}
-	ErrorNotFound MoniError = MoniError{"not found"}
+	errorNil          = &Error{NilObjectError, "expected (obj) got ()"}
+	errorNotSupported = &Error{NotSupportedError, "not supported"}
 )
 
-func ErrorNotSupported(msg string, err error) error {
-	if err != nil {
-		msg += " " + err.Error()
-	}
-	return errors.New(msg)
-}
-
 // Error returns the error message and satisfies the error.Error interface
-func (m MoniError) Error() string {
-	return m.msg
+func (e Error) Error() string {
+	return e.msg
 }
 
-func AssertNotNil(obj interface{}) error {
+func (e Error) String() string {
+	return fmt.Sprintf("Error(%d) %s", e.errnum, e.msg)
+}
+
+func ErrorNotSupported(msg string) *Error {
+	e := errorNotSupported
+	e.msg = msg
+	return e
+}
+
+func ErrorNil(msg string) *Error {
+	e := errorNil
+	e.msg = msg
+	return e
+}
+
+func AssertNotNil(obj interface{}) *Error {
 	if obj == nil {
-		err := ErrorNotFound
+		err := errorNil
 		return err
 	}
 	return nil
 }
-*/

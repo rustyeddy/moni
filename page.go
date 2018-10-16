@@ -14,10 +14,11 @@ type Page struct {
 
 	StatusCode int
 
-	crawl       bool
 	LastCrawled time.Time
 	Start       time.Time
 	Finish      time.Time
+	crawl       bool
+	Err         error
 }
 
 // ********************************************************************

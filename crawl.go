@@ -22,7 +22,7 @@ func Crawl(pg *Page) {
 
 	// Create the collector and go get shit! (preserve?)
 	c := colly.NewCollector(
-		colly.MaxDepth(3),
+		colly.MaxDepth(4),
 	)
 
 	c.OnRequest(func(r *colly.Request) {
@@ -58,7 +58,6 @@ func Crawl(pg *Page) {
 		pg.Links[ustr] = newpg
 
 		if newpg.crawl {
-			fmt.Println("  link: requesting visit ", newpg.URL)
 			e.Request.Visit(newpg.URL)
 			newpg.crawl = false
 		}
@@ -71,19 +70,16 @@ func Crawl(pg *Page) {
 		pg.Finish = time.Now()
 		pg.crawl = false
 		Pages[link] = pg
-
-		dur := pg.Finish.Sub(pg.Start)
-		fmt.Printf("  %s: returned duration %s\n", link, time.Duration(dur))
 	})
 
 	c.OnError(func(r *colly.Response, err error) {
 		log.Infoln("error:", r.StatusCode, err)
+		pg.Err = err
 		pg.StatusCode = r.StatusCode
 		pg.Finish = time.Now()
 		pg.crawl = false
 		link := r.Request.URL.String()
 		Pages[link] = pg
-		fmt.Println("  link: ERROR ", link)
 	})
 
 	pg.Start = time.Now()
@@ -118,9 +114,8 @@ func CrawlHandler(w http.ResponseWriter, r *http.Request) {
 	// Prepare for Execution
 	// ====================================================================
 
-	// Get host URL from mux.vars
+	// Extract the url(s) that we are going to walk
 	vars := mux.Vars(r)
-
 	ustr := vars["url"]
 
 	// Normalize the URL and fill in a scheme it does not exist
@@ -146,9 +141,7 @@ func CrawlHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// ^^^ This is where the job gets queued (written to the job channel) ^^^
-	// vvv This is where the (next free?) Crawler grabs a crawl job
-
+	// ~~~ This is where the (next free?) Crawler grabs a crawl job ~~~
 	Crawl(page)
 
 	// Cache the results ...  We'll replace any '/'
