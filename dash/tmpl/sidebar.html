@@ -1,0 +1,59 @@
+{{ define "sidebar" }}
+<nav class="sidebar sidebar-sticky">
+    <div class="sidebar-content">
+
+        <a class="sidebar-brand" href="index.html">
+            <i class="align-middle" data-feather="box"></i>
+            <span class="align-middle">{{ .Title }}</span>
+        </a>
+
+        <ul class="sidebar-nav">.
+
+            <li class="sidebar-header">Main</li>
+
+            <li class="sidebar-item active">
+                <a href="index.html" class="sidebar-link">
+                    <i class="align-middle" data-feather="sliders"></i>
+                    <span class="align-middle">Dashboard</span>
+                    <span class="sidebar-badge badge badge-primary">6</span>
+                </a>
+            </li>
+            </li>
+
+            <li class="sidebar-item">
+                <a href="#pages" data-toggle="collapse" class="sidebar-link collapsed">
+                    <i class="align-middle" data-feather="layout"></i>
+                    <span class="align-middle">Pages</span>
+                </a>
+                <ul id="pages" class="sidebar-dropdown list-unstyled collapse ">
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="pages-sign-in.html">Sign In</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="pages-sign-up.html">Sign Up</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="pages-reset-password.html">Reset Password</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="pages-blank.html">Blank Page</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="pages-invoice.html">Invoice
+                            <span class="sidebar-badge badge badge-primary">New</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="pages-404.html">404 Page</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="pages-500.html">500 Page</a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+
+    </div>
+</nav>
+<!-- sidebar sidebar-sticky -->
+{{ end }}

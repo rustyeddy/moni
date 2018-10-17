@@ -1,0 +1,71 @@
+// Fonts
+@import url('https://fonts.googleapis.com/css?family=Roboto:400,500,700');
+
+// Theme variables
+@import "variables";
+
+// Bootstrap
+@import "~bootstrap/scss/bootstrap";
+
+// Theme mixins
+@import "mixins/button";
+@import "mixins/modal";
+@import "mixins/switch";
+@import "mixins/tabs";
+@import "mixins/wizard";
+@import "mixins/doughnut";
+
+// 3rd party plugins
+@import "~toastr/toastr";
+@import "~select2/src/scss/core";
+@import "~bootstrap-daterangepicker/daterangepicker";
+@import "~tempusdominus-bootstrap-4/src/sass/tempusdominus-bootstrap-4";
+@import "~bootstrap-markdown/css/bootstrap-markdown.min";
+@import "~quill/dist/quill.bubble";
+@import "~quill/dist/quill.snow";
+@import "~smartwizard/dist/css/smart_wizard";
+@import "~smartwizard/dist/css/smart_wizard_theme_arrows";
+@import "~datatables.net-bs4/css/dataTables.bootstrap4";
+@import "~datatables.net-buttons-bs4/css/buttons.bootstrap4";
+@import "~jvectormap-next/jquery-jvectormap";
+@import "~simplebar/dist/simplebar";
+@import "~apexcharts/src/assets/apexcharts";
+
+// 3rd party plugin styles
+@import "vendor/datetimepicker";
+@import "vendor/highlight";
+@import "vendor/markdown";
+@import "vendor/quill";
+@import "vendor/select2";
+@import "vendor/toastr";
+@import "vendor/wizard";
+@import "vendor/simplebar";
+
+// Theme utilities
+@import "utilities/borders";
+@import "utilities/overflow";
+
+// Theme components
+@import "accordion";
+@import "alert";
+@import "avatar";
+@import "badge";
+@import "buttons";
+@import "card";
+@import "chart";
+@import "doughnut";
+@import "dropdown";
+@import "feather";
+@import "footer";
+@import "hamburger";
+@import "modal";
+@import "navbar";
+@import "reboot";
+@import "sidebar";
+@import "tables";
+@import "tabs";
+@import "type";
+@import "wrapper";
+@import "content";
+@import "main";
+@import "ie";

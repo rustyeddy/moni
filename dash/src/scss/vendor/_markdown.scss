@@ -1,0 +1,72 @@
+.md-editor {
+  > textarea {
+    background: $white;
+    padding: $spacer*0.5;
+  }
+
+  .md-preview {
+    padding: $spacer*0.5;
+  }
+
+  .btn-group {
+    .btn-default {
+      background: $white;
+      border: 1px solid $gray-300;
+    }
+    margin: 0 $spacer*0.25;
+  }
+
+  .glyphicon::before {
+    display: inline-block;
+    font-style: normal;
+    font-variant: normal;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+  }
+
+  .glyphicon-bold::before {
+    content: "\f032";
+  }
+
+  .glyphicon-italic::before {
+    content: "\f033";
+  }
+
+  .glyphicon-header::before {
+    content: "\f1dc";
+  }
+
+  .glyphicon-link::before {
+    content: "\f0c1";
+  }
+
+  .glyphicon-picture::before {
+    content: "\f1c5";
+  }
+
+  .glyphicon-list::before {
+    content: "\f0ca";
+  }
+
+  .glyphicon-th-list::before {
+    content: "\f0cb";
+  }
+
+  .glyphicon-asterisk::before {
+    content: "\f069";
+  }
+
+  .glyphicon-comment::before {
+    content: "\f27a";
+  }
+
+  .glyphicon-search::before {
+    content: "\f002";
+  }
+
+  .glyphicon-fullscreen::before {
+    content: "\f0b2";
+  }
+}

@@ -10,15 +10,13 @@ import (
 func AppHandler(w http.ResponseWriter, r *http.Request) {
 	data := struct {
 		Title  string
-		Body   string
-		Header string
 		Crawls []string
-	}{"Willy Wonkers", "My Sexy Body", "Head Case Industries", nil}
+	}{"Willy Wonkers", nil}
 
 	data.Crawls = GetCrawls()
-	var t = template.Must(template.ParseGlob("tmpl/*.html"))
+	var t = template.Must(template.ParseGlob("dash/tmpl/*.html"))
 	if err := t.Execute(w, data); err != nil {
-		log.Errorf("Template failed %v", err)
+		log.Errorf("PUKE Template failed %v", err)
 		JSONError(w, err)
 	}
 }

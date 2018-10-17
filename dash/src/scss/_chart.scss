@@ -1,0 +1,18 @@
+.chart {
+  margin: auto;
+  position: relative;
+  width: 100%;
+  min-height: 300px;
+
+  &-sm {
+    min-height: 200px;
+  }
+
+  &-lg {
+    min-height: 350px;
+  }
+
+  canvas {
+    max-width: 100%;
+  }
+}

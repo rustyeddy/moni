@@ -1,0 +1,17 @@
+@mixin button-color($color) {
+  &,
+  &:focus,
+  &.focus,
+  &.disabled,
+  &:disabled,
+  .show > &.dropdown-toggle {
+    color: $color;
+  }
+}
+
+@mixin button-color-hover($color) {
+  &:hover:not(:disabled):not(.disabled),
+  &.hover:not(:disabled):not(.disabled) {
+    color: $color;
+  }
+}

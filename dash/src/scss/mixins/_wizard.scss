@@ -1,0 +1,40 @@
+@mixin wizard-variant($color) {
+  &.sw-theme-default > ul.step-anchor {
+    > li.active > a {
+      color: $color !important;
+
+      &:after {
+        background: $color;
+      }
+    }
+
+    > li.done > a {
+      color: lighten($color, 15) !important;
+
+      &:after {
+        background: lighten($color, 15) !important;
+      }
+    }
+
+  }
+
+  &.sw-theme-arrows > ul.step-anchor {
+    > li.active > a {
+      border-color: $color !important;
+      background: $color !important;
+
+      &:after {
+        border-left-color: $color !important;
+      }
+    }
+
+    > li.done > a {
+      border-color: lighten($color, 15) !important;
+      background: lighten($color, 15) !important;
+
+      &:after {
+        border-left-color: lighten($color, 15) !important;
+      }
+    }
+  }
+}

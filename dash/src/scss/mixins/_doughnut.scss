@@ -1,0 +1,65 @@
+@mixin doughnut-variant($color) {
+  &.doughnut-0 {
+    background-image: linear-gradient(90deg, #fafafa 50%, transparent 50%, transparent), linear-gradient(90deg, #{$color} 50%, #fafafa 50%, #fafafa);
+  }
+  &.doughnut-5 {
+    background-image: linear-gradient(90deg, #fafafa 50%, transparent 50%, transparent), linear-gradient(108deg, #{$color} 50%, #fafafa 50%, #fafafa);
+  }
+  &.doughnut-10 {
+    background-image: linear-gradient(90deg, #fafafa 50%, transparent 50%, transparent), linear-gradient(126deg, #{$color} 50%, #fafafa 50%, #fafafa);
+  }
+  &.doughnut-15 {
+    background-image: linear-gradient(90deg, #fafafa 50%, transparent 50%, transparent), linear-gradient(144deg, #{$color} 50%, #fafafa 50%, #fafafa);
+  }
+  &.doughnut-20 {
+    background-image: linear-gradient(90deg, #fafafa 50%, transparent 50%, transparent), linear-gradient(162deg, #{$color} 50%, #fafafa 50%, #fafafa);
+  }
+  &.doughnut-25 {
+    background-image: linear-gradient(90deg, #fafafa 50%, transparent 50%, transparent), linear-gradient(180deg, #{$color} 50%, #fafafa 50%, #fafafa);
+  }
+  &.doughnut-30 {
+    background-image: linear-gradient(90deg, #fafafa 50%, transparent 50%, transparent), linear-gradient(198deg, #{$color} 50%, #fafafa 50%, #fafafa);
+  }
+  &.doughnut-35 {
+    background-image: linear-gradient(90deg, #fafafa 50%, transparent 50%, transparent), linear-gradient(216deg, #{$color} 50%, #fafafa 50%, #fafafa);
+  }
+  &.doughnut-40 {
+    background-image: linear-gradient(90deg, #fafafa 50%, transparent 50%, transparent), linear-gradient(234deg, #{$color} 50%, #fafafa 50%, #fafafa);
+  }
+  &.doughnut-45 {
+    background-image: linear-gradient(90deg, #fafafa 50%, transparent 50%, transparent), linear-gradient(252deg, #{$color} 50%, #fafafa 50%, #fafafa);
+  }
+  &.doughnut-50 {
+    background-image: linear-gradient(270deg, #{$color} 50%, transparent 50%, transparent), linear-gradient(270deg, #{$color} 50%, #fafafa 50%, #fafafa);
+  }
+  &.doughnut-55 {
+    background-image: linear-gradient(288deg, #{$color} 50%, transparent 50%, transparent), linear-gradient(270deg, #{$color} 50%, #fafafa 50%, #fafafa);
+  }
+  &.doughnut-60 {
+    background-image: linear-gradient(306deg, #{$color} 50%, transparent 50%, transparent), linear-gradient(270deg, #{$color} 50%, #fafafa 50%, #fafafa);
+  }
+  &.doughnut-65 {
+    background-image: linear-gradient(324deg, #{$color} 50%, transparent 50%, transparent), linear-gradient(270deg, #{$color} 50%, #fafafa 50%, #fafafa);
+  }
+  &.doughnut-70 {
+    background-image: linear-gradient(342deg, #{$color} 50%, transparent 50%, transparent), linear-gradient(270deg, #{$color} 50%, #fafafa 50%, #fafafa);
+  }
+  &.doughnut-75 {
+    background-image: linear-gradient(360deg, #{$color} 50%, transparent 50%, transparent), linear-gradient(270deg, #{$color} 50%, #fafafa 50%, #fafafa);
+  }
+  &.doughnut-80 {
+    background-image: linear-gradient(378deg, #{$color} 50%, transparent 50%, transparent), linear-gradient(270deg, #{$color} 50%, #fafafa 50%, #fafafa);
+  }
+  &.doughnut-85 {
+    background-image: linear-gradient(396deg, #{$color} 50%, transparent 50%, transparent), linear-gradient(270deg, #{$color} 50%, #fafafa 50%, #fafafa);
+  }
+  &.doughnut-90 {
+    background-image: linear-gradient(414deg, #{$color} 50%, transparent 50%, transparent), linear-gradient(270deg, #{$color} 50%, #fafafa 50%, #fafafa);
+  }
+  &.doughnut-95 {
+    background-image: linear-gradient(432deg, #{$color} 50%, transparent 50%, transparent), linear-gradient(270deg, #{$color} 50%, #fafafa 50%, #fafafa);
+  }
+  &.doughnut-100 {
+    background-image: linear-gradient(450deg, #{$color} 50%, transparent 50%, transparent), linear-gradient(270deg, #{$color} 50%, #fafafa 50%, #fafafa);
+  }
+}
