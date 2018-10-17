@@ -48,7 +48,7 @@ func registerUpdate(r *mux.Router) {
 // registerApp will register a static file handler allowing us to serve
 // up the web pages for our application.
 func registerApp(r *mux.Router) {
-	// This will serve files under http://localhost:8000/static/<filename>
+	// This will serve files under http://localhost:8888/static/<filename>
 	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.FileServer(http.Dir("dash/dist"))))
 	r.HandleFunc("/", AppHandler)
 }
@@ -75,10 +75,9 @@ func createServer(r *mux.Router, addrport string) *http.Server {
 	return srv
 }
 
-// startServer actually starts the server, most likely as a Go routine
-// background function.
+// startServer starts the server in a Go routine
 func startServer(srv *http.Server) (err error) {
-	// Run our server in a goroutine so that it doesn't block.
+	log.Infoln("Moni listening on ", Config.Addrport)
 	if err = srv.ListenAndServe(); err != nil {
 		log.Println(err)
 	}

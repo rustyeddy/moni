@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 
@@ -13,10 +14,27 @@ func AppHandler(w http.ResponseWriter, r *http.Request) {
 		Crawls []string
 	}{"Willy Wonkers", nil}
 
+	base := "dash/tmpl/"
+	tmplts := []string{
+		base + "index.html",
+		base + "head-cheese.html",
+		base + "sidebar.html",
+		base + "header-nav.html",
+		base + "invoice-page.html",
+	}
+
+	log.Infoln("Request received for AppHandler")
+
 	data.Crawls = GetCrawls()
-	var t = template.Must(template.ParseGlob("dash/tmpl/*.html"))
+	var t = template.Must(template.ParseFiles(tmplts...))
 	if err := t.Execute(w, data); err != nil {
 		log.Errorf("PUKE Template failed %v", err)
-		JSONError(w, err)
+		fmt.Fprintln(w, "interal error")
 	}
+	/*
+		if err := t.Execute(w, data); err != nil {
+
+			JSONError(w, err)
+		}
+	*/
 }
