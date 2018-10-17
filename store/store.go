@@ -6,6 +6,7 @@ package store
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -48,8 +49,8 @@ func (s *Store) StoreObject(name string, data interface{}) (obj *Object, err err
 		return nil, fmt.Errorf("illegal char '/' used for index %s", name)
 	}
 
-	stobj := data                    // turn an interface into an object
-	jbuf, err := json.Marshal(stobj) // JSONify the "object" param
+	stobj := data                                      // turn an interface into an object
+	jbuf, err := json.MarshalIndent(stobj, "  ", "  ") // JSONify the "object" param
 	if err != nil {
 		return nil, fmt.Errorf("JSON marshal failed %s -> %v", name, err)
 	}
@@ -57,8 +58,7 @@ func (s *Store) StoreObject(name string, data interface{}) (obj *Object, err err
 	// log.Debug("  storing data :", string(jbuf[0:40]))
 	obj = ObjectFromBytes(jbuf) // obj will not be nil
 	if obj == nil {
-		log.Fatalln("SUCKATARI")
-		return
+		return nil, errors.New("StoreObject failed translating bytes")
 	}
 	obj.Store = s // back pointer to store
 	obj.Name = name

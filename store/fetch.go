@@ -27,8 +27,8 @@ func (s *Store) FetchObject(name string, otype interface{}) (obj *Object, err er
 			return nil, fmt.Errorf("  FetchObject failed reading %s -> %v\n", obj.Path, err)
 		}
 	}
-	log.Debugf("  ++ found %d bytes from %s ", len(obj.Buffer), obj.Path)
 
+	log.Debugf("  ++ found %d bytes from %s ", len(obj.Buffer), obj.Path)
 	// Determine the content type we are dealing with
 	ext := filepath.Ext(obj.Path)
 	if ext != "" {
@@ -36,10 +36,9 @@ func (s *Store) FetchObject(name string, otype interface{}) (obj *Object, err er
 			obj.ContentType = http.DetectContentType(obj.Buffer)
 		}
 	}
-
 	if obj.ContentType == "application/json" {
 		if err := json.Unmarshal(obj.Buffer, otype); err != nil {
-			return nil, fmt.Errorf("%s: %v", name, err)
+			return nil, fmt.Errorf("store.FetchObject: %s ~> %v", name, err)
 		}
 	}
 	return obj, nil

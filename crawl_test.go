@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // ServiceTester will pass the given handler and url to a special
@@ -24,14 +27,17 @@ func ServiceTester(t *testing.T, h http.HandlerFunc, verb string, url string) *h
 	// parse our the args and setup other important things, then let it
 	// call the handler itself.
 	//handler := http.HandlerFunc(h)
-	handler := httpServer().Handler
+	r := httpServer().Handler
 
 	// This will cause the actual crawling, CrawlHandler will be called
 	// with all the appropriate header and argument processing.
-	handler.ServeHTTP(w, req)
+	r.ServeHTTP(w, req)
 
 	// Look at the response
 	resp := w.Result()
+	if resp == nil {
+		log.Errorln("failed to get a response")
+	}
 	return resp
 }
 
@@ -69,9 +75,8 @@ func TestCrawlListHandler(t *testing.T) {
 }
 
 func TestCrawlIdHandler(t *testing.T) {
-	// XXX - Read one from the list
-	url := "/crawlid/crawl-mojavetropicofilming-com"
-	resp := ServiceTester(t, CrawlListHandler, "get", url)
+	url := "/crawlid/crawl-gardenpassages-com"
+	resp := ServiceTester(t, CrawlIdHandler, "get", url)
 	body := GetBody(resp)
 	if body == nil {
 		t.Errorf("Crawl list handler failed to read the body")
@@ -79,5 +84,14 @@ func TestCrawlIdHandler(t *testing.T) {
 	ctype := resp.Header.Get("Content-Type")
 	if ctype != "application/json" {
 		t.Errorf("expected content type (application/json) got (%s)", ctype)
+	}
+
+	var page Page
+	err := json.Unmarshal(body, &page)
+	if err != nil {
+		t.Errorf("failed unmarshallng body")
+	}
+	if page.URL == "gardenpassages.com" {
+		t.Errorf("expected (gardenpassages.com) got (%s)", page.URL)
 	}
 }

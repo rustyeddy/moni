@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -19,6 +20,13 @@ type Page struct {
 	Finish      time.Time
 	crawl       bool
 	Err         error
+}
+
+// String will represent the Page
+// ====================================================================
+func (p *Page) String() string {
+	str := fmt.Sprintf("%s: lastcrawled: %s,  duration: %v links: %d ignored: %d\n", p.URL, p.LastCrawled, p.Finish, len(p.Links), len(p.Ignored))
+	return str
 }
 
 // ********************************************************************

@@ -108,12 +108,36 @@ func CrawlOrNot(urlstr string) (pi *Page) {
 	return pi
 }
 
+// Cache the page if there is an error we just won't have a
+// cached page and will need to refetch.  Can get ugly if
+// the page is fetched a lot.
+func storePageCrawl(pg *Page) {
+	name := NameFromURL(pg.URL)
+	st := getStorage()
+	_, err := st.StoreObject(name, pg)
+	if err != nil {
+		log.Errorln("Failed to create local store")
+	}
+}
+
+func NameFromURL(urlstr string) (name string) {
+	u, err := url.Parse(urlstr)
+	if err != nil {
+		log.Errorln(err)
+		return
+	}
+	name = u.Hostname()
+	name = "crawl-" + strings.Replace(name, ".", "-", -1)
+	return name
+}
+
+// ServiceHandlers
+// ========================================================================
+
 // CrawlHandler will handle incoming HTTP request to crawl a URL
 func CrawlHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Prepare for Execution
-	// ====================================================================
-
 	// Extract the url(s) that we are going to walk
 	vars := mux.Vars(r)
 	ustr := vars["url"]
@@ -152,29 +176,6 @@ func CrawlHandler(w http.ResponseWriter, r *http.Request) {
 	storePageCrawl(page)
 }
 
-// Cache the page if there is an error we just won't have a
-// cached page and will need to refetch.  Can get ugly if
-// the page is fetched a lot.
-func storePageCrawl(pg *Page) {
-	name := NameFromURL(pg.URL)
-	st := getStorage()
-	_, err := st.StoreObject(name, pg)
-	if err != nil {
-		log.Errorln("Failed to create local store")
-	}
-}
-
-func NameFromURL(urlstr string) (name string) {
-	u, err := url.Parse(urlstr)
-	if err != nil {
-		log.Errorln(err)
-		return
-	}
-	name = u.Hostname()
-	name = strings.Replace(name, ".", "-", -1)
-	return name
-}
-
 // CrawlListHandler will return a list of all recent crawls.
 // As stored in our storage (json) file.
 func CrawlListHandler(w http.ResponseWriter, r *http.Request) {
@@ -197,7 +198,7 @@ func CrawlListHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, crawls)
 }
 
-// CrawlListHandler will return a list of all recent crawls.
+// CrawlIdHandler will return a list of all recent crawls.
 // As stored in our storage (json) file.
 func CrawlIdHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract the url(s) that we are going to walk
@@ -205,12 +206,11 @@ func CrawlIdHandler(w http.ResponseWriter, r *http.Request) {
 	cid := vars["cid"]
 	st := getStorage()
 
-	var page *Page
-	obj, err := st.FetchObject(cid, page)
+	page := new(Page)
+	_, err := st.FetchObject(cid, page)
 	if err != nil {
 		JSONError(w, err)
 		return
 	}
-	fmt.Printf("dump obj %+v\n", obj)
 	writeJSON(w, page)
 }

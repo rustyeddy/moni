@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -111,18 +112,27 @@ func main() {
 	// Process commands from the command line
 	nargs := len(flag.Args())
 	if nargs > 0 {
-		// Run a single command in the foreground
-		switch flag.Arg(0) {
-		case "crawl":
-			cli := NewClient(os.Stdout, Config.Addrport)
-			cli.CrawlUrl(flag.Arg(1))
-		case "crawls":
-			cli := NewClient(os.Stdout, Config.Addrport)
-			cli.CrawlList()
+		var resp *http.Response
+		cmd := flag.Arg(0)
 
+		// What address and port to connect to and something to
+		// write the output to (io.Writer)
+		cli := NewClient(os.Stdout, Config.Addrport)
+		arg := flag.Arg(1)
+
+		// Run a single command in the foreground
+		switch cmd {
+		case "GET", "POST", "PUT", "DELETE":
+			resp = cli.Do(cmd, arg)
+			body := GetBody(resp)
+			fmt.Fprintf(cli.Writer, "%s %s\n", cmd, arg)
+			fmt.Fprintf(cli.Writer, "\t%s\n", string(body))
+		case "crawl":
+			cli.CrawlUrl(arg)
+		case "crawlids":
+			cli.CrawlList()
 		case "view":
-			cli := NewClient(os.Stdout, Config.Addrport)
-			cli.CrawlId(flag.Arg(1))
+			cli.CrawlId(arg)
 		}
 	}
 

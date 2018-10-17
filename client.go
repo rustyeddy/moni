@@ -93,7 +93,6 @@ func (cli *Client) Start() {
 }
 
 func (cli *Client) Do(cmd string, url string) (resp *http.Response) {
-	r := httpServer().Handler
 
 	// Prepare a request
 	req, err := http.NewRequest(cmd, url, nil)
@@ -106,14 +105,13 @@ func (cli *Client) Do(cmd string, url string) (resp *http.Response) {
 	// CrawlHandler is the same function called by the HTTP server!
 	// which takes care of sanitizing the URL(s) and other house
 	// keeping functions, we will just reuse it from the command line.
+	r := httpServer().Handler
 	r.ServeHTTP(w, req)
 
 	// get called with vars set properly -> CrawlHandler(w, req)
 	// Let Us handle the result
-	resp = w.Result()
-	if resp == nil {
+	if resp = w.Result(); resp == nil {
 		log.Errorln("failed to get a response")
-		return nil
 	}
 	return resp
 }
@@ -149,7 +147,6 @@ func (cli *Client) CrawlList() (cl []string) {
 		log.Errorf("failed unraveling JSON in CrawlList %+v ", err)
 		return nil
 	}
-
 	fmt.Fprintln(cli.Writer, "Recent CrawlIds ")
 	for _, idx := range cl {
 		fmt.Fprintln(cli.Writer, "\t", idx)
@@ -158,19 +155,31 @@ func (cli *Client) CrawlList() (cl []string) {
 }
 
 func (cli *Client) CrawlId(cid string) (p *Page) {
-	var pg *Page
 	resp := cli.Do("get", "/crawlid/"+cid)
 	body := GetBody(resp)
 
-	err := json.Unmarshal(body, pg)
+	p = new(Page)
+	err := json.Unmarshal(body, p)
 	if err != nil {
 		log.Errorf("failed unraveling JSON in CrawlId %+v ", err)
 		return nil
 	}
+	elapsed := p.Finish.Sub(p.Start)
 
-	fmt.Fprintln(cli.Writer, "Crawl ", cid)
-	fmt.Fprintf(cli.Writer, "%+v\n", pg)
-	return pg
+	fmt.Fprintln(cli.Writer, p.URL)
+	fmt.Fprintf(cli.Writer, "\tLast Crawl    %v\n", p.Finish)
+	fmt.Fprintf(cli.Writer, "\telapsed %v\n", elapsed)
+
+	fmt.Fprintf(cli.Writer, "  Links %d\n", len(p.Links))
+	// Now print links and ignored urls
+	for l, _ := range p.Links {
+		fmt.Fprintf(cli.Writer, "\t%s\n", l)
+	}
+	fmt.Fprintf(cli.Writer, "  Ignored %d\n", len(p.Ignored))
+	for l, _ := range p.Ignored {
+		fmt.Fprintf(cli.Writer, "\t%s\n", l)
+	}
+	return p
 }
 
 func (cli *Client) GetHome(url string, args []string) {
