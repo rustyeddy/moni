@@ -21,6 +21,8 @@ func AppHandler(w http.ResponseWriter, r *http.Request) {
 		base + "sidebar.html",
 		base + "header-nav.html",
 		base + "invoice-page.html",
+		base + "nav-messages.html",
+		base + "nav-alerts.html",
 	}
 
 	log.Infoln("Request received for AppHandler")

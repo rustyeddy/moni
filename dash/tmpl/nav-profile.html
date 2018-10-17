@@ -1,0 +1,23 @@
+{{ define "nav-profile" }}
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" data-toggle="dropdown">
+        <span class="d-inline-block d-md-none">
+            <i class="align-middle" data-feather="settings"></i>
+        </span>
+        <span class="d-none d-sm-inline-block">
+            <img src="img/avatar.jpg" class="avatar img-fluid rounded-circle mr-1" alt="{{ .Name }}" />
+            <span class="text-dark">{{ .Name }}</span>
+        </span>
+    </a>
+    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+        <a class="dropdown-item" href="#">
+            <i class="align-middle mr-1" data-feather="user"></i> Profile</a>
+        <a class="dropdown-item" href="#">
+            <i class="align-middle mr-1" data-feather="pie-chart"></i> Analytics</a>
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item" href="#">Settings & Privacy</a>
+        <a class="dropdown-item" href="#">Help</a>
+        <a class="dropdown-item" href="#">Sign out</a>
+    </div>
+</li>
+{{ end }}
