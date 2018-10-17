@@ -15,7 +15,7 @@ func TestAppHandler(t *testing.T) {
 	}
 
 	ct := resp.Header.Get("Content-Type")
-	if ct != "text/html" {
+	if ct[0:9] != "text/html" {
 		t.Errorf("Expected content type (text/html) got (%s) ", ct)
 	}
 }

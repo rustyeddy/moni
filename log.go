@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+	"time"
+)
 
 const (
 	NilObjectError = iota
@@ -45,4 +49,13 @@ func AssertNotNil(obj interface{}) *Error {
 		return err
 	}
 	return nil
+}
+
+// GetTimeStamp returns a timestamp in a modified RFC3339
+// format, basically remove all colons ':' from filename, since
+// they have a specific use with Unix pathnames, hence must be
+// escaped when used in a filename.
+func TimeStamp() string {
+	ts := time.Now().UTC().Format(time.RFC3339)
+	return strings.Replace(ts, ":", "", -1) // get rid of offesnive colons
 }

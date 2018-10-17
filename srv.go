@@ -16,7 +16,12 @@ import (
 // Go Routine().
 func httpServer() *http.Server {
 	r := mux.NewRouter()
-	r.HandleFunc("/", AppHandler)
+
+	if Config.Pubdir != "" {
+		// This will serve files under http://localhost:8000/static/<filename>
+		r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(Config.Pubdir))))
+		r.HandleFunc("/", AppHandler)
+	}
 
 	r.HandleFunc("/crawl/{url}", CrawlHandler)
 	r.HandleFunc("/crawlid/{cid}", CrawlIdHandler)
