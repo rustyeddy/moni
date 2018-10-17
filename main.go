@@ -9,7 +9,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/rustyeddy/moni/store"
+	"github.com/rustyeddy/store"
 )
 
 var (

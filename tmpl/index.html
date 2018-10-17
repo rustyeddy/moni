@@ -14,16 +14,44 @@
 
   <body>
 
-    <div class="container">
-      <header class="title">
-	<h3>{{ .Header }}</h3>
-      </header>
+    <header id="header" class="container">
+      <div class="row">
+	<div class="col">
+	  <h3>{{ .Header }}</h3>
+	</div> <!-- col -->
+      </div> <!-- row -->
+    </header>
 
-      <h1>{{ .Title }}</h1>
-      <section class="body">
-	{{ .Body }}
-      </section>
-    </div>
+    <div class="container">
+      <div class="row">
+	<div class="col">
+	  <h1>{{ .Title }}</h1>
+	</div> <!-- col -->
+      </div> <!-- row -->
+
+      <div class="row">
+	<div class="col">
+	  <p>{{ .Body }}</p>
+	</div> <!-- col -->
+      </div> <!-- row -->
+
+      <div class="row">
+	<div class="col">
+	  <h2>Recent Crawls</h2>
+	  <ul>
+	  {{ range .Crawls }}
+	  <li><a href="/crawlid/{{ . }}">{{ . }}</a></li>
+	  {{ end }}
+	  </ul>
+	</div> <!-- col -->
+	<div class="col">
+	  <h2>Last SierraHydrog<h2>
+	  {{ . }}
+	</div> <!-- col -->
+
+      </div> <!-- row -->
+
+    </div> <!-- container -->
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->

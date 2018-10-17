@@ -1,7 +1,18 @@
 ---
 devices:
-        OpenMVC:
-                Description: Computer Vision
-                Type: Camera
-
-
+  - OpenMVC: Camera with Python OpenMV library
+    Categories: [ camera, hardware ]
+    Tags: [ OpenMV, OpenCV ]
+    References:
+      - http://openvm.org/
+      - http://opencv.org/
+  - RPI Touch Screen: Adafruit 420x280(?) LCD Touch Screen
+    Categories: [ screen, touch screen ]
+    Tags: [ touch, adafruit ]
+    References:
+      - http://adafruit.com/xxxxxxxx
+      - http: ...
+  - LED 16x2: android 16x2 LED with buttons
+  - LED 16x1: andriod 16x1 LED
+  - Solar Panel: 4in (?) solar panel
+  - Motors: got some ...

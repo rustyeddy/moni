@@ -17,31 +17,55 @@ import (
 func httpServer() *http.Server {
 	r := mux.NewRouter()
 
-	if Config.Pubdir != "" {
-		// This will serve files under http://localhost:8000/static/<filename>
-		r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(Config.Pubdir))))
-		r.HandleFunc("/", AppHandler)
-	}
+	// Register the application url and handlers
+	registerApp(r)
 
-	r.HandleFunc("/crawl/{url}", CrawlHandler)
-	r.HandleFunc("/crawlid/{cid}", CrawlIdHandler)
-	r.HandleFunc("/crawlids", CrawlListHandler)
-	r.HandleFunc("/acl", ACLHandler)
+	// Regsiter the site crawler routers
+	registerCrawlers(r)
 
-	r.HandleFunc("/update/", UpdateHandler)
+	// Register the update handler
+	registerUpdate(r)
 
-	// Set the profile handlers if we have flagged them to be turned on
-	if Config.Profile {
-		r.HandleFunc("/debug/pprof/", pprof.Index)
-		r.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-		r.HandleFunc("/debug/pprof/profile", pprof.Profile)
-		r.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-		r.HandleFunc("/debug/pprof/trace", pprof.Trace)
-	}
+	// Register the profiler
+	registerProfiler(r) // make these plugins ...
 
-	// Create the Server itself
+	return createServer(r, Config.Addrport)
+}
+
+// registerCrawlers will register all handlers related to the
+// crawling activities
+func registerCrawlers(r *mux.Router) {
+	r.HandleFunc("/acl", ACLHandler)               // Display ACLs
+	r.HandleFunc("/crawlids", CrawlListHandler)    // Display "recent" crawl jobs
+	r.HandleFunc("/crawl/{url}", CrawlHandler)     // Create a (recurring) crawl job for url
+	r.HandleFunc("/crawlid/{cid}", CrawlIdHandler) // Display a specific crawl job
+}
+
+func registerUpdate(r *mux.Router) {
+	r.HandleFunc("/update/", UpdateHandler) // Handle updates when signaled from github
+}
+
+// registerApp will register a static file handler allowing us to serve
+// up the web pages for our application.
+func registerApp(r *mux.Router) {
+	// This will serve files under http://localhost:8000/static/<filename>
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(Config.Pubdir))))
+	r.HandleFunc("/", AppHandler)
+}
+
+// registerProfiler makes the profiler available at the specified locations
+func registerProfiler(r *mux.Router) {
+	r.HandleFunc("/pprof/", pprof.Index)
+	r.HandleFunc("/pprof/cmdline", pprof.Cmdline)
+	r.HandleFunc("/pprof/profile", pprof.Profile)
+	r.HandleFunc("/pprof/symbol", pprof.Symbol)
+	r.HandleFunc("/pprof/trace", pprof.Trace)
+}
+
+// Create the Server setting the address, router and some timeouts
+func createServer(r *mux.Router, addrport string) *http.Server {
 	srv := &http.Server{
-		Addr: Config.Addrport,
+		Addr: addrport,
 		// Good practice to set timeouts to avoid Slowloris attacks.
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,

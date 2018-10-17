@@ -1,5 +1,0 @@
-baseURL = "http://proj.rustyeddy.com/store"
-languageCode = "en-us"
-title = "Store and Easy To Use Object Storage"
-outputDir = "../docs"
-theme = "portfolio"

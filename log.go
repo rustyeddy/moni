@@ -6,6 +6,15 @@ import (
 	"time"
 )
 
+/*
+
+TODO:
+
+- Create standard log messages and error strings
+- Use fields provided by logrus and create some category specific loggers
+- Systematize log messages to make analyzing them easier
+*/
+
 const (
 	NilObjectError = iota
 	NotSupportedError

@@ -12,8 +12,10 @@ func AppHandler(w http.ResponseWriter, r *http.Request) {
 		Title  string
 		Body   string
 		Header string
-	}{"Willy Wonkers", "My Sexy Body", "Head Case Industries"}
+		Crawls []string
+	}{"Willy Wonkers", "My Sexy Body", "Head Case Industries", nil}
 
+	data.Crawls = GetCrawls()
 	var t = template.Must(template.ParseGlob("tmpl/*.html"))
 	if err := t.Execute(w, data); err != nil {
 		log.Errorf("Template failed %v", err)

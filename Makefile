@@ -19,11 +19,9 @@ run:
 
 test:
 	go test
-	make -C store test
 
 testv:
 	go test -v
-	make -C store test
 
 serve:
 	go run *.go -http

@@ -177,9 +177,8 @@ func CrawlHandler(w http.ResponseWriter, r *http.Request) {
 	storePageCrawl(page)
 }
 
-// CrawlListHandler will return a list of all recent crawls.
-// As stored in our storage (json) file.
-func CrawlListHandler(w http.ResponseWriter, r *http.Request) {
+// GetCrawls
+func GetCrawls() []string {
 	st := getStorage()
 	pat := "crawl-"
 	patlen := len(pat)
@@ -196,6 +195,13 @@ func CrawlListHandler(w http.ResponseWriter, r *http.Request) {
 	if crawls == nil {
 		crawls = []string{}
 	}
+	return crawls
+}
+
+// CrawlListHandler will return a list of all recent crawls.
+// As stored in our storage (json) file.
+func CrawlListHandler(w http.ResponseWriter, r *http.Request) {
+	crawls := GetCrawls()
 	writeJSON(w, crawls)
 }
 
