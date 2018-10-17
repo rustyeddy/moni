@@ -1,0 +1,74 @@
+---
+networks:
+  - public: 76.80.52.194/31
+  - net24: 10.24.0.0/16
+  - admin: 10.24.0.0/24
+
+  - net3: 10.3.0.0/16
+    comment: experimental
+---
+wifi:
+  - SnotGobbler: net24
+  - ButtNugget: net24
+  - ZWX-1: net3
+  - ZWX-2: net4
+
+---
+hosts:
+  - Arris: modem
+    ifaces: [ coax, eth0 ]
+    networks:
+      public: [ coax, eth0 ]
+
+  - TPLink: tpl
+    ifaces: [ I, eth0, eth1, eth2, eth3, rad0, rad1 ]
+    networks:
+      - net24: 10.24.0.1
+        ifaces: [ eth0, eth1, eth2, eth3, rad0, rad1 ]
+      - public: 76.80.52.194
+        ifaces: I
+
+    features:
+      - rad0: 802.11 ac/n/a 5gz
+      - rad1: 802.11 b/g/n  2.4gz
+      - eth: Gigabit LAN
+      - I: eth ethernet
+      - gues Network
+      - openvpn for external VPN connection
+      - wireless print server
+      - media server 
+
+  - ZodiacWX: zwx
+    ifaces: [ lan, wan, rad0, rad1 ]
+    networks:
+      - net3: 10.3.0.1
+        ifaces: [ eth0.1, rad0, rad1 ]
+        vlan: lan
+      - net24: 10.24.0.254
+        ifaces: [ eth0.2 ]
+    features:
+      - OpenFlow SDN
+      - OpenWRT
+
+  - ZodiacGX: zgx
+    ifaces: [ eth0, eth1, eth2, eth3 ]
+    networks:
+      - net3: 10.3.0.2
+        ifaces: [ eth0, eth1, eth2, eth3 ]
+    features:
+      - OpenFlow SDN
+      - OpenWRT
+
+  - ZodiacFX: zfx
+    ifaces: [ eth0, eth1, eth2, eth3 ]
+    networks:
+      - admin: 10.24.0.44
+        ifaces: [ eth0 ]
+      - net24: 10.24.1.44
+        ifaces: [ eth1 eth2 eth3 ]
+        
+
+  
+
+    
+  
