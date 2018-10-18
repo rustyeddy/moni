@@ -20,9 +20,12 @@ func AppHandler(w http.ResponseWriter, r *http.Request) {
 		base + "head-cheese.html",
 		base + "sidebar.html",
 		base + "header-nav.html",
-		base + "invoice-page.html",
 		base + "nav-messages.html",
 		base + "nav-alerts.html",
+		base + "nav-profile.html",
+		base + "recent-crawls.html",
+		base + "crawl-details.html",
+		base + "site-list.html",
 	}
 
 	log.Infoln("Request received for AppHandler")
@@ -33,10 +36,4 @@ func AppHandler(w http.ResponseWriter, r *http.Request) {
 		log.Errorf("PUKE Template failed %v", err)
 		fmt.Fprintln(w, "interal error")
 	}
-	/*
-		if err := t.Execute(w, data); err != nil {
-
-			JSONError(w, err)
-		}
-	*/
 }

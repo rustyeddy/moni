@@ -49,11 +49,11 @@ func init() {
 	flag.BoolVar(&Config.Cli, "cli", false, "Run a command line client")
 	flag.BoolVar(&Config.Serve, "serve", false, "Run as a service")
 
-	flag.StringVar(&Config.ConfigFile, "cfg", "/srv/inv/config.json", "Use configuration file")
+	flag.StringVar(&Config.ConfigFile, "cfg", "/srv/moni/config.json", "Use configuration file")
 
 	flag.IntVar(&Config.Depth, "depth", 1, "Max crawl depth")
 	flag.StringVar(&Config.Pubdir, "dir", "pub", "Serve the site from this dir")
-	flag.StringVar(&Config.StoreDir, "store", "/srv/inv", "Directory for Store to use")
+	flag.StringVar(&Config.StoreDir, "store", "/srv/moni/", "Directory for Store to use")
 
 	flag.BoolVar(&Config.Profile, "prof", false, "Profile our http server (daemon)")
 }

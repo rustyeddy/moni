@@ -128,7 +128,7 @@ func NameFromURL(urlstr string) (name string) {
 	}
 
 	name = u.Hostname()
-	name = "crawl-" + TimeStamp() + strings.Replace(name, ".", "-", -1)
+	name = "crawl-" + TimeStamp() + "-" + strings.Replace(name, ".", "-", -1)
 	return name
 }
 
