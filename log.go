@@ -29,6 +29,7 @@ type Error struct {
 var (
 	errorNil          = &Error{NilObjectError, "expected (obj) got ()"}
 	errorNotSupported = &Error{NotSupportedError, "not supported"}
+	errorNotFound     = &Error{NotFoundError, "not found"}
 )
 
 // Error returns the error message and satisfies the error.Error interface
@@ -42,6 +43,12 @@ func (e Error) String() string {
 
 func ErrorNotSupported(msg string) *Error {
 	e := errorNotSupported
+	e.msg = msg
+	return e
+}
+
+func ErrorNotFound(msg string) *Error {
+	e := errorNotFound
 	e.msg = msg
 	return e
 }

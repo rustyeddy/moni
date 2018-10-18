@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"time"
 )
 
@@ -65,4 +66,27 @@ func (pm Pagemap) Exists(url string) bool {
 
 func (pm Pagemap) Set(url string, p *Page) {
 	Pages[url] = p
+}
+
+func PageListHandler(w http.ResponseWriter, r *http.Request) {
+	writeJSON(w, Pages)
+}
+
+func PageIdHandler(w http.ResponseWriter, r *http.Request) {
+	url := urlFromRequest(r)
+	page := Pages.Get(url)
+	if page == nil {
+		//
+	}
+	switch r.Method {
+	case "GET":
+		// nothing to do
+		writeJSON(w, page)
+	case "DELETE":
+		if page != nil {
+			delete(Pages, url)
+		}
+		writeJSON(w, url)
+	}
+
 }

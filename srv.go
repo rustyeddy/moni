@@ -20,6 +20,12 @@ func httpServer() *http.Server {
 	// Register the application url and handlers
 	registerApp(r)
 
+	// Register the site handler
+	registerSites(r)
+
+	// Register the pages
+	registerPages(r)
+
 	// Regsiter the site crawler routers
 	registerCrawlers(r)
 
@@ -30,6 +36,31 @@ func httpServer() *http.Server {
 	registerProfiler(r) // make these plugins ...
 
 	return createServer(r, Config.Addrport)
+}
+
+// registerApp will register a static file handler allowing us to serve
+// up the web pages for our application.
+func registerApp(r *mux.Router) {
+	// This will serve files under http://localhost:8888/static/<filename>
+	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.FileServer(http.Dir("dash/dist"))))
+	r.HandleFunc("/", AppHandler)
+	/*
+		r.PathPrefix("/").Handler(f func(w http.ResponseWriter, r *http.Request) {
+			AppHandler(w, r)
+		})
+	*/
+}
+
+// Register the site routes
+func registerSites(r *mux.Router) {
+	r.HandleFunc("/site", SiteListHandler).Methods("GET")
+	r.HandleFunc("/site/{url}", SiteIdHandler).Methods("GET", "POST", "DELETE")
+}
+
+// Register the page routes
+func registerPages(r *mux.Router) {
+	r.HandleFunc("/pages", PageListHandler).Methods("GET")
+	r.HandleFunc("/page/{url}", PageIdHandler).Methods("GET", "POST", "DELETE")
 }
 
 // registerCrawlers will register all handlers related to the
@@ -43,14 +74,6 @@ func registerCrawlers(r *mux.Router) {
 
 func registerUpdate(r *mux.Router) {
 	r.HandleFunc("/update/", UpdateHandler) // Handle updates when signaled from github
-}
-
-// registerApp will register a static file handler allowing us to serve
-// up the web pages for our application.
-func registerApp(r *mux.Router) {
-	// This will serve files under http://localhost:8888/static/<filename>
-	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.FileServer(http.Dir("dash/dist"))))
-	r.HandleFunc("/", AppHandler)
 }
 
 // registerProfiler makes the profiler available at the specified locations

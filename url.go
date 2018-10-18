@@ -3,7 +3,11 @@ package main
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
+
+	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 )
 
 // NormalizeURL will make sure a scheme (protocol) is prepended
@@ -32,4 +36,18 @@ func NormalizeURL(urlstr string) (ustr string, err error) {
 	}
 	ustr = u.String()
 	return ustr, nil
+}
+
+func urlFromRequest(r *http.Request) string {
+	// Extract the url(s) that we are going to walk
+	vars := mux.Vars(r)
+	ustr := vars["url"]
+
+	// Normalize the URL and fill in a scheme it does not exist
+	ustr, err := NormalizeURL(ustr)
+	if err != nil {
+		log.Errorf("I had a problem with the url %v", ustr)
+		return ""
+	}
+	return ustr
 }

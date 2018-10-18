@@ -17,6 +17,7 @@ var (
 	// See config.go for all configuration variables and all the flags
 	Config Configuration
 	Pages  Pagemap = make(Pagemap)
+	Sites  Sitemap = make(Sitemap)
 	st     *store.Store
 
 	ACL AccessList = AccessList{

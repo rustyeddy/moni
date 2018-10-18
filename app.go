@@ -12,7 +12,14 @@ func AppHandler(w http.ResponseWriter, r *http.Request) {
 	data := struct {
 		Title  string
 		Crawls []string
-	}{"Willy Wonkers", nil}
+		Sites  *Sitemap
+		Pages  *Pagemap
+	}{
+		Title:  "ClowdOps",
+		Crawls: nil,
+		Sites:  &Sites,
+		Pages:  &Pages,
+	}
 
 	base := "dash/tmpl/"
 	tmplts := []string{

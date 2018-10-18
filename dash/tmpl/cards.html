@@ -1,0 +1,22 @@
+{{ define "card" }}
+<div class="card">
+  {{ if .Image }}
+  <img class="card-image-top" src="{{ .Image }}" alt="{{ .Alt }}" />
+  {{ end }}
+  
+  <div class="card-header">
+    <h5 class="card-title mb0">{{ .Title }}</h5>
+  </div> <!-- card-header -->
+
+  <div class="card-body">
+    <p class="card-text">
+      {{ .Body }}
+    </p>
+    
+    {{ range .Links }}
+    <a href="{{ .Href }}" class="card-link">{{ .Anchor }}</a>
+    {{ end }}
+
+  </div> <!-- card body -->
+</div> <!-- card -->
+{{ end }}
