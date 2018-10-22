@@ -10,31 +10,19 @@ import (
 )
 
 var (
-	compiledTemplates *template.Template
-	templateFiles     []string
+	tmplpat      string // Make this a flag ?
+	tmplCompiled *template.Template
 )
 
 func init() {
-	base := "dash/tmpl/"
-	templateFiles = []string{
-		base + "index.html",
-		base + "head-cheese.html",
-		base + "sidebar.html",
-		base + "header-nav.html",
-		base + "nav-messages.html",
-		base + "nav-alerts.html",
-		base + "nav-profile.html",
-		base + "recent-crawls.html",
-		base + "crawl-details.html",
-		base + "site-list.html",
-	}
+	tmplpat = "app/tmpl/*.html"
 }
 
 func getCompiledTemplates() (t *template.Template) {
-	if compiledTemplates == nil {
-		compiledTemplates = template.Must(template.ParseFiles(templateFiles...))
+	if tmplCompiled == nil {
+		tmplCompiled = template.Must(template.ParseGlob(tmplpat))
 	}
-	return compiledTemplates
+	return tmplCompiled
 }
 
 func AppHandler(w http.ResponseWriter, r *http.Request) {
