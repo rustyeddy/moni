@@ -53,8 +53,8 @@ func registerApp(r *mux.Router) {
 
 // Register the site routes
 func registerSites(r *mux.Router) {
-	r.HandleFunc("/site", SiteListHandler).Methods("GET")
-	r.HandleFunc("/site/{url}", SiteIdHandler).Methods("GET", "POST", "DELETE")
+	r.HandleFunc("/sites", SiteListHandler).Methods("GET")
+	r.HandleFunc("/site/{url}", SiteIdHandler).Methods("GET", "POST", "PUT", "DELETE")
 }
 
 // Register the page routes

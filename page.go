@@ -1,9 +1,12 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // ===================================================================
@@ -23,6 +26,14 @@ type Page struct {
 	Err         error
 }
 
+var (
+	pages Pagemap
+)
+
+// Pagemap
+// ********************************************************************
+type Pagemap map[string]*Page
+
 // String will represent the Page
 // ====================================================================
 func (p *Page) String() string {
@@ -30,28 +41,49 @@ func (p *Page) String() string {
 	return str
 }
 
-// ********************************************************************
-type Pagemap map[string]*Page
+func GetPages() Pagemap {
+	if pages == nil {
+		pages = make(Pagemap)
+
+		st := getStorage()
+		if _, err := st.FetchObject("pages", &pages); err != nil {
+			log.Errorf("failed getting pages %v", err)
+			// XXX check for NOT found and create one, we will just try
+			// to create one without actually checking
+			pages = make(Pagemap)
+		}
+	}
+	return pages
+}
+
+func savePagemap() error {
+	st := getStorage()
+	if _, err := st.StoreObject("pages", pages); err != nil {
+		log.Errorf("failed to save page map %v", err)
+		return err
+	}
+	return nil
+}
 
 // GetPage will sanitize the url, either find or create the
 // corresponding page structure.  If the URL is deep, we also
 // find the corresponding site structure.
-func GetPage(ustr string) (pi *Page) {
+func PageFromURL(ustr string) (pi *Page) {
 	var ex bool
-	if pi, ex = Pages[ustr]; !ex {
+	if pi, ex = pages[ustr]; !ex {
 		pi = &Page{
 			URL:     ustr,
 			Links:   make(map[string]*Page),
 			Ignored: make(map[string]int),
 			crawl:   true,
 		}
-		Pages[ustr] = pi
+		pages[ustr] = pi
 	}
 	return pi
 }
 
 func (pm Pagemap) Get(url string) (p *Page) {
-	if p, e := Pages[url]; e {
+	if p, e := pages[url]; e {
 		return p
 	}
 	return nil
@@ -65,28 +97,52 @@ func (pm Pagemap) Exists(url string) bool {
 }
 
 func (pm Pagemap) Set(url string, p *Page) {
-	Pages[url] = p
+	pages[url] = p
 }
 
 func PageListHandler(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, Pages)
+	writeJSON(w, pages)
 }
 
 func PageIdHandler(w http.ResponseWriter, r *http.Request) {
-	url := urlFromRequest(r)
-	page := Pages.Get(url)
-	if page == nil {
-		//
-	}
-	switch r.Method {
-	case "GET":
-		// nothing to do
-		writeJSON(w, page)
-	case "DELETE":
-		if page != nil {
-			delete(Pages, url)
-		}
-		writeJSON(w, url)
-	}
 
+	// Get a couple vars ready for later
+	var out interface{}
+	var err error
+
+	// Get the url from the request and extract the storage
+	// index (name) of the corresponding object.
+	url := urlFromRequest(r)
+	name := NameFromURL(url)
+	out = "No Output"
+
+	if page := pages.Get(url); page != nil {
+		switch r.Method {
+		case "GET":
+			out = page
+		case "PUT", "POST":
+			log.Infoln("overwriting ", name)
+			out = "done"
+		case "DELETE":
+			delete(pages, name)
+			out = "done"
+		}
+	} else {
+		switch r.Method {
+		case "GET", "DELETE":
+			// Nothing to get or delete
+			err = errors.New("object not found " + name)
+		case "PUT", "POST":
+			st := getStorage()
+			if _, err := st.StoreObject(name, page); err != nil {
+				err = fmt.Errorf("page %s error %v", url, err)
+			} else {
+				out = `{"msg": "done"}`
+			}
+		}
+	}
+	if err != nil {
+		JSONError(w, err)
+	}
+	writeJSON(w, out)
 }

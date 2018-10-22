@@ -108,6 +108,8 @@ func (cli *Client) Do(cmd string, url string) (resp *http.Response) {
 	r := httpServer().Handler
 	r.ServeHTTP(w, req)
 
+	// 8>< ------------ ><8   Cut Here   8>< -------------- ><8
+
 	// get called with vars set properly -> CrawlHandler(w, req)
 	// Let Us handle the result
 	if resp = w.Result(); resp == nil {

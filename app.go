@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -8,21 +9,14 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func AppHandler(w http.ResponseWriter, r *http.Request) {
-	data := struct {
-		Title  string
-		Crawls []string
-		Sites  *Sitemap
-		Pages  *Pagemap
-	}{
-		Title:  "ClowdOps",
-		Crawls: nil,
-		Sites:  &Sites,
-		Pages:  &Pages,
-	}
+var (
+	compiledTemplates *template.Template
+	templateFiles     []string
+)
 
+func init() {
 	base := "dash/tmpl/"
-	tmplts := []string{
+	templateFiles = []string{
 		base + "index.html",
 		base + "head-cheese.html",
 		base + "sidebar.html",
@@ -34,13 +28,36 @@ func AppHandler(w http.ResponseWriter, r *http.Request) {
 		base + "crawl-details.html",
 		base + "site-list.html",
 	}
+}
 
-	log.Infoln("Request received for AppHandler")
+func getCompiledTemplates() (t *template.Template) {
+	if compiledTemplates == nil {
+		compiledTemplates = template.Must(template.ParseFiles(templateFiles...))
+	}
+	return compiledTemplates
+}
 
-	data.Crawls = GetCrawls()
-	var t = template.Must(template.ParseFiles(tmplts...))
+func AppHandler(w http.ResponseWriter, r *http.Request) {
+	data := struct {
+		Title  string
+		Crawls []string
+		Sites  Sitemap
+		Pages  Pagemap
+	}{
+		Title:  "ClowdOps",
+		Crawls: GetCrawls(),
+		Sites:  GetSites(),
+		Pages:  GetPages(),
+	}
+
+	var t *template.Template
+	if t = getCompiledTemplates(); t == nil {
+		JSONError(w, errors.New("failed to compile templates"))
+		return
+	}
+
 	if err := t.Execute(w, data); err != nil {
-		log.Errorf("PUKE Template failed %v", err)
-		fmt.Fprintln(w, "interal error")
+		log.Errorf("Template PUKED %v ", err)
+		fmt.Fprintf(w, "template BARFED %v", err)
 	}
 }

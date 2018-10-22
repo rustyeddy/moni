@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -15,10 +16,8 @@ import (
 var (
 
 	// See config.go for all configuration variables and all the flags
-	Config Configuration
-	Pages  Pagemap = make(Pagemap)
-	Sites  Sitemap = make(Sitemap)
-	st     *store.Store
+	Config  Configuration
+	storage *store.Store
 
 	ACL AccessList = AccessList{
 		Allowed:     make(map[string]int),
@@ -29,12 +28,21 @@ var (
 
 func getStorage() *store.Store {
 	var err error
-	if st == nil {
-		if st, err = store.UseStore(Config.StoreDir); err != nil {
+	if storage == nil {
+		if storage, err = store.UseStore(Config.StoreDir); err != nil {
 			log.Fatalf("Fataling getting our storage %s", Config.StoreDir)
 		}
 	}
-	return st
+	return storage
+}
+
+func getStoredObject(name string, obj interface{}) error {
+	st := getStorage()
+	_, err := st.FetchObject(name, obj)
+	if err != nil {
+		return errors.New("failed to find " + name)
+	}
+	return nil
 }
 
 func main() {

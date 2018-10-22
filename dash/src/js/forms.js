@@ -1,9 +1,0 @@
-// Forms
-import './modules/select2'
-import './modules/daterangepicker'
-import './modules/datetimepicker'
-import './modules/mask'
-import './modules/markdown'
-import './modules/quill'
-import './modules/validation'
-import './modules/wizard'

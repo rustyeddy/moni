@@ -79,7 +79,7 @@ func TestCrawlIdHandler(t *testing.T) {
 	resp := ServiceTester(t, CrawlIdHandler, "get", url)
 	body := GetBody(resp)
 	if body == nil {
-		t.Errorf("Crawl list handler failed to read the body")
+		t.Errorf("crawl list read body failed")
 	}
 	ctype := resp.Header.Get("Content-Type")
 	if ctype != "application/json" {
@@ -89,9 +89,10 @@ func TestCrawlIdHandler(t *testing.T) {
 	var page Page
 	err := json.Unmarshal(body, &page)
 	if err != nil {
-		t.Errorf("failed unmarshallng body")
+		t.Errorf("failed unmarshallng body %v ", err)
 	}
-	if page.URL == "gardenpassages.com" {
+
+	if page.URL != "gardenpassages.com" {
 		t.Errorf("expected (gardenpassages.com) got (%s)", page.URL)
 	}
 }

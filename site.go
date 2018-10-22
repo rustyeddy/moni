@@ -2,6 +2,8 @@ package main
 
 import (
 	"net/http"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Site struct {
@@ -12,6 +14,21 @@ type Site struct {
 }
 
 type Sitemap map[string]*Site
+
+var (
+	sites Sitemap
+)
+
+func GetSites() Sitemap {
+	if sites == nil {
+		st := getStorage()
+		if _, err := st.FetchObject("sites", &sites); err != nil {
+			log.Errorf(" failed get stored object 'sites' %v", err)
+			return nil
+		}
+	}
+	return sites
+}
 
 // SiteFromURL will create and index the site based on
 // hostname:port.
@@ -24,7 +41,7 @@ func SiteFromURL(ustr string) (s *Site) {
 }
 
 func (s Sitemap) Find(url string) (site *Site, ex bool) {
-	site, ex = Sites[url]
+	site, ex = s[url]
 	return site, ex
 }
 
@@ -42,12 +59,26 @@ func (s Sitemap) Exists(url string) bool {
 
 func (s Sitemap) Delete(url string) {
 	if _, ex := s[url]; ex {
-		delete(Sites, url)
+		delete(s, url)
+	}
+}
+
+func (s Sitemap) Store() {
+	st := getStorage()
+	if _, err := st.StoreObject("sites", s); err != nil {
+		log.Errorf("failed saving sites %v", err)
+	}
+}
+
+func (s *Sitemap) Fetch() {
+	st := getStorage()
+	if _, err := st.FetchObject("sites", s); err != nil {
+		log.Errorf("failed to fetch sites %v", err)
 	}
 }
 
 func SiteListHandler(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, Sites)
+	writeJSON(w, sites)
 }
 
 func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
@@ -55,7 +86,7 @@ func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		site := Sites.Get(url)
+		site := sites.Get(url)
 		if site != nil {
 			writeJSON(w, site)
 		} else {
@@ -63,12 +94,14 @@ func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 	case "PUT", "POST":
-		Sites[url] = SiteFromURL(url)
+		sites[url] = SiteFromURL(url)
+		sites.Store()
 
 	case "DELETE":
-		Sites.Delete(url)
+		sites.Delete(url)
 
 	default:
 		JSONError(w, ErrorNotSupported("unspported method "+r.Method))
 	}
+	writeJSON(w, "OK")
 }

@@ -69,7 +69,7 @@ func Crawl(pg *Page) {
 		pg.StatusCode = r.StatusCode
 		pg.Finish = time.Now()
 		pg.crawl = false
-		Pages[link] = pg
+		pages[link] = pg
 	})
 
 	c.OnError(func(r *colly.Response, err error) {
@@ -79,7 +79,7 @@ func Crawl(pg *Page) {
 		pg.Finish = time.Now()
 		pg.crawl = false
 		link := r.Request.URL.String()
-		Pages[link] = pg
+		pages[link] = pg
 	})
 
 	pg.Start = time.Now()
@@ -96,7 +96,7 @@ func CrawlOrNot(urlstr string) (pi *Page) {
 		return nil
 	}
 
-	if pi = GetPage(urlstr); pi == nil {
+	if pi = PageFromURL(urlstr); pi == nil {
 		log.Errorf("page not found url %s", urlstr)
 		return nil
 	}

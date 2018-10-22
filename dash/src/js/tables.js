@@ -1,2 +1,0 @@
-// Tables
-import './modules/datatables'
