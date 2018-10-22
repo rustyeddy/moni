@@ -1,4 +1,4 @@
-package main
+package moni
 
 import (
 	"net/http"
@@ -21,7 +21,7 @@ var (
 
 func GetSites() Sitemap {
 	if sites == nil {
-		st := getStorage()
+		st := GetStorage()
 		if _, err := st.FetchObject("sites", &sites); err != nil {
 			log.Errorf(" failed get stored object 'sites' %v", err)
 			return nil
@@ -64,14 +64,14 @@ func (s Sitemap) Delete(url string) {
 }
 
 func (s Sitemap) Store() {
-	st := getStorage()
+	st := GetStorage()
 	if _, err := st.StoreObject("sites", s); err != nil {
 		log.Errorf("failed saving sites %v", err)
 	}
 }
 
 func (s *Sitemap) Fetch() {
-	st := getStorage()
+	st := GetStorage()
 	if _, err := st.FetchObject("sites", s); err != nil {
 		log.Errorf("failed to fetch sites %v", err)
 	}

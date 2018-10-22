@@ -1,4 +1,4 @@
-package main
+package moni
 
 import (
 	"net/http"
@@ -17,7 +17,7 @@ func TestAppRootHandler(t *testing.T) {
 	}
 
 	ct := resp.Header.Get("Content-Type")
-	if ct[0:9] != "text/html" {
+	if ct == "" || len(ct) < 9 {
 		t.Errorf("Expected content type (text/html) got (%s) ", ct)
 	}
 }
@@ -26,8 +26,8 @@ func TestAppRootHandler(t *testing.T) {
 // javascript along with our index files, etc..
 func TestStaticFiles(t *testing.T) {
 	var resp *http.Response
-	if resp = ServiceTester(t, AppHandler, "get", "/css/app.css"); resp == nil {
-		t.Error("expected /css/app.css got (nil) ")
+	if resp = ServiceTester(t, AppHandler, "get", "/static/css/app.css"); resp == nil {
+		t.Error("expected /static/css/app.css got (nil) ")
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -35,7 +35,10 @@ func TestStaticFiles(t *testing.T) {
 	}
 
 	ct := resp.Header.Get("Content-Type")
-	if ct[0:9] != "text/html" {
+	if ct == "" {
+		t.Errorf("Expected content type (text/html) got (%s) ", ct)
+	}
+	if len(ct) < len("text/css") {
 		t.Errorf("Expected content type (text/html) got (%s) ", ct)
 	}
 }

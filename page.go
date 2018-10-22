@@ -1,4 +1,4 @@
-package main
+package moni
 
 import (
 	"errors"
@@ -45,7 +45,7 @@ func GetPages() Pagemap {
 	if pages == nil {
 		pages = make(Pagemap)
 
-		st := getStorage()
+		st := GetStorage()
 		if _, err := st.FetchObject("pages", &pages); err != nil {
 			log.Debugf("Empty pages %v, creating ...", err)
 			// TODO ~ make sure the error is NOT found
@@ -62,7 +62,7 @@ func GetPages() Pagemap {
 }
 
 func savePagemap() error {
-	st := getStorage()
+	st := GetStorage()
 	if _, err := st.StoreObject("pages", pages); err != nil {
 		log.Errorf("failed to save page map %v", err)
 		return err
@@ -138,7 +138,7 @@ func PageIdHandler(w http.ResponseWriter, r *http.Request) {
 			// Nothing to get or delete
 			err = errors.New("object not found " + name)
 		case "PUT", "POST":
-			st := getStorage()
+			st := GetStorage()
 			if _, err := st.StoreObject(name, page); err != nil {
 				err = fmt.Errorf("page %s error %v", url, err)
 			} else {

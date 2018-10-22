@@ -1,8 +1,7 @@
-package main
+package moni
 
 import (
 	"net/http"
-	"net/url"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -16,21 +15,25 @@ type AccessList struct {
 	Unsupported map[string]int
 }
 
-func GetHostname(h string) (host string) {
-	var err error
-	var u *url.URL
+var (
+	accessList = &AccessList{
+		Allowed:     make(map[string]int),
+		Rejected:    make(map[string]int),
+		Unsupported: make(map[string]int),
+	}
+)
 
-	// why does url.Parse move the hostname 'gum.com' to a page?
-	if u, err = url.Parse(h); err != nil {
-		log.Errorln("failed to parse hostname", err)
-		return ""
+// ACL returns the accessList.  If the accessList does not exist
+// it will be created prior to return
+func ACL() *AccessList {
+	if accessList == nil {
+		accessList = &AccessList{
+			Allowed:     make(map[string]int),
+			Rejected:    make(map[string]int),
+			Unsupported: make(map[string]int),
+		}
 	}
-	// TODO Ugly stuff see above
-	if u.Host == "" && u.Scheme == "" && u.Path != "" {
-		u.Host = u.Path
-		u.Path = ""
-	}
-	return u.Hostname()
+	return accessList
 }
 
 // AllowHost will naively take only the host, ignoring port,
@@ -71,5 +74,5 @@ func (acl *AccessList) IsAllowed(urlstr string) (allow bool) {
 
 // ACLHandler will respond to ACL requests
 func ACLHandler(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, &ACL)
+	writeJSON(w, accessList)
 }

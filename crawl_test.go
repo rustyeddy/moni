@@ -1,4 +1,4 @@
-package main
+package moni
 
 import (
 	"encoding/json"
@@ -27,7 +27,7 @@ func ServiceTester(t *testing.T, h http.HandlerFunc, verb string, url string) *h
 	// parse our the args and setup other important things, then let it
 	// call the handler itself.
 	//handler := http.HandlerFunc(h)
-	r := httpServer().Handler
+	r := Server().Handler
 
 	// This will cause the actual crawling, CrawlHandler will be called
 	// with all the appropriate header and argument processing.

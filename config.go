@@ -1,8 +1,7 @@
-package main
+package moni
 
 import (
 	"errors"
-	"flag"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -38,28 +37,29 @@ type Command struct {
 	Args    []string
 }
 
+var (
+	config        *Configuration
+	DefaultConfig = Configuration{
+		Addrport: ":8888",
+		Daemon:   false,
+		Depth:    3,
+		Profile:  false,
+		Pubdir:   "docs",
+		Serve:    false,
+		StoreDir: "/srv/moni", // or "./.moni"
+	}
+)
+
 func init() {
-	flag.StringVar(&Config.Output, "output", "stdout", "Were to send log output")
-	flag.StringVar(&Config.Level, "level", "warn", "Log level to set")
-	flag.StringVar(&Config.Format, "format", "json", "Format to print log files")
-
-	flag.StringVar(&Config.Addrport, "addr", ":8888", " an Daemon in the background")
-
-	// What "cmd" or "mode" to run the command crawl, run cli or daemon
-	flag.BoolVar(&Config.Cli, "cli", false, "Run a command line client")
-	flag.BoolVar(&Config.Serve, "serve", false, "Run as a service")
-
-	flag.StringVar(&Config.ConfigFile, "cfg", "/srv/moni/config.json", "Use configuration file")
-
-	flag.IntVar(&Config.Depth, "depth", 1, "Max crawl depth")
-	flag.StringVar(&Config.Pubdir, "dir", "pub", "Serve the site from this dir")
-	flag.StringVar(&Config.StoreDir, "store", "/srv/moni/", "Directory for Store to use")
-
-	flag.BoolVar(&Config.Profile, "prof", false, "Profile our http server (daemon)")
+	config = &DefaultConfig
 }
 
 func GetConfiguration() *Configuration {
-	return &Config
+	return config
+}
+
+func SetConfiguation(c *Configuration) {
+	config = c // Should merge... probably
 }
 
 // SaveFile will write the configuration out to our Storage as JSON.  As of
@@ -68,7 +68,7 @@ func GetConfiguration() *Configuration {
 // look like a filename..  That is a label can be "config.json" but it can
 // NOT have any leading path '/' characters
 func (c *Configuration) SaveFile() {
-	s := getStorage()
+	s := GetStorage()
 	if s == nil {
 		log.Errorln("Failed saving config ", c.ConfigFile)
 		return
@@ -83,7 +83,7 @@ func (c *Configuration) SaveFile() {
 // if needed, the object will be converted from JSON to a Go object before
 // being returned.
 func (c *Configuration) ReadFile() error {
-	s := getStorage() // fatal if nul
+	s := GetStorage() // fatal if nul
 	_, err := s.FetchObject("config", c)
 	if err != nil {
 		return errors.New("failed to read config from store")

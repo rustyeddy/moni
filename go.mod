@@ -10,10 +10,10 @@ require (
 	github.com/gocolly/colly v1.1.0
 	github.com/gorilla/mux v1.6.2
 	github.com/kennygrant/sanitize v1.2.4 // indirect
-	github.com/rustyeddy/store v0.0.0-20181017190442-0bd9c5bdf7df
+	github.com/rustyeddy/store v0.0.0-20181018202852-21207579ae80
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect
 	github.com/sirupsen/logrus v1.1.1
 	github.com/temoto/robotstxt v0.0.0-20180810133444-97ee4a9ee6ea // indirect
-	golang.org/x/net v0.0.0-20181011144130-49bb7cea24b1 // indirect
+	golang.org/x/net v0.0.0-20181017193950-04a2e542c03f // indirect
 	google.golang.org/appengine v1.2.0 // indirect
 )

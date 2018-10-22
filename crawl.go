@@ -1,4 +1,4 @@
-package main
+package moni
 
 import (
 	"fmt"
@@ -90,7 +90,7 @@ func Crawl(pg *Page) {
 // and if enough time has passed before the url can be scanned again
 func CrawlOrNot(urlstr string) (pi *Page) {
 
-	allowed := ACL.IsAllowed(urlstr)
+	allowed := ACL().IsAllowed(urlstr)
 	if !allowed {
 		log.Debugf("  not allowed %s add reason ..", urlstr)
 		return nil
@@ -113,7 +113,7 @@ func CrawlOrNot(urlstr string) (pi *Page) {
 // the page is fetched a lot.
 func storePageCrawl(pg *Page) {
 	name := NameFromURL(pg.URL)
-	st := getStorage()
+	st := GetStorage()
 	_, err := st.StoreObject(name, pg)
 	if err != nil {
 		log.Errorln("Failed to create local store")
@@ -154,7 +154,7 @@ func CrawlHandler(w http.ResponseWriter, r *http.Request) {
 	// name like "example.com" will be placeded in the url.URL.Path
 	// field instead of the Host field.  However url.String() makes
 	// everything right.
-	ACL.AllowHost(ustr)
+	accessList.AllowHost(ustr)
 
 	// If the url has too recently been scanned we will return
 	// null for the job, however a copy of the scan will is
@@ -179,7 +179,7 @@ func CrawlHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetCrawls
 func GetCrawls() []string {
-	st := getStorage()
+	st := GetStorage()
 	pat := "crawl-"
 	patlen := len(pat)
 
@@ -211,7 +211,7 @@ func CrawlIdHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract the url(s) that we are going to walk
 	vars := mux.Vars(r)
 	cid := vars["cid"]
-	st := getStorage()
+	st := GetStorage()
 
 	page := new(Page)
 	_, err := st.FetchObject(cid, page)

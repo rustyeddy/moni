@@ -10,27 +10,46 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/rustyeddy/moni"
 	"github.com/rustyeddy/store"
 )
 
 var (
+	config *moni.Configuration
+)
+
+func init() {
+	flag.StringVar(&config.Output, "output", "stdout", "Were to send log output")
+	flag.StringVar(&config.Level, "level", "warn", "Log level to set")
+	flag.StringVar(&config.Format, "format", "json", "Format to print log files")
+
+	flag.StringVar(&config.Addrport, "addr", ":8888", " an Daemon in the background")
+
+	// What "cmd" or "mode" to run the command crawl, run cli or daemon
+	flag.BoolVar(&config.Cli, "cli", false, "Run a command line client")
+	flag.BoolVar(&config.Serve, "serve", false, "Run as a service")
+
+	flag.StringVar(&config.ConfigFile, "cfg", "/srv/moni/config.json", "Use configuration file")
+
+	flag.IntVar(&config.Depth, "depth", 1, "Max crawl depth")
+	flag.StringVar(&config.Pubdir, "dir", "pub", "Serve the site from this dir")
+	flag.StringVar(&config.StoreDir, "store", "/srv/moni/", "Directory for Store to use")
+
+	flag.BoolVar(&config.Profile, "prof", false, "Profile our http server (daemon)")
+}
+
+var (
 
 	// See config.go for all configuration variables and all the flags
-	Config  Configuration
+	config  Configuration
 	storage *store.Store
-
-	ACL AccessList = AccessList{
-		Allowed:     make(map[string]int),
-		Rejected:    make(map[string]int),
-		Unsupported: make(map[string]int),
-	}
 )
 
 func getStorage() *store.Store {
 	var err error
 	if storage == nil {
-		if storage, err = store.UseStore(Config.StoreDir); err != nil {
-			log.Fatalf("Fataling getting our storage %s", Config.StoreDir)
+		if storage, err = store.UseStore(config.StoreDir); err != nil {
+			log.Fatalf("Fataling getting our storage %s", config.StoreDir)
 		}
 	}
 	return storage
@@ -79,8 +98,8 @@ func main() {
 
 		// With the router and http handler, only the cli calls the router
 		// and handler directly avoiding the TCP RTT.
-		srv *http.Server
-		cli *Client
+		srv *moni.Server
+		cli *moni.Client
 	)
 
 	// Flags are all handled in the config.go file just because there
@@ -98,22 +117,22 @@ func main() {
 
 	// ====================================================================
 	// Read our configurations and various Data if they exist.  If they
-	// do NOT exist, we will start with reasonable defaults.  If Config
+	// do NOT exist, we will start with reasonable defaults.  If config
 	// ReadFile() failes the program will fail.  Refuse to run with a
 	// broken configuration.
-	Config.ReadFile()
+	config.ReadFile()
 
 	// ====================================================================
 	// Create and run the server if the program is supposed to
-	if Config.Serve {
+	if config.Serve {
 		srv = httpServer()
 		go startServer(srv)
 	}
 
 	// ====================================================================
 	// Create loop in a command prompt performing what ever is needed
-	if Config.Cli {
-		cli = NewClient(os.Stdout, Config.Addrport)
+	if config.Cli {
+		cli = NewClient(os.Stdout, config.Addrport)
 		go cli.Start()
 	}
 
@@ -126,7 +145,7 @@ func main() {
 
 		// What address and port to connect to and something to
 		// write the output to (io.Writer)
-		cli := NewClient(os.Stdout, Config.Addrport)
+		cli := NewClient(os.Stdout, config.Addrport)
 		arg := flag.Arg(1)
 
 		// Run a single command in the foreground
@@ -148,7 +167,7 @@ func main() {
 	// ====================================================================
 	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
 	// SIGKILL, SIGQUIT or SIGTERM (Ctrl+/) will not be caught.
-	if Config.Cli || Config.Serve {
+	if config.Cli || config.Serve {
 
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt)
@@ -161,7 +180,7 @@ func main() {
 		st.Shutdown()
 
 		// Create a deadline to wait for.
-		ctx, cancel := context.WithTimeout(context.Background(), Config.Wait)
+		ctx, cancel := context.WithTimeout(context.Background(), config.Wait)
 		defer cancel()
 		// Doesn't block if no connections, but will otherwise wait
 		// until the timeout deadline.

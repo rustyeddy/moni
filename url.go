@@ -1,4 +1,4 @@
-package main
+package moni
 
 import (
 	"errors"
@@ -31,7 +31,7 @@ func NormalizeURL(urlstr string) (ustr string, err error) {
 	case "":
 		u.Scheme = "http"
 	default:
-		ACL.Unsupported[urlstr]++
+		accessList.Unsupported[urlstr]++
 		return "", ErrorNotSupported(urlstr)
 	}
 	ustr = u.String()
@@ -50,4 +50,22 @@ func urlFromRequest(r *http.Request) string {
 		return ""
 	}
 	return ustr
+}
+
+// GetHostname from a URL type string
+func GetHostname(h string) (host string) {
+	var err error
+	var u *url.URL
+
+	// why does url.Parse move the hostname 'gum.com' to a page?
+	if u, err = url.Parse(h); err != nil {
+		log.Errorln("failed to parse hostname", err)
+		return ""
+	}
+	// TODO Ugly stuff see above
+	if u.Host == "" && u.Scheme == "" && u.Path != "" {
+		u.Host = u.Path
+		u.Path = ""
+	}
+	return u.Hostname()
 }

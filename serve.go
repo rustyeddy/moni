@@ -1,4 +1,4 @@
-package main
+package moni
 
 import (
 	"net/http"
@@ -14,7 +14,7 @@ import (
 // *http.Server back to the caller, allowing it (main as of this
 // writing) it to `go startServer(srv)` start the server as a
 // Go Routine().
-func httpServer() *http.Server {
+func Server() *http.Server {
 	r := mux.NewRouter()
 
 	// Register the application url and handlers
@@ -35,20 +35,15 @@ func httpServer() *http.Server {
 	// Register the profiler
 	registerProfiler(r) // make these plugins ...
 
-	return createServer(r, Config.Addrport)
+	return createServer(r, config.Addrport)
 }
 
 // registerApp will register a static file handler allowing us to serve
 // up the web pages for our application.
 func registerApp(r *mux.Router) {
 	// This will serve files under http://localhost:8888/static/<filename>
-	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.FileServer(http.Dir("dash/dist"))))
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("app/static"))))
 	r.HandleFunc("/", AppHandler)
-	/*
-		r.PathPrefix("/").Handler(f func(w http.ResponseWriter, r *http.Request) {
-			AppHandler(w, r)
-		})
-	*/
 }
 
 // Register the site routes
@@ -100,7 +95,7 @@ func createServer(r *mux.Router, addrport string) *http.Server {
 
 // startServer starts the server in a Go routine
 func startServer(srv *http.Server) (err error) {
-	log.Infoln("Moni listening on ", Config.Addrport)
+	log.Infoln("Moni listening on ", config.Addrport)
 	if err = srv.ListenAndServe(); err != nil {
 		log.Println(err)
 	}

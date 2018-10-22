@@ -1,4 +1,4 @@
-package main
+package moni
 
 import (
 	"encoding/json"

@@ -1,4 +1,4 @@
-package main
+package moni
 
 import (
 	"bufio"
@@ -92,6 +92,30 @@ func (cli *Client) Start() {
 	}
 }
 
+// Do runs Monty commands as a monty client in one of three
+// ways:
+//
+// 1. If the '-client host:port' flag is set it sends requests to the
+//    specified server if the client can not connect to the server an
+//    connection error is returned.
+//
+// 2. If we are running in -serve mode we will feed the requests directly
+//    to the server as they would coming from any other client, preserving
+//    the integrety of the schedulers and such.
+//
+// 3. If niether -serve or -client are set we will run the command as a
+//    simple command line utility, executing according to input produced
+//    by the caller.
+//
+// In all three cases: client/server, client part of server process,
+// no client/server all requests are compiled to a standard URL that
+// will be handled as an *http.Request, whether a network intercedes
+// or not.
+//
+// This dramitically simplifies "UI" maintanance at the expense of
+// forced discipline when defining the API.
+//
+//
 func (cli *Client) Do(cmd string, url string) (resp *http.Response) {
 
 	// Prepare a request
@@ -105,7 +129,7 @@ func (cli *Client) Do(cmd string, url string) (resp *http.Response) {
 	// CrawlHandler is the same function called by the HTTP server!
 	// which takes care of sanitizing the URL(s) and other house
 	// keeping functions, we will just reuse it from the command line.
-	r := httpServer().Handler
+	r := Server().Handler
 	r.ServeHTTP(w, req)
 
 	// 8>< ------------ ><8   Cut Here   8>< -------------- ><8
