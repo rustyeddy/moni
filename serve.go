@@ -33,12 +33,13 @@ func Server() *http.Server {
 	registerUpdate(r)
 
 	// Register the profiler
-	registerProfiler(r) // make these plugins ...
-
+	if config.Profile {
+		registerProfiler(r) // make these plugins ...
+	}
 	return createServer(r, config.Addrport)
 }
 
-// registerApp will register a static file handler allowing us to serve
+// RegisterApp will register a static file handler allowing us to serve
 // up the web pages for our application.
 func registerApp(r *mux.Router) {
 	// This will serve files under http://localhost:8888/static/<filename>

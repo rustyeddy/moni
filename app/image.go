@@ -1,4 +1,4 @@
-package ui
+package app
 
 import "fmt"
 
@@ -8,12 +8,13 @@ type Image struct {
 	Alt string
 }
 
-func NewImage(src, alt, string) *Image {
-	return &Image{Src: src, Alt: atl}
+func NewImage(src, alt string) *Image {
+	return &Image{Src: src, Alt: alt}
 }
 
 // String returns a string representation of the Image
 func (i *Image) String() string {
+	return i.HTML()
 }
 
 func (i *Image) HTML() string {

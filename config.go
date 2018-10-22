@@ -29,6 +29,7 @@ type Configuration struct {
 
 	Serve    bool
 	StoreDir string
+	Tmpldir  string
 	Wait     time.Duration
 }
 
@@ -47,6 +48,7 @@ var (
 		Pubdir:   "docs",
 		Serve:    false,
 		StoreDir: "/srv/moni", // or "./.moni"
+		Tmpldir:  "app/tmpl",
 	}
 )
 
@@ -54,11 +56,11 @@ func init() {
 	config = &DefaultConfig
 }
 
-func GetConfiguration() *Configuration {
+func GetConfig() *Configuration {
 	return config
 }
 
-func SetConfiguation(c *Configuration) {
+func SetConfig(c *Configuration) {
 	config = c // Should merge... probably
 }
 

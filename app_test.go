@@ -20,6 +20,8 @@ func TestAppRootHandler(t *testing.T) {
 	if ct == "" || len(ct) < 9 {
 		t.Errorf("Expected content type (text/html) got (%s) ", ct)
 	}
+
+	// TODO ~ Check the body make sure the content is corrent
 }
 
 // TestStaticFiles will verify we can access static files such as css and

@@ -1,8 +1,9 @@
 package moni
 
 import (
-	"fmt"
 	"net/http"
+
+	"github.com/rustyeddy/moni/app"
 )
 
 // AppHandler will compose a response to the request
@@ -11,29 +12,22 @@ import (
 // send back to the caller
 func AppHandler(w http.ResponseWriter, r *http.Request) {
 
-	fmt.Fprintf(w, "request: %+v\n", r)
-	/*
+	b := app.NewBuilder()
 
-		data := struct {
-			Title  string
-			Crawls []string
-			Sites  Sitemap
-			Pages  Pagemap
-		}{
-			Title:  "ClowdOps",
-			Crawls: GetCrawls(),
-			Sites:  GetSites(),
-			Pages:  GetPages(),
-		}
+	data := struct {
+		Title string
+		Name  string
 
-		var t *template.Template
-		if t = getCompiledTemplates(); t == nil {
-			JSONError(w, errors.New("failed to compile templates"))
-			return
-		}
-		if err := t.Execute(w, data); err != nil {
-			log.Errorf("Template PUKED %v ", err)
-			fmt.Fprintf(w, "template BARFED %v", err)
-		}
-	*/
+		// Maybe?
+		Crawls []string
+		Sites  Sitemap
+		Pages  Pagemap
+	}{
+		Title:  "ClowdOps",
+		Crawls: GetCrawls(),
+		Sites:  GetSites(),
+		Pages:  GetPages(),
+	}
+
+	b.Assemble(w, "home", data)
 }

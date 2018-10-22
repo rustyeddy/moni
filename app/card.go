@@ -1,6 +1,6 @@
-package ui
+package app
 
-import "log"
+import log "github.com/sirupsen/logrus"
 
 // CardOptions
 type CardOptions map[string]string
@@ -21,6 +21,10 @@ type Link struct {
 	Link string
 }
 
+func linksFromString(str string) (l []*Link) {
+	return nil
+}
+
 // NewCard creates a new card
 func NewCard(config map[string]string) (c *Card) {
 	c = new(Card)
@@ -32,19 +36,14 @@ func NewCard(config map[string]string) (c *Card) {
 		case "Text":
 			c.Text = v
 		case "Links":
-			c.Links = v
+			c.Links = linksFromString(v)
 		case "Image":
 			c.Image.Src = v
 		case "Alt":
 			c.Image.Alt = v
 		default:
-			log.Errorf("unexpected card part %s, ignoring .. %s with value ", k)
+			log.Errorf("unexpected card part %s, ignoring .. %s with value ", k, v)
 		}
 	}
 	return c
-}
-
-// HTML ~ Hmmm do we want to generate html directly?  Hmm. probably
-func (c *Card) HTML() (h string) {
-
 }

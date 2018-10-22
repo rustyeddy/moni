@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+	{{ template "header.html" . }}
+    </head>
+    <body>
+	<div class="wrapper">
+	  <div class="d-flex">
+
+	    {{ template "header" . }}
+
+	    <!-- Include the header Go style  -->
+	    {{- block "main" . }}{{- end }}
+
+	    {{ template "footer.html" . }}
+
+	  </div>
+	</div> <!-- wrapper -->
+	<script src="js/app.js"></script>
+    </body>
+</html>

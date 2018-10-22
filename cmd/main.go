@@ -15,7 +15,8 @@ import (
 )
 
 var (
-	config *moni.Configuration
+	config  moni.Configuration
+	storage *store.Store
 )
 
 func init() {
@@ -37,13 +38,6 @@ func init() {
 
 	flag.BoolVar(&config.Profile, "prof", false, "Profile our http server (daemon)")
 }
-
-var (
-
-	// See config.go for all configuration variables and all the flags
-	config  Configuration
-	storage *store.Store
-)
 
 func getStorage() *store.Store {
 	var err error

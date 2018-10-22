@@ -9,6 +9,7 @@ var (
 	moniStore *store.Store
 )
 
+// GetStorage will return and possibly create (if needed) the storage
 func GetStorage() *store.Store {
 	var err error
 

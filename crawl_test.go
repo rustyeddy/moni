@@ -75,7 +75,7 @@ func TestCrawlListHandler(t *testing.T) {
 }
 
 func TestCrawlIdHandler(t *testing.T) {
-	url := "/crawlid/crawl-gardenpassages-com"
+	url := "var/tstore/example-com.json"
 	resp := ServiceTester(t, CrawlIdHandler, "get", url)
 	body := GetBody(resp)
 	if body == nil {
