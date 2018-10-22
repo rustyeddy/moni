@@ -1,5 +1,7 @@
 package ui
 
+import "log"
+
 // CardOptions
 type CardOptions map[string]string
 
@@ -11,7 +13,7 @@ type Card struct {
 	Text  string  // body
 	Links []*Link //
 
-	*html.Template
+	TmplName string // Template name we'll use to convert to html
 }
 
 type Link struct {
@@ -20,6 +22,29 @@ type Link struct {
 }
 
 // NewCard creates a new card
-func NewCard(config map[string]string) {
+func NewCard(config map[string]string) (c *Card) {
+	c = new(Card)
+
+	for k, v := range config {
+		switch k {
+		case "Title":
+			c.Title = v
+		case "Text":
+			c.Text = v
+		case "Links":
+			c.Links = v
+		case "Image":
+			c.Image.Src = v
+		case "Alt":
+			c.Image.Alt = v
+		default:
+			log.Errorf("unexpected card part %s, ignoring .. %s with value ", k)
+		}
+	}
+	return c
+}
+
+// HTML ~ Hmmm do we want to generate html directly?  Hmm. probably
+func (c *Card) HTML() (h string) {
 
 }

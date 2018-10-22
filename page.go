@@ -47,10 +47,15 @@ func GetPages() Pagemap {
 
 		st := getStorage()
 		if _, err := st.FetchObject("pages", &pages); err != nil {
-			log.Errorf("failed getting pages %v", err)
-			// XXX check for NOT found and create one, we will just try
-			// to create one without actually checking
+			log.Debugf("Empty pages %v, creating ...", err)
+			// TODO ~ make sure the error is NOT found
+
 			pages = make(Pagemap)
+			_, err := st.StoreObject("pages", pages)
+			if err != nil {
+				log.Errorf("Store: failed to create pages: %v ", err)
+				return pages
+			}
 		}
 	}
 	return pages

@@ -44,6 +44,8 @@ func AppHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Printf("%+v\n", t)
+
 	if err := t.Execute(w, data); err != nil {
 		log.Errorf("Template PUKED %v ", err)
 		fmt.Fprintf(w, "template BARFED %v", err)

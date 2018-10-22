@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html>
     <head>
-	{{- partial "head.html" . -}}
+	{{ template "header.html" . }}
     </head>
     <body>
 	<div class="wrapper">
 	    <div class="d-flex">
-		{{- partial "header.html" . -}}
+		<!-- Include the header Go style  -->
 		
 		{{- block "main" . }}{{- end }}
 	    </div>
 	</div> <!-- wrapper -->
-	{{- partial "footer.html" . -}}
+
+	{{ template "footer.html" . }}
+
 	<script src="js/app.js"></script>
     </body>
 </html>
