@@ -18,6 +18,7 @@ type Card struct {
 	Text  string  // body
 	Links []*Link //
 
+	Cols     string
 	tmplName string // Template name we'll use to convert to html
 }
 
@@ -33,7 +34,7 @@ func linksFromString(str string) (l []*Link) {
 // NewCard creates a new card
 func NewCard(config map[string]string) (c *Card) {
 	c = new(Card)
-
+	c.Cols = "col"
 	for k, v := range config {
 		switch k {
 		case "Title":
@@ -53,6 +54,10 @@ func NewCard(config map[string]string) (c *Card) {
 		}
 	}
 	return c
+}
+
+func (c *Card) BSCol() string {
+	return c.Cols
 }
 
 func (c *Card) WriteHTML(w http.ResponseWriter, tmpl *template.Template) {
