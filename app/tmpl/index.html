@@ -13,8 +13,24 @@
 	  <div class="container-fluid p-0">
 	    {{ template "masthead.html" . }}
 	    <div class="row">
-	      <div class="col-6">
 
+	      <div class="col-6">
+		<div class="card">
+
+		<div class="card-header">
+		  <h5 class="card-title mb-0">Card Title</h5>
+		</div> <!-- card-header -->
+
+		<div class="card-body">
+		  <p class="card-text">
+		    <-- This is the card on the left
+		  </p> <!-- card-text -->
+		  
+		</div> <!-- card-body -->
+		
+		      </div> <!-- card -->
+	      </div> <!-- col-6 -->
+	      <div class="col-3">
 		<div class="card">
 
 		  <div class="card-header">
@@ -22,33 +38,31 @@
 		  </div> <!-- card-header -->
 
 		  <div class="card-body">
-		    <p class="card-text">
-		     <-- This is the card on the left
+				  <p class="card-text">
+				  This is the card on the RIGHT ->
 		    </p> <!-- card-text -->
-		    
+				  
 		  </div> <!-- card-body -->
-		  
-		</div> <!-- card -->
-
+				  
+				</div> <!-- card -->
 	      </div>
-	      <div class="col-6">
+	      <div class="col-3">
+				<div class="card">
 
-		<div class="card">
+				<div class="card-header">
+				<h5 class="card-title mb-0">Card Title</h5>
+		    </div> <!-- card-header -->
 
-		  <div class="card-header">
-		    <h5 class="card-title mb-0">Card Title</h5>
-		  </div> <!-- card-header -->
+				<div class="card-body">
+				<p class="card-text">
+					This is the card on the RIGHT ->
+		      </p> <!-- card-text -->
+				
+		    </div> <!-- card-body -->
+				
+		  </div> <!-- card -->
+			      </div> <!-- row -->
 
-		  <div class="card-body">
-		    <p class="card-text">
-		      This is the card on the RIGHT ->
-		    </p> <!-- card-text -->
-		    
-		  </div> <!-- card-body -->
-		  
-		</div> <!-- card -->
-
-	      </div>
 
 	    </div> <!-- row -->	      
 	  </div> <!-- container-fluid -->
