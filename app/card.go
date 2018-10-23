@@ -56,10 +56,6 @@ func NewCard(config map[string]string) (c *Card) {
 	return c
 }
 
-func (c *Card) BSCol() string {
-	return c.Cols
-}
-
 func (c *Card) WriteHTML(w http.ResponseWriter, tmpl *template.Template) {
 	err := tmpl.ExecuteTemplate(w, "card.html", c)
 	if err != nil {

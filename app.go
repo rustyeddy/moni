@@ -2,6 +2,7 @@ package moni
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/rustyeddy/moni/app"
 )
@@ -17,28 +18,52 @@ func AppHandler(w http.ResponseWriter, r *http.Request) {
 	pb.PageData.Name = "Rusty Eddy"
 	pb.Frag = r.URL.Fragment
 
+	c1 := GetCrawlCard()
+	pb.AddCard(w, c1)
+
+	c2 := GetCard2()
+	pb.AddCard(w, c2)
+
+	c3 := GetCard3()
+	pb.AddCard(w, c3)
+	pb.Assemble(w, "index.html")
+}
+
+func GetCrawlCard() *app.Card {
 	card := app.Card{
-		Title: "Card is a Good ONe",
-		Text:  "Hey man, I got some shit to say",
+		Title: "Recent Crawls ...",
 		Cols:  "col-6",
 		Links: []*app.Link{
 			&app.Link{"Clowd Ops", "http://clowdops.net"},
 			&app.Link{"USC", "http://usc.edu"},
 		},
 	}
-	pb.AddCard(w, &card)
+	card.Text = strings.Join(GetCrawls(), " <br/>\n\t")
+	return &card
+}
 
-	ncard := card
-	ncard.Title = "A new version of the Card!"
-	ncard.Text = "If you think I'm sexy come on sugar let me know"
-	ncard.Cols = "col-3"
-	pb.AddCard(w, &ncard)
+func GetCard2() *app.Card {
+	card := app.Card{
+		Title: "This is a NEW Card",
+		Text:  "Hey new!",
+		Cols:  "col-6",
+		Links: []*app.Link{
+			&app.Link{"Clowd Ops", "http://clowdops.net"},
+			&app.Link{"USC", "http://usc.edu"},
+		},
+	}
+	return &card
+}
 
-	zcard := ncard
-	zcard.Title = "I AM Right!"
-	zcard.Text = "Just ask me."
-	zcard.Cols = "col-3"
-	pb.AddCard(w, &zcard)
-
-	pb.Assemble(w, pb.TemplateName)
+func GetCard3() *app.Card {
+	card := app.Card{
+		Title: "This is a NEW Card",
+		Text:  "Hey man, I am brand new!",
+		Cols:  "col-3",
+		Links: []*app.Link{
+			&app.Link{"Clowd Ops", "http://clowdops.net"},
+			&app.Link{"USC", "http://usc.edu"},
+		},
+	}
+	return &card
 }

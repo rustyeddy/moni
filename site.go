@@ -1,6 +1,7 @@
 package moni
 
 import (
+	"fmt"
 	"net/http"
 
 	log "github.com/sirupsen/logrus"
@@ -18,6 +19,10 @@ type Sitemap map[string]*Site
 var (
 	sites Sitemap
 )
+
+func init() {
+	sites = nil
+}
 
 func GetSites() Sitemap {
 	if sites == nil {
@@ -78,12 +83,17 @@ func (s *Sitemap) Fetch() {
 }
 
 func SiteListHandler(w http.ResponseWriter, r *http.Request) {
+	sites := GetSites()
+	if sites == nil || len(sites) < 1 {
+		fmt.Fprintf(w, "no sites ")
+	}
 	writeJSON(w, sites)
 }
 
 func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 	url := urlFromRequest(r)
 
+	sites := GetSites()
 	switch r.Method {
 	case "GET":
 		site := sites.Get(url)
@@ -94,7 +104,9 @@ func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 	case "PUT", "POST":
-		sites[url] = SiteFromURL(url)
+		s := SiteFromURL(url)
+		fmt.Printf("sites: %+v\n", sites)
+		sites[url] = s
 		sites.Store()
 
 	case "DELETE":

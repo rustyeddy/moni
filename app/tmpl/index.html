@@ -16,32 +16,10 @@
 
 	      {{ range .Cards }}
 	      <div class="{{ .Cols }}">
-		<div class="card">
-		  <div class="card-header">
-		    <h5 class="card-title mb-0">{{ .Title }}</h5>
-		  </div> <!-- card-header -->
-		  <div class="card-body">
-		    <p class="card-text">
-		      Card Text {{ .Text }}
-		    </p> <!-- card-text -->
-		  </div> <!-- card-body -->
-		</div> <!-- card -->
+		{{ template "card.html" . }}
 	      </div> <!-- col-12 -->
 	      {{ end }}
 
-	      <div class="col-12">
-		<div class="card">
-		  <div class="card-header">
-		  <h5 class="card-title mb-0">{{ .Title }}</h5>
-		</div> <!-- card-header -->
-		  <div class="card-body">
-		  <p class="card-text">
-		    This is a grand old card {{ .Name }}
-		  </p> <!-- card-text -->
-		</div> <!-- card-body -->
-		</div> <!-- card -->
-	      </div> <!-- col-12 -->
-	      
 	    </div> <!-- row -->	      
 	  </div> <!-- container-fluid -->
 	</main> <!-- content -->
