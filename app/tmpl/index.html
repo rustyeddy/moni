@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
     <head>
-	{{ template "header.html" . }}
+	{{ template "head.html" . }}
     </head>
     <body>
 	<div class="wrapper">
 	  <div class="d-flex">
 
-	    {{ template "header" . }}
+	    {{ template "header.html" . }}
 
 	    <!-- Include the header Go style  -->
 	    {{- block "main" . }}{{- end }}
@@ -16,6 +16,6 @@
 
 	  </div>
 	</div> <!-- wrapper -->
-	<script src="js/app.js"></script>
+	<script src="/static/js/app.js"></script>
     </body>
 </html>

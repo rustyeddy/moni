@@ -29,5 +29,5 @@ func AppHandler(w http.ResponseWriter, r *http.Request) {
 		Pages:  GetPages(),
 	}
 
-	b.Assemble(w, "home", data)
+	b.Assemble(w, "index.html", data)
 }

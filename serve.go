@@ -43,7 +43,7 @@ func Server() *http.Server {
 // up the web pages for our application.
 func registerApp(r *mux.Router) {
 	// This will serve files under http://localhost:8888/static/<filename>
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("app/static"))))
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("../app/static"))))
 	r.HandleFunc("/", AppHandler)
 }
 
@@ -95,7 +95,7 @@ func createServer(r *mux.Router, addrport string) *http.Server {
 }
 
 // startServer starts the server in a Go routine
-func startServer(srv *http.Server) (err error) {
+func StartServer(srv *http.Server) (err error) {
 	log.Infoln("Moni listening on ", config.Addrport)
 	if err = srv.ListenAndServe(); err != nil {
 		log.Println(err)
