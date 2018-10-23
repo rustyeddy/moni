@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"path/filepath"
 )
 
 type PageData struct {
@@ -15,36 +16,37 @@ type PageData struct {
 // user.  It determines with template pieces to put together,
 // assembles them and off they go
 type PageBuilder struct {
-	Layouts *template.Template
-	//Partials *template.Template
+	TemplateBasedir string
+	TemplateName    string
+	*template.Template
 }
 
 // NewBuilder will find and compile the templates, which are broke
 // into layout (comprise the structure of the site) and partials
 // (comprise content elements)
-func NewBuilder() (b *PageBuilder) {
-	b = new(PageBuilder)
-	b.PrepareTemplates()
-	return b
+func NewPageBuilder() *PageBuilder {
+	pb := PageBuilder{
+		TemplateBasedir: "../app/tmpl",
+		TemplateName:    "index.html",
+	}
+	pb.PrepareTemplates()
+	return &pb
 }
 
-// NewBuilder will find and compile the templates, which are broke
-// into layout (comprise the structure of the site) and partials
-// (comprise content elements)
-func (b *PageBuilder) PrepareTemplates() {
-	layouts := template.Must(template.ParseGlob("../app/tmpl/*.html"))
-	b.Layouts = layouts
-	b.DumpTemplates()
+func (pb *PageBuilder) PrepareTemplates() {
+	pattern := filepath.Join(pb.TemplateBasedir, "*.html")
+	pb.Template = template.Must(template.ParseGlob(pattern))
 }
 
 func (b *PageBuilder) DumpTemplates() {
-	fmt.Println("layouts: ", b.Layouts.Name())
-	fmt.Println(b.Layouts.DefinedTemplates())
+	fmt.Println("Templates: ", b.Name())
+	fmt.Println(b.DefinedTemplates())
 }
 
 // Assemble the template with data provide
-func (b *PageBuilder) Assemble(w http.ResponseWriter, name string, data interface{}) {
-	err := b.Layouts.ExecuteTemplate(w, "index.html", data)
+func (b *PageBuilder) Assemble(w http.ResponseWriter, name string, data *AppData) {
+
+	err := b.ExecuteTemplate(w, name, data)
 	if err != nil {
 		fmt.Fprintf(w, "internal error -> %+v", err)
 		return

@@ -1,21 +1,39 @@
 <!DOCTYPE html>
 <html>
-    <head>
-	{{ template "head.html" . }}
-    </head>
-    <body>
-	<div class="wrapper">
-	  <div class="d-flex">
 
-	    {{ template "header.html" . }}
+  {{ template "head.html" . }}
 
-	    <!-- Include the header Go style  -->
-	    {{- block "main" . }}{{- end }}
+  <body>
+    <div class="wrapper">
+      <div class="d-flex">
 
-	    {{ template "footer.html" . }}
+	{{ template "header.html" . }}
 
-	  </div>
-	</div> <!-- wrapper -->
-	<script src="/static/js/app.js"></script>
-    </body>
+
+	<main class="content">
+	  <div class="container-fluid p-0">
+	    {{ template "masthead.html" . }}
+
+	    <!-- roll out the rows -->
+	    {{- block "main" . }}
+	    {{- range .Rows -}}
+	    <div class="row">
+	      {{- range .Cards }}
+	      <div class="col-{{ .ColSize }}">
+		{{ .Card }}
+	      </div>
+	      {{ end }}
+	    </div>
+	    {{- end }}
+	    {{- end }}
+	  </div> <!-- row -->
+	</main> <!-- content -->
+      </div> <!-- d-flex -->
+    </div> <!-- container-fluid -->
+	
+    {{ template "footer.html" . }}
+
+    </div> <!-- wrapper -->
+    <script src="/static/js/app.js"></script>
+  </body>
 </html>
