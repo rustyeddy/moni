@@ -13,25 +13,25 @@
 	<main class="content">
 	  <div class="container-fluid p-0">
 	    {{ template "masthead.html" . }}
-
-	    <!-- roll out the rows -->
-	    {{- block "main" . }}
-	    {{- range .Rows -}}
 	    <div class="row">
-	      {{- range .Cards }}
-	      <div class="col-{{ .ColSize }}">
+	      <div class="col-6">
+
 		{{ .Card }}
+
 	      </div>
-	      {{ end }}
-	    </div>
-	    {{- end }}
-	    {{- end }}
-	  </div> <!-- row -->
+
+	      <div class="col-6">
+
+		{{ .Card }}
+
+	      </div>
+	    </div> <!-- row -->	      
+	  </div> <!-- container-fluid -->
 	</main> <!-- content -->
+
       </div> <!-- d-flex -->
-    </div> <!-- container-fluid -->
 	
-    {{ template "footer.html" . }}
+      {{ template "footer.html" . }}
 
     </div> <!-- wrapper -->
     <script src="/static/js/app.js"></script>

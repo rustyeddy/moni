@@ -10,6 +10,8 @@ import (
 type PageData struct {
 	Title string // name of the page (url title)
 	Tmpl  string // name
+
+	rows []*Row
 }
 
 // Builder constructs (and sends) the response back to the
@@ -19,6 +21,8 @@ type PageBuilder struct {
 	TemplateBasedir string
 	TemplateName    string
 	*template.Template
+
+	*PageData
 }
 
 // NewBuilder will find and compile the templates, which are broke
@@ -27,7 +31,7 @@ type PageBuilder struct {
 func NewPageBuilder() *PageBuilder {
 	pb := PageBuilder{
 		TemplateBasedir: "../app/tmpl",
-		TemplateName:    "index.html",
+		TemplateName:    "index.html", // not actually used .?.
 	}
 	pb.PrepareTemplates()
 	return &pb
@@ -36,6 +40,7 @@ func NewPageBuilder() *PageBuilder {
 func (pb *PageBuilder) PrepareTemplates() {
 	pattern := filepath.Join(pb.TemplateBasedir, "*.html")
 	pb.Template = template.Must(template.ParseGlob(pattern))
+	pb.DumpTemplates()
 }
 
 func (b *PageBuilder) DumpTemplates() {
@@ -45,7 +50,6 @@ func (b *PageBuilder) DumpTemplates() {
 
 // Assemble the template with data provide
 func (b *PageBuilder) Assemble(w http.ResponseWriter, name string, data *AppData) {
-
 	err := b.ExecuteTemplate(w, name, data)
 	if err != nil {
 		fmt.Fprintf(w, "internal error -> %+v", err)

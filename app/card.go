@@ -1,6 +1,11 @@
 package app
 
-import log "github.com/sirupsen/logrus"
+import (
+	"html/template"
+	"net/http"
+
+	log "github.com/sirupsen/logrus"
+)
 
 // CardOptions
 type CardOptions map[string]string
@@ -46,4 +51,11 @@ func NewCard(config map[string]string) (c *Card) {
 		}
 	}
 	return c
+}
+
+func (c *Card) WriteHTML(w http.ResponseWriter, tmpl *template.Template) {
+	err := tmpl.ExecuteTemplate(w, "card.html", c)
+	if err != nil {
+		log.Fatalln(err)
+	}
 }

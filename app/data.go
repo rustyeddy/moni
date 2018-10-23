@@ -5,4 +5,6 @@ type AppData struct {
 	Name    string
 	Frag    string
 	Content string
+
+	Card string
 }

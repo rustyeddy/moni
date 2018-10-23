@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/rustyeddy/moni/app"
-	log "github.com/sirupsen/logrus"
 )
 
 // AppHandler will compose a response to the request
@@ -12,14 +11,25 @@ import (
 // of information, put them together in the right order and
 // send back to the caller
 func AppHandler(w http.ResponseWriter, r *http.Request) {
-	log.Infof("AppHandler request: %+v", r)
 
-	pb := app.NewPageBuilder()
+	pb := NewPageBuilder()
+	card := &app.Card{
+		Image: nil,
+		Title: "Card is a Good ONe",
+		Text:  "Hey man, I got some shit to say",
+		Links: []*Link{
+			&Link{"Clowd Ops", "http://clowdops.net"},
+			&Link{"USC", "http://usc.edu"},
+		},
+	}
+
+	pb.AddCard(card)
+
 	d := app.AppData{
-		Title:   "Application Interface",
-		Name:    "Rusty Eddy",
-		Frag:    r.URL.Fragment,
-		Content: "<h2>Content</h2>",
+		Title: "Application Interface",
+		Name:  "Rusty Eddy",
+		Frag:  r.URL.Fragment,
+		Card:  card,
 	}
 	pb.Assemble(w, pb.TemplateName, &d)
 }

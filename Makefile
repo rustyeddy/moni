@@ -1,12 +1,12 @@
-cmd = moni
 mapimg = ~/Desktop/home.png
 
 dotfile = etc/home.gv
 
 all:build
+	make -C moni run
 
 go.mod:
-	mod init github.com/rustyeddy/inv
+	mod init github.com/rustyeddy/moni
 
 build: 
 	go build -o $(cmd)
