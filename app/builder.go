@@ -15,8 +15,8 @@ type PageData struct {
 	Tmpl  string // name
 	Frag  string // request.URL.Fragment
 
-	rows  []*Row
-	cards []*Card
+	Rows  []*Row
+	Cards []*Card
 }
 
 // Builder constructs (and sends) the response back to the
@@ -56,7 +56,7 @@ func (b *PageBuilder) DumpTemplates() {
 }
 
 func (b *PageBuilder) AddCard(w http.ResponseWriter, card *Card) {
-	b.cards = append(b.cards, card)
+	b.Cards = append(b.Cards, card)
 }
 
 // Assemble traverses our local representation of the outgoing documents,

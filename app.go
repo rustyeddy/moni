@@ -25,7 +25,12 @@ func AppHandler(w http.ResponseWriter, r *http.Request) {
 			&app.Link{"USC", "http://usc.edu"},
 		},
 	}
-
 	pb.AddCard(w, card)
+
+	ncard := *card
+	card.Title = "A new version of the Card!"
+	card.Text = "If you think I'm sexy come on sugar let me know"
+	pb.AddCard(w, &ncard)
+
 	pb.Assemble(w, pb.TemplateName)
 }
