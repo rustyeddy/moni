@@ -29,8 +29,8 @@ type Element struct {
 	children []*Element
 	data     string
 
-	opentxt  string
-	closetxt string
+	openfmt  string
+	closefmt string
 }
 
 // NewElement spits out an element representing the given parameters.
@@ -65,25 +65,39 @@ func (e *Element) Content(w http.ResponseWriter) error {
 
 	// If we are a Node in the Tree, recursively get the combined content
 	// of our children spit out.
-	if e.children {
+	if e.children != nil {
 		return e.childContent(w)
 	}
-	if _, err := w.Write([]byte(e.data)); err != nil {
-		return err
+	if e.data != "" {
+		if _, err := w.Write([]byte(e.data)); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
-func (e *Element) childContent(w http.ResponseWriter) {
+func (e *Element) childContent(w http.ResponseWriter) error {
 	for _, child := range e.children {
-		xxxx
+		if err := child.OpenTag(w); err != nil {
+			return fmt.Errorf("failed content for %v", e)
+		}
+
+		if err := child.Content(w); err != nil {
+			return fmt.Errorf("failed childContent for Content %v", err)
+		}
+
+		if err := child.CloseTag(w); err != nil {
+			return fmt.Errorf("failed close tag for %v", e)
+		}
 	}
+	return nil
 }
 
 // OpenTag will assemble the opening according to whether one or
 // classes exists, or an Id.  Finally write the opening tag to
 // the http.ResponseWriter
 func (n *Element) OpenTag(w http.ResponseWriter) error {
-	tag = "<" + n.Name
+	tag := "<" + n.Name
 	if n.Id != "" {
 		tag += " id='" + n.Id + "'"
 	}
@@ -101,7 +115,7 @@ func (n *Element) OpenTag(w http.ResponseWriter) error {
 // all children (if any should have been output as well)
 func (n *Element) CloseTag(w http.ResponseWriter) error {
 	if _, err := fmt.Fprintf(w, "</%s> <!-- %s --> ", n.Name, n.Classtr); err != nil {
-		return fmt.Errorf("failed to write CloseTag", tag, err.Error())
+		return fmt.Errorf("failed to write CloseTag", n.Name, err.Error())
 	}
 	return nil
 }

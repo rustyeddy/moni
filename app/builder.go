@@ -5,13 +5,18 @@ import (
 	"html/template"
 	"net/http"
 	"path/filepath"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type PageData struct {
 	Title string // name of the page (url title)
+	Name  string // name for fun and profit
 	Tmpl  string // name
+	Frag  string // request.URL.Fragment
 
-	rows []*Row
+	rows  []*Row
+	cards []*Card
 }
 
 // Builder constructs (and sends) the response back to the
@@ -32,7 +37,9 @@ func NewPageBuilder() *PageBuilder {
 	pb := PageBuilder{
 		TemplateBasedir: "../app/tmpl",
 		TemplateName:    "index.html", // not actually used .?.
+		PageData:        &PageData{Title: "Clowd ~ Ops "},
 	}
+	pb.PageData.Name = "Rusty Eddy"
 	pb.PrepareTemplates()
 	return &pb
 }
@@ -44,15 +51,23 @@ func (pb *PageBuilder) PrepareTemplates() {
 }
 
 func (b *PageBuilder) DumpTemplates() {
-	fmt.Println("Templates: ", b.Name())
+	fmt.Println("Templates: ", b.Template.Name())
 	fmt.Println(b.DefinedTemplates())
 }
 
-// Assemble the template with data provide
-func (b *PageBuilder) Assemble(w http.ResponseWriter, name string, data *AppData) {
-	err := b.ExecuteTemplate(w, name, data)
-	if err != nil {
-		fmt.Fprintf(w, "internal error -> %+v", err)
-		return
+func (b *PageBuilder) AddCard(w http.ResponseWriter, card *Card) {
+	b.cards = append(b.cards, card)
+}
+
+// Assemble traverses our local representation of the outgoing documents,
+// occaisionally run stuff through a template, writing out successful
+// stuff as required.
+func (b *PageBuilder) Assemble(w http.ResponseWriter, tmplname string) {
+
+	// Here we go, create our html for our site.  Building the page happens
+	// in two parts.  1. A semi-generic frame is created with designated areas
+	// can be overwritten with application specific information.
+	if err := b.ExecuteTemplate(w, "index.html", b); err != nil {
+		log.Fatalln(err)
 	}
 }

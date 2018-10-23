@@ -13,12 +13,12 @@ type CardOptions map[string]string
 // Card represents a card from our Bootstrap Dashboard
 // CSS Template
 type Card struct {
-	*Image
+	image *Image
 	Title string  // header
 	Text  string  // body
 	Links []*Link //
 
-	TmplName string // Template name we'll use to convert to html
+	tmplName string // Template name we'll use to convert to html
 }
 
 type Link struct {
@@ -43,9 +43,11 @@ func NewCard(config map[string]string) (c *Card) {
 		case "Links":
 			c.Links = linksFromString(v)
 		case "Image":
-			c.Image.Src = v
+			c.image.Src = v
 		case "Alt":
-			c.Image.Alt = v
+			if c.image != nil {
+				c.image.Alt = v
+			}
 		default:
 			log.Errorf("unexpected card part %s, ignoring .. %s with value ", k, v)
 		}

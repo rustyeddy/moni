@@ -12,24 +12,20 @@ import (
 // send back to the caller
 func AppHandler(w http.ResponseWriter, r *http.Request) {
 
-	pb := NewPageBuilder()
+	pb := app.NewPageBuilder()
+	pb.Title = "Application Interface"
+	pb.PageData.Name = "Rusty Eddy"
+	pb.Frag = r.URL.Fragment
+
 	card := &app.Card{
-		Image: nil,
 		Title: "Card is a Good ONe",
 		Text:  "Hey man, I got some shit to say",
-		Links: []*Link{
-			&Link{"Clowd Ops", "http://clowdops.net"},
-			&Link{"USC", "http://usc.edu"},
+		Links: []*app.Link{
+			&app.Link{"Clowd Ops", "http://clowdops.net"},
+			&app.Link{"USC", "http://usc.edu"},
 		},
 	}
 
-	pb.AddCard(card)
-
-	d := app.AppData{
-		Title: "Application Interface",
-		Name:  "Rusty Eddy",
-		Frag:  r.URL.Fragment,
-		Card:  card,
-	}
-	pb.Assemble(w, pb.TemplateName, &d)
+	pb.AddCard(w, card)
+	pb.Assemble(w, pb.TemplateName)
 }

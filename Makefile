@@ -3,19 +3,19 @@ mapimg = ~/Desktop/home.png
 dotfile = etc/home.gv
 
 all:build
-	make -C moni run
+	make -C moni build
 
 go.mod:
 	mod init github.com/rustyeddy/moni
 
 build: 
-	go build -o $(cmd)
+	go build 
 
 buildv: 
-	go build -v $(cmd)
+	go build -v
 
 run:
-	go run *.go
+	make -C moni run *.go
 
 test:
 	go test

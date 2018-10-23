@@ -1,26 +1,14 @@
 <div class="card">
 
-  {{ if .Image }}
-  {{ if .Alt }}
-  <img class="card-img-top" alt="{{ .Alt }}" />
-  {{ else }}
-  <img class="card-img-top" />
-  {{ end }}
-  {{ end }}
-
   <div class="card-header">
-    <h5 class="card-title mb-0">{{ .Title }}</h5>
+    <h5 class="card-title mb-0">Card Title</h5>
   </div> <!-- card-header -->
 
   <div class="card-body">
     <p class="card-text">
-      {{ .Text }}
+      Card Text
     </p> <!-- card-text -->
-
-    {{ range .Links }}
-    <a href="{{ .Link }}">{{ .Text }}</a>
-    {{ end }}
-
+    
   </div> <!-- card-body -->
   
 </div> <!-- card -->
