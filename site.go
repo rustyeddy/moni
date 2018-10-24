@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Site is basically a website wich includes API interfaces
 type Site struct {
 	URL    string
 	IP     string
@@ -15,11 +16,6 @@ type Site struct {
 }
 
 type Sitemap map[string]*Site
-
-type SitesCard struct {
-	*Card
-	*Sitemap
-}
 
 var (
 	sites Sitemap = make(Sitemap, 10)
@@ -31,31 +27,38 @@ func GetSites() Sitemap {
 		if _, err := st.FetchObject("sites", sites); err != nil {
 			log.Errorf(" failed to read saved 'sites' %v", err)
 			sites = make(Sitemap)
+		} else {
+			log.Infof("retrived sites from the filesystem %+v", sites)
 		}
 	}
 	return sites
 }
 
-func GetSitesCard() (sc *SitesCard) {
-	var s Sitemap
-	if s = GetSites(); s == nil {
-		s = make(Sitemap)
+// StoreSites will attempt to store our memory version of
+// the Sitemap to a file.  Hope it all works out, we will get
+// a log message if there is a problem
+func StoreSites() {
+	if st := GetStorage(); st != nil {
+		if obj, err := st.StoreObject("sites", sites); err != nil {
+			log.Errorf("failed StoreObject sites %v", err)
+		} else {
+			log.Infof("sites stored object: %+v\n", obj)
+		}
 	}
-	c := &Card{}
-	sc = &SitesCard{
-		Card:    c,
-		Sitemap: &s,
-	}
-	return sc
 }
 
-// SiteFromURL will create and index the site based on
-// hostname:port.
-func SiteFromURL(ustr string) (s *Site) {
-	s = &Site{
-		URL:     ustr,
+// AddNewSite will create a New Site from the url, including
+// verify and sanitize the url and so on.
+func AddNewSite(url string) *Site {
+	sites := GetSites()
+	s := &Site{
+		URL:     url,
 		Pagemap: make(Pagemap),
 	}
+	sites[url] = s
+
+	log.Infof("Added new site %s ~ calling StoreSites()", url)
+	StoreSites()
 	return s
 }
 
@@ -96,6 +99,9 @@ func (s *Sitemap) Fetch() {
 	}
 }
 
+// REST API
+// ====================================================================
+
 func SiteListHandler(w http.ResponseWriter, r *http.Request) {
 	sites := GetSites()
 	if sites == nil || len(sites) < 1 {
@@ -106,7 +112,6 @@ func SiteListHandler(w http.ResponseWriter, r *http.Request) {
 
 func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 	url := urlFromRequest(r)
-
 	sites := GetSites()
 
 	switch r.Method {
@@ -119,9 +124,7 @@ func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 	case "PUT", "POST":
-		s := SiteFromURL(url)
-		fmt.Printf("sites: %+v\n", sites)
-		sites[url] = s
+		AddNewSite(url)
 
 	case "DELETE":
 		sites.Delete(url)
@@ -130,4 +133,24 @@ func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 		JSONError(w, ErrorNotSupported("unspported method "+r.Method))
 	}
 	writeJSON(w, "OK")
+}
+
+// WebUI
+// ====================================================================
+type SitesCard struct {
+	*Card
+	*Sitemap
+}
+
+func GetSitesCard() (sc *SitesCard) {
+	var s Sitemap
+	if s = GetSites(); s == nil {
+		s = make(Sitemap)
+	}
+	c := &Card{}
+	sc = &SitesCard{
+		Card:    c,
+		Sitemap: &s,
+	}
+	return sc
 }
