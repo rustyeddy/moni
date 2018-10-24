@@ -16,7 +16,7 @@
 	<tbody>
 	  {{ range .Sites }}
 	  <tr>
-	    <td>{{ .URL }}</td>
+	    <td><a href="{{ .URL }}">{{ .URL }}</a></td>
 	    <td>{{ .IP }}</td>
 	    <td>{{ .Health }}</td>
 	  </tr>
