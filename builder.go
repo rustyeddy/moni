@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"github.com/rustyeddy/store"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -24,6 +25,7 @@ type PageBuilder struct {
 	Cards []*Card
 
 	Sites *Sitemap // Site card if we happen to have one
+	*store.Store
 }
 
 // NewBuilder will find and compile the templates, which are broke
@@ -65,6 +67,8 @@ func (b *PageBuilder) Assemble(w http.ResponseWriter, tmplname string) {
 	// can be overwritten with application specific information.
 	s := GetSites()
 	b.Sites = &s
+	b.Store = GetStorage()
+
 	if err := b.ExecuteTemplate(w, "index.html", b); err != nil {
 		log.Fatalln(err)
 	}
