@@ -1,4 +1,4 @@
-package app
+package moni
 
 type AppData struct {
 	Title   string

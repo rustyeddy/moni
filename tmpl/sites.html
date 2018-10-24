@@ -1,0 +1,28 @@
+<div class="card">
+  <div class="card-header">
+    <h5 class="card-title mb-0">{{ .Title }}</h5>
+  </div> <!-- card-header -->
+
+  <div class="card-body">
+    <p class="card-text">
+
+      <table class="table">
+	<thead>
+	  <th scope="col">Site</th>
+	  <th scope="col">IP</th>
+	  <th scope="col">Last Check</th>
+	  <th scope="col">Avg Responose</th>
+	</thead>
+	<tbody>
+	  {{ range .Sites }}
+	  <tr>
+	    <td>{{ .URL }}</td>
+	    <td>{{ .IP }}</td>
+	    <td>{{ .Health }}</td>
+	  </tr>
+	  {{ end }}
+	</tbody>
+      </table>
+    </p>
+  </div>
+</div>

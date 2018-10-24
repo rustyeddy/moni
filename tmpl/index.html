@@ -14,11 +14,9 @@
 	    {{ template "masthead.html" . }}
 	    <div class="row">
 
-	      {{ range .Cards }}
-	      <div class="{{ .Cols }}">
-		{{ template "card.html" . }}
-	      </div> <!-- col-12 -->
-	      {{ end }}
+	      <div class="cols-12">
+		{{ template "sites.html" . }}
+	      </div>
 
 	    </div> <!-- row -->	      
 	  </div> <!-- container-fluid -->

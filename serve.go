@@ -43,7 +43,7 @@ func Server() *http.Server {
 // up the web pages for our application.
 func registerApp(r *mux.Router) {
 	// This will serve files under http://localhost:8888/static/<filename>
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("../app/static"))))
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("../static"))))
 	r.HandleFunc("/", AppHandler)
 }
 

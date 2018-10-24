@@ -9,30 +9,44 @@ import (
 
 type Site struct {
 	URL    string
-	IPAddr string
+	IP     string
 	Health bool
 	Pagemap
 }
 
 type Sitemap map[string]*Site
 
-var (
-	sites Sitemap
-)
-
-func init() {
-	sites = nil
+type SitesCard struct {
+	*Card
+	*Sitemap
 }
 
+var (
+	sites Sitemap = make(Sitemap, 10)
+)
+
 func GetSites() Sitemap {
-	if sites == nil {
+	if sites == nil || len(sites) < 1 {
 		st := GetStorage()
-		if _, err := st.FetchObject("sites", &sites); err != nil {
-			log.Errorf(" failed get stored object 'sites' %v", err)
-			return nil
+		if _, err := st.FetchObject("sites", sites); err != nil {
+			log.Errorf(" failed to read saved 'sites' %v", err)
+			sites = make(Sitemap)
 		}
 	}
 	return sites
+}
+
+func GetSitesCard() (sc *SitesCard) {
+	var s Sitemap
+	if s = GetSites(); s == nil {
+		s = make(Sitemap)
+	}
+	c := &Card{}
+	sc = &SitesCard{
+		Card:    c,
+		Sitemap: &s,
+	}
+	return sc
 }
 
 // SiteFromURL will create and index the site based on
@@ -94,6 +108,7 @@ func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 	url := urlFromRequest(r)
 
 	sites := GetSites()
+
 	switch r.Method {
 	case "GET":
 		site := sites.Get(url)
@@ -107,7 +122,6 @@ func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 		s := SiteFromURL(url)
 		fmt.Printf("sites: %+v\n", sites)
 		sites[url] = s
-		sites.Store()
 
 	case "DELETE":
 		sites.Delete(url)
