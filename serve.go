@@ -39,14 +39,6 @@ func Server() *http.Server {
 	return createServer(r, config.Addrport)
 }
 
-// RegisterApp will register a static file handler allowing us to serve
-// up the web pages for our application.
-func registerApp(r *mux.Router) {
-	// This will serve files under http://localhost:8888/static/<filename>
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("../static"))))
-	r.HandleFunc("/", AppHandler)
-}
-
 // Register the site routes
 func registerSites(r *mux.Router) {
 	r.HandleFunc("/sites", SiteListHandler).Methods("GET")

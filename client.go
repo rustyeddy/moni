@@ -14,6 +14,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Client represents our http client (duh).  TODO Move
+// the http test client
 type Client struct {
 	Baseurl string
 	Format  string

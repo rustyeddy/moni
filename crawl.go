@@ -201,8 +201,7 @@ func GetCrawls() []string {
 // CrawlListHandler will return a list of all recent crawls.
 // As stored in our storage (json) file.
 func CrawlListHandler(w http.ResponseWriter, r *http.Request) {
-	crawls := GetCrawls()
-	writeJSON(w, crawls)
+	writeJSON(w, GetCrawls())
 }
 
 // CrawlIdHandler will return a list of all recent crawls.

@@ -21,11 +21,11 @@ type Configuration struct {
 	ConfigFile string
 	Cli        bool
 	Daemon     bool
-
-	Depth int
+	Debug      bool
+	Depth      int
 
 	Profile bool
-	Pubdir  string // Where to serve the static files from
+	Pubdir  string
 
 	Serve    bool
 	StoreDir string

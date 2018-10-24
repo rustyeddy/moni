@@ -1,9 +1,6 @@
 package moni
 
 import (
-	"fmt"
-	"net/http"
-
 	log "github.com/sirupsen/logrus"
 )
 
@@ -18,20 +15,20 @@ type Site struct {
 type Sitemap map[string]*Site
 
 var (
-	sites Sitemap = make(Sitemap, 10)
+	Sites Sitemap = make(Sitemap, 10)
 )
 
-func GetSites() Sitemap {
-	if sites == nil || len(sites) < 1 {
+func FetchSites() Sitemap {
+	if Sites == nil || len(Sites) < 1 {
 		st := GetStorage()
-		if _, err := st.FetchObject("sites", sites); err != nil {
+		if _, err := st.FetchObject("sites", Sites); err != nil {
 			log.Errorf(" failed to read saved 'sites' %v", err)
-			sites = make(Sitemap)
+			Sites = make(Sitemap)
 		} else {
-			log.Infof("retrived sites from the filesystem %+v", sites)
+			log.Infof("retrived Sites from the filesystem %+v", Sites)
 		}
 	}
-	return sites
+	return Sites
 }
 
 // StoreSites will attempt to store our memory version of
@@ -39,10 +36,10 @@ func GetSites() Sitemap {
 // a log message if there is a problem
 func StoreSites() {
 	if st := GetStorage(); st != nil {
-		if obj, err := st.StoreObject("sites", sites); err != nil {
-			log.Errorf("failed StoreObject sites %v", err)
+		if obj, err := st.StoreObject("sites", Sites); err != nil {
+			log.Errorf("failed StoreObject Sites %v", err)
 		} else {
-			log.Infof("sites stored object: %+v\n", obj)
+			log.Infof("Sites stored object: %+v\n", obj)
 		}
 	}
 }
@@ -50,12 +47,11 @@ func StoreSites() {
 // AddNewSite will create a New Site from the url, including
 // verify and sanitize the url and so on.
 func AddNewSite(url string) *Site {
-	sites := GetSites()
 	s := &Site{
 		URL:     url,
 		Pagemap: make(Pagemap),
 	}
-	sites[url] = s
+	Sites[url] = s
 
 	log.Infof("Added new site %s ~ calling StoreSites()", url)
 	StoreSites()
@@ -88,69 +84,13 @@ func (s Sitemap) Delete(url string) {
 func (s Sitemap) Store() {
 	st := GetStorage()
 	if _, err := st.StoreObject("sites", s); err != nil {
-		log.Errorf("failed saving sites %v", err)
+		log.Errorf("failed saving Sites %v", err)
 	}
 }
 
 func (s *Sitemap) Fetch() {
 	st := GetStorage()
 	if _, err := st.FetchObject("sites", s); err != nil {
-		log.Errorf("failed to fetch sites %v", err)
+		log.Errorf("failed to fetch Sites %v", err)
 	}
-}
-
-// REST API
-// ====================================================================
-
-func SiteListHandler(w http.ResponseWriter, r *http.Request) {
-	sites := GetSites()
-	if sites == nil || len(sites) < 1 {
-		fmt.Fprintf(w, "no sites ")
-	}
-	writeJSON(w, sites)
-}
-
-func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
-	url := urlFromRequest(r)
-	sites := GetSites()
-
-	switch r.Method {
-	case "GET":
-		site := sites.Get(url)
-		if site != nil {
-			writeJSON(w, site)
-		} else {
-			JSONError(w, ErrorNotFound(url+" site not found "))
-		}
-
-	case "PUT", "POST":
-		AddNewSite(url)
-
-	case "DELETE":
-		sites.Delete(url)
-
-	default:
-		JSONError(w, ErrorNotSupported("unspported method "+r.Method))
-	}
-	writeJSON(w, "OK")
-}
-
-// WebUI
-// ====================================================================
-type SitesCard struct {
-	*Card
-	*Sitemap
-}
-
-func GetSitesCard() (sc *SitesCard) {
-	var s Sitemap
-	if s = GetSites(); s == nil {
-		s = make(Sitemap)
-	}
-	c := &Card{}
-	sc = &SitesCard{
-		Card:    c,
-		Sitemap: &s,
-	}
-	return sc
 }
