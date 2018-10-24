@@ -14,7 +14,7 @@
 	    {{ template "masthead.html" . }}
 	    <div class="row">
 
-	      <div class="col-12">
+	      <div class="col-6">
 		{{ template "sites.html" . }}
 	      </div>
 
@@ -25,11 +25,10 @@
 	    </div> <!-- row -->	      
 	  </div> <!-- container-fluid -->
 	</main> <!-- content -->
+	{{ template "footer.html" . }}
 
       </div> <!-- d-flex -->
 	
-      {{ template "footer.html" . }}
-
     </div> <!-- wrapper -->
     <script src="/static/js/app.js"></script>
   </body>

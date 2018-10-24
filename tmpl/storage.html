@@ -8,7 +8,7 @@
     <h6 class="text-muted">{{ .String }}</h6>
   </div> <!-- card-subtitle -->
   <div class="card-body">
-    <ul>
+    <ul class="list-inline">
       {{ range $n, $v := .Index }}
       <li>{{ $n }}</li>
       {{ end }}
