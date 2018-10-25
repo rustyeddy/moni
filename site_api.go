@@ -21,7 +21,7 @@ func registerSites(r *mux.Router) {
 // SiteListHandler may respond with multiple Site entries
 func SiteListHandler(w http.ResponseWriter, r *http.Request) {
 	if Sites == nil || len(Sites) < 1 {
-		fmt.Fprintf(w, "no Sites ")
+		fmt.Fprintf(w, "")
 	}
 	writeJSON(w, Sites)
 }

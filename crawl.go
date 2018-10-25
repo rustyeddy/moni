@@ -17,8 +17,10 @@ func crawlWatcher(chpg chan *Page, errch chan error) {
 	for {
 		pg := <-chpg
 		log.Infoln("CrawlWatcher")
-
 		Crawl(pg)
+
+		st := GetStorage()
+		st.StoreObject(pg.URL, pg)
 	}
 }
 

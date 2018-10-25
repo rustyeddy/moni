@@ -1,0 +1,6 @@
+curl -X POST http://localhost:8888/site/rustyeddy.com
+curl -X POST http://localhost:8888/site/oclowvision.com
+curl -X POST http://localhost:8888/site/gardenpassages.com
+curl -X POST http://localhost:8888/site/mojavetropicofilming.com
+curl -X POST http://localhost:8888/site/sierrahydrographics.com
+
