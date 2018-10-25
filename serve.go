@@ -33,16 +33,11 @@ func Server() *http.Server {
 	registerUpdate(r)
 
 	// Register the profiler
+	config.Profile = true // a little over ride
 	if config.Profile {
 		registerProfiler(r) // make these plugins ...
 	}
 	return createServer(r, config.Addrport)
-}
-
-// Register the site routes
-func registerSites(r *mux.Router) {
-	r.HandleFunc("/sites", SiteListHandler).Methods("GET")
-	r.HandleFunc("/site/{url}", SiteIdHandler).Methods("GET", "POST", "PUT", "DELETE")
 }
 
 // Register the page routes

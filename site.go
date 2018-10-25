@@ -1,6 +1,8 @@
 package moni
 
 import (
+	"time"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -10,6 +12,12 @@ type Site struct {
 	IP     string
 	Health bool
 	Pagemap
+
+	// Crawl job info
+	lastCrawled time.Time
+	nextCrawl   time.Time
+
+	*time.Timer
 }
 
 type Sitemap map[string]*Site
@@ -53,9 +61,29 @@ func AddNewSite(url string) *Site {
 	}
 	Sites[url] = s
 
+	// Schedule a new crawl
+	// Store the site
 	log.Infof("Added new site %s ~ calling StoreSites()", url)
-	StoreSites()
+
+	// This should not cause any problems, que no?
+	go StoreSites()
+
 	return s
+}
+
+func (s *Site) ScheduleCrawl() {
+	timer := time.AfterFunc(time.Minute*5, func() {
+
+	})
+	defer timer.Stop()
+}
+
+// RemoveSite represented by the URL from the list of sites to manage
+func RemoveSite(url string) {
+
+	// Unschedule the site from the crawler
+	log.Infoln("Deleting URL ", url)
+	Sites.Delete(url)
 }
 
 func (s Sitemap) Find(url string) (site *Site, ex bool) {

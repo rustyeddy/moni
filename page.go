@@ -1,12 +1,20 @@
 package moni
 
 import (
-	"errors"
 	"fmt"
-	"net/http"
 	"time"
 
 	log "github.com/sirupsen/logrus"
+)
+
+const (
+	NotCrawled = iota
+	CrawlReady
+	CrawlRequestSent
+	CrawlResponseRecieved
+	CrawlComplete
+	CrawlErrored
+	CrawlNotAllowed
 )
 
 // ===================================================================
@@ -17,13 +25,14 @@ type Page struct {
 	Links   map[string]*Page
 	Ignored map[string]int
 
+	CrawlState int
+
 	StatusCode int
+	Err        error
 
 	LastCrawled time.Time
 	Start       time.Time
 	Finish      time.Time
-	crawl       bool
-	Err         error
 }
 
 var (
@@ -77,10 +86,10 @@ func PageFromURL(ustr string) (pi *Page) {
 	var ex bool
 	if pi, ex = pages[ustr]; !ex {
 		pi = &Page{
-			URL:     ustr,
-			Links:   make(map[string]*Page),
-			Ignored: make(map[string]int),
-			crawl:   true,
+			URL:        ustr,
+			Links:      make(map[string]*Page),
+			Ignored:    make(map[string]int),
+			CrawlState: NotCrawled,
 		}
 		pages[ustr] = pi
 	}
@@ -103,51 +112,4 @@ func (pm Pagemap) Exists(url string) bool {
 
 func (pm Pagemap) Set(url string, p *Page) {
 	pages[url] = p
-}
-
-func PageListHandler(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, pages)
-}
-
-func PageIdHandler(w http.ResponseWriter, r *http.Request) {
-
-	// Get a couple vars ready for later
-	var out interface{}
-	var err error
-
-	// Get the url from the request and extract the storage
-	// index (name) of the corresponding object.
-	url := urlFromRequest(r)
-	name := NameFromURL(url)
-	out = "No Output"
-
-	if page := pages.Get(url); page != nil {
-		switch r.Method {
-		case "GET":
-			out = page
-		case "PUT", "POST":
-			log.Infoln("overwriting ", name)
-			out = "done"
-		case "DELETE":
-			delete(pages, name)
-			out = "done"
-		}
-	} else {
-		switch r.Method {
-		case "GET", "DELETE":
-			// Nothing to get or delete
-			err = errors.New("object not found " + name)
-		case "PUT", "POST":
-			st := GetStorage()
-			if _, err := st.StoreObject(name, page); err != nil {
-				err = fmt.Errorf("page %s error %v", url, err)
-			} else {
-				out = `{"msg": "done"}`
-			}
-		}
-	}
-	if err != nil {
-		JSONError(w, err)
-	}
-	writeJSON(w, out)
 }

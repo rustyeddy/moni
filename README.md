@@ -2,66 +2,25 @@
 
 ## What does Monti do?
 
-Monti is a Site Inventory and Monitoring tool.  
+Monti is a Site Monitor and Inventory Management tool.
 
-By _Site_ I basically mean _Website_ and all the compute and network
-infrastructure to support the production site.
+By _Site_ I basically mean _Website_ and / or _App_ along with
+everything required to support the application.
 
-By _Inventory_ I mean *lots of things*, all the things that go into
-running a production *site*.
+## Site Management
 
-Even the smallest of sites (a modest WordPress install) have lots of
-things that need to be keep track of, as we'll see in the list below. 
+Following are basic CRUD operations for the **Site** object.  Objects
+preceeded with a '-' are complete '+' are in progress and '*' are
+either failing or missing all together
 
-Here are some of the items that need to be tracked (and monitored) to
-ensure the wholistic health of the *site*.
+- GET		/sites
+- GET		/site/{url} 
+- POST		/site/{url}
+- DELETE	/site/{url}
 
+## Storage Management
+
+- GET		/storage
 
 ## Inventory Management 
 
-- domain 
-  - registerar 
-  - nameserver
-  - account info (user / passwd keep separate)
-	- host names and sub-domains
-    - expiration
-	- owner / contact
-
-  - hosts & servers
-    - host ip
-	- services: ports and applications
-
-  - apps & services
-    website: example.com
-	database: db.example.com
-	log: log.example.com
-
-## Monitoring
-
-- Site availablility ~ time series of uptimes
-- Site performance ~ timeseries walk every page recording responses
-- Site map checking ~ all pages accounted for?  Any unexpected page or
-  pages show up? 
-- Content scanning ~ ensure all content is as expected, nothing new,
-  nothing lost
-- Maleware scanning ~ part of scanning
-
-- Monitor Google Analytics
-- Monitor Email campaign
-
-- Monitor Shopping Carts
-
-- Monitor ...
-
-
-Inv can answer the following questions:
-
-- Websites (Every page of Website)?
-- Are my web pages all accessible and fast?
-- Has my website been hacked and returning junk?
-- Are all my networked computers alive?
-- Services are they running and accessible?
-- What *exactly* is connected to my network?
-- How many computers and servers do I have?
-- How many devices do I have on my network that are NOT computers?
-- What are these devices doing?

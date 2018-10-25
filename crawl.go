@@ -1,20 +1,26 @@
 package moni
 
 import (
-	"fmt"
-	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
 	"github.com/gocolly/colly"
-	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
 
 var (
 	CrawlDepth int = 1
 )
+
+func crawlWatcher(chpg chan *Page, errch chan error) {
+	for {
+		pg := <-chpg
+		log.Infoln("CrawlWatcher")
+
+		Crawl(pg)
+	}
+}
 
 // Crawl will visit the given URL, and depending on configuration
 // options potentially walk internal links.
@@ -29,9 +35,11 @@ func Crawl(pg *Page) {
 		ustr := r.URL.String()
 		ustr, err := NormalizeURL(ustr)
 		if err != nil {
+			pg.CrawlState = CrawlErrored
 			log.Errorf("normalizing url %s => %v", r.URL, err)
 			return
 		}
+		pg.CrawlState = CrawlRequestSent
 	})
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
@@ -57,9 +65,9 @@ func Crawl(pg *Page) {
 		}
 		pg.Links[ustr] = newpg
 
-		if newpg.crawl {
+		if newpg.CrawlState == CrawlReady {
 			e.Request.Visit(newpg.URL)
-			newpg.crawl = false
+
 		}
 	})
 
@@ -68,7 +76,7 @@ func Crawl(pg *Page) {
 		log.Debugln("  response from", link, "status", r.StatusCode)
 		pg.StatusCode = r.StatusCode
 		pg.Finish = time.Now()
-		pg.crawl = false
+		pg.CrawlState = CrawlResponseRecieved
 		pages[link] = pg
 	})
 
@@ -77,13 +85,15 @@ func Crawl(pg *Page) {
 		pg.Err = err
 		pg.StatusCode = r.StatusCode
 		pg.Finish = time.Now()
-		pg.crawl = false
+		pg.CrawlState = CrawlErrored
 		link := r.Request.URL.String()
 		pages[link] = pg
 	})
 
 	pg.Start = time.Now()
 	c.Visit(pg.URL)
+
+	log.Infoln("Crawl Finished ", pg.URL)
 }
 
 // CrawlOrNot will determine if the provided url is allowed to be crawled,
@@ -101,7 +111,7 @@ func CrawlOrNot(urlstr string) (pi *Page) {
 		return nil
 	}
 
-	if !pi.crawl {
+	if pi.CrawlState != CrawlReady {
 		log.Debugf("  %s not ready to crawl ~ crawl bit off ", urlstr)
 		return nil
 	}
@@ -132,51 +142,6 @@ func NameFromURL(urlstr string) (name string) {
 	return name
 }
 
-// ServiceHandlers
-// ========================================================================
-
-// CrawlHandler will handle incoming HTTP request to crawl a URL
-func CrawlHandler(w http.ResponseWriter, r *http.Request) {
-
-	// Prepare for Execution
-	// Extract the url(s) that we are going to walk
-	vars := mux.Vars(r)
-	ustr := vars["url"]
-
-	// Normalize the URL and fill in a scheme it does not exist
-	ustr, err := NormalizeURL(ustr)
-	if err != nil {
-		fmt.Fprintf(w, "I had a problem with the url %v", ustr)
-		return
-	}
-
-	// This conversion back to string is necessary and simple domain
-	// name like "example.com" will be placeded in the url.URL.Path
-	// field instead of the Host field.  However url.String() makes
-	// everything right.
-	accessList.AllowHost(ustr)
-
-	// If the url has too recently been scanned we will return
-	// null for the job, however a copy of the scan will is
-	// available and will be returned to the caller.
-	page := CrawlOrNot(ustr)
-	if page == nil {
-		log.Errorf("url rejected %s", ustr)
-		fmt.Fprintf(w, "url rejected %s", ustr)
-		return
-	}
-
-	// ~~~ This is where the (next free?) Crawler grabs a crawl job ~~~
-	Crawl(page)
-
-	// Write the results back to the caller
-	writeJSON(w, page)
-
-	// Cache the results ...  We'll replace '/' with '-' and
-	// store the results in the cache store.
-	storePageCrawl(page)
-}
-
 // GetCrawls
 func GetCrawls() []string {
 	st := GetStorage()
@@ -196,27 +161,4 @@ func GetCrawls() []string {
 		crawls = []string{}
 	}
 	return crawls
-}
-
-// CrawlListHandler will return a list of all recent crawls.
-// As stored in our storage (json) file.
-func CrawlListHandler(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, GetCrawls())
-}
-
-// CrawlIdHandler will return a list of all recent crawls.
-// As stored in our storage (json) file.
-func CrawlIdHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract the url(s) that we are going to walk
-	vars := mux.Vars(r)
-	cid := vars["cid"]
-	st := GetStorage()
-
-	page := new(Page)
-	_, err := st.FetchObject(cid, page)
-	if err != nil {
-		JSONError(w, err)
-		return
-	}
-	writeJSON(w, page)
 }

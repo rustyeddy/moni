@@ -4,16 +4,9 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
-
-/*
-
-TODO:
-
-- Create standard log messages and error strings
-- Use fields provided by logrus and create some category specific loggers
-- Systematize log messages to make analyzing them easier
-*/
 
 const (
 	NilObjectError = iota
@@ -31,6 +24,14 @@ var (
 	errorNotSupported = &Error{NotSupportedError, "not supported"}
 	errorNotFound     = &Error{NotFoundError, "not found"}
 )
+
+// errorWatcher
+func errorWatcher(errch chan error) {
+	for {
+		err := <-errch
+		log.Error(err)
+	}
+}
 
 // Error returns the error message and satisfies the error.Error interface
 func (e Error) Error() string {

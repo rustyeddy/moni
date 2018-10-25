@@ -10,6 +10,31 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func urlWatcher(urlq chan string, crawlq chan *Page, errq chan error) {
+
+	for {
+		url := <-urlq
+
+		ustr, err := NormalizeURL(url)
+		if err != nil {
+			errq <- fmt.Errorf("Error Normalizing url %s err %v", url, err)
+			// Aint no crawling gonna happen around heree
+			continue
+		}
+
+		// CrawlOrNot will return a *Page with Page.CrawlState = CrawlReady
+		pg := CrawlOrNot(ustr)
+		if pg == nil {
+			// No crawling going on round here ...
+			continue
+		}
+
+		// We are good to go, send this page off too the crawler
+		crawlq <- pg
+	}
+
+}
+
 // NormalizeURL will make sure a scheme (protocol) is prepended
 // go domains that do not already sport a scheme.
 func NormalizeURL(urlstr string) (ustr string, err error) {
@@ -27,7 +52,7 @@ func NormalizeURL(urlstr string) (ustr string, err error) {
 	// no scheme, colly will reject it, so we'll add the http scheme.
 	switch u.Scheme {
 	case "http", "https":
-		// fallthrough
+		// we are good
 	case "":
 		u.Scheme = "http"
 	default:
