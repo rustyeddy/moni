@@ -89,7 +89,10 @@ func PageFromURL(ustr string) (pi *Page) {
 			URL:        ustr,
 			Links:      make(map[string]*Page),
 			Ignored:    make(map[string]int),
-			CrawlState: NotCrawled,
+			CrawlState: CrawlReady,
+		}
+		if pages == nil {
+			pages = make(map[string]*Page)
 		}
 		pages[ustr] = pi
 	}

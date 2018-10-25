@@ -102,9 +102,10 @@ func Crawl(pg *Page) {
 // and if enough time has passed before the url can be scanned again
 func CrawlOrNot(urlstr string) (pi *Page) {
 
+	log.Infoln("crawl or not ", urlstr)
 	allowed := ACL().IsAllowed(urlstr)
 	if !allowed {
-		log.Debugf("  not allowed %s add reason ..", urlstr)
+		log.Infoln("  not allowed %s add reason ..", urlstr)
 		return nil
 	}
 
@@ -114,7 +115,7 @@ func CrawlOrNot(urlstr string) (pi *Page) {
 	}
 
 	if pi.CrawlState != CrawlReady {
-		log.Debugf("  %s not ready to crawl ~ crawl bit off ", urlstr)
+		log.Infof("  %s not ready to crawl ~ crawl bit off ", urlstr)
 		return nil
 	}
 	return pi

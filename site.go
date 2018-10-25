@@ -49,12 +49,17 @@ func StoreSites() {
 		} else {
 			log.Infof("Sites stored object: %+v\n", obj)
 		}
+	} else {
+		log.Error("sites is nil")
 	}
 }
 
 // AddNewSite will create a New Site from the url, including
 // verify and sanitize the url and so on.
 func AddNewSite(url string) *Site {
+
+	sched.URLQ <- url
+
 	s := &Site{
 		URL:     url,
 		Pagemap: make(Pagemap),
@@ -67,7 +72,6 @@ func AddNewSite(url string) *Site {
 
 	// This should not cause any problems, que no?
 	go StoreSites()
-
 	return s
 }
 

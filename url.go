@@ -13,7 +13,9 @@ import (
 func urlWatcher(urlq chan string, crawlq chan *Page, errq chan error) {
 
 	for {
+		log.Infoln("URLQ Channel Watcher waiting for URL ... ")
 		url := <-urlq
+		log.Infoln("  got URL ", url)
 
 		ustr, err := NormalizeURL(url)
 		if err != nil {
