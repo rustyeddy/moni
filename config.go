@@ -10,9 +10,9 @@ var (
 )
 
 type ConfigLogger struct {
-	Output string
-	Level  string
-	Format string
+	Logfile string
+	Level   string
+	Format  string
 }
 
 type Configuration struct {
@@ -29,10 +29,11 @@ type Configuration struct {
 	Debug      bool
 	Depth      int
 
+	NoServe bool
+
 	Profile bool
 	Pubdir  string
 
-	Serve    bool
 	Storedir string
 	Tmpldir  string
 	Wait     time.Duration
@@ -46,17 +47,22 @@ type Command struct {
 }
 
 var (
+	DefaultConfig Configuration
+)
+
+func init() {
 	DefaultConfig = Configuration{
 		Addrport: ":8888",
 		Daemon:   false,
 		Depth:    3,
 		Profile:  false,
 		Pubdir:   "docs",
-		Serve:    false,
+		NoServe:  false,
 		Storedir: "/srv/moni", // or "./.moni"
 		Tmpldir:  "tmpl",
 	}
-)
+	DefaultConfig.Logfile = "moni.log"
+}
 
 // SetConfig sets and reconfigures the application
 func SetConfig(cfg *Configuration) {
