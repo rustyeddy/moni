@@ -1,5 +1,7 @@
 package moni
 
+import "github.com/sirupsen/logrus"
+
 // AccessList is a list of domains or url paths that are either
 // allowed or denied.  AccessLists may not have both allow and deny
 // entries, hence the list is one or the other.
@@ -19,7 +21,13 @@ func NewACL() *AccessList {
 		Rejected:    make(map[string]int),
 		Unsupported: make(map[string]int),
 	}
-	acl.Logerr = log // Set the acl logger to the global logger
+
+	// straigh logrus
+	flds := logrus.Fields{
+		"Allowed": "Rejected",
+		"Five":    6,
+	}
+	acl.Entry = logrus.WithFields(flds)
 	return acl
 }
 

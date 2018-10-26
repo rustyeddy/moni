@@ -5,6 +5,8 @@ import (
 	"html/template"
 	"net/http"
 	"path/filepath"
+
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -33,6 +35,8 @@ type App struct {
 
 	// Tmplates to handle html and text formatting
 	AppTemplates
+
+	*Logerr
 }
 
 // NewApp will produce a new App
@@ -45,6 +49,10 @@ func NewApp(cfg *Configuration) (app *App) {
 	app.Title = app.Name
 
 	SetConfig(cfg)
+	app.Entry = log.WithFields(logrus.Fields{
+		"app":  app.Title,
+		"tmpl": app.Tmpl,
+	})
 	return app
 }
 
@@ -102,6 +110,6 @@ func (app *App) Assemble(w http.ResponseWriter, tmplname string) {
 		app.PrepareTemplates(config.Tmpldir)
 	}
 	if err := app.ExecuteTemplate(w, "index.html", app); err != nil {
-		log.Fatalln(err)
+		app.Fatalln(err)
 	}
 }

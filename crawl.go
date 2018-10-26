@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gocolly/colly"
+	"github.com/sirupsen/logrus"
 )
 
 // Crawler represents the crawling
@@ -19,6 +20,9 @@ type CrawlDispatcher struct {
 
 	*AccessList
 	qsize int
+
+	log *Logerr
+	*logrus.Entry
 }
 
 // CrawlJob is created periodically to manage a crawl request
@@ -49,6 +53,11 @@ func NewDispatcher() (crawler *CrawlDispatcher) {
 	cr.crawlQ = make(chan *Page, cr.qsize)
 	cr.saveQ = make(chan *Page, cr.qsize)
 	cr.errQ = make(chan error, cr.qsize)
+
+	flds := logrus.Fields{
+		"Name": "Dispatcher",
+	}
+	cr.Entry = log.WithFields(flds)
 	Crawler = cr
 	return Crawler
 }
