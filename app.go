@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -36,7 +36,7 @@ type App struct {
 	// Tmplates to handle html and text formatting
 	AppTemplates
 
-	*Logerr
+	*log.Entry
 }
 
 // NewApp will produce a new App
@@ -49,7 +49,9 @@ func NewApp(cfg *Configuration) (app *App) {
 	app.Title = app.Name
 
 	SetConfig(cfg)
-	app.Entry = log.WithFields(logrus.Fields{
+
+	// Setup the logger
+	app.Entry = log.WithFields(log.Fields{
 		"app":  app.Title,
 		"tmpl": app.Tmpl,
 	})

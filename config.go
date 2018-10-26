@@ -3,6 +3,8 @@ package moni
 import (
 	"errors"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -38,7 +40,7 @@ type Configuration struct {
 	Tmpldir  string
 	Wait     time.Duration
 
-	*App
+	*Logerr
 }
 
 type Command struct {
@@ -69,7 +71,9 @@ func SetConfig(cfg *Configuration) {
 	// Set the global config
 	config = cfg
 
-	// TODO: Investigate and react to changes in config in necessary
+	if config.Logerr == nil {
+		config.Logerr = NewLogerr("config")
+	}
 }
 
 // StoreObject will write the configuration out to our Storage as

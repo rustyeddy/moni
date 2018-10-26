@@ -3,6 +3,8 @@ package moni
 import (
 	"encoding/json"
 	"net/http"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // Write the response as HTML

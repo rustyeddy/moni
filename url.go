@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 )
 
 func processURL(ustr string) *Page {

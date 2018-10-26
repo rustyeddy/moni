@@ -30,6 +30,8 @@ github.com/mgutz/logxi v0.0.0-20161027140823-aebf8a7d67ab h1:n8cgpHzJ5+EDyDri2s/
 github.com/mgutz/logxi v0.0.0-20161027140823-aebf8a7d67ab/go.mod h1:y1pL58r5z2VvAjeG1VLGc8zOQgSOzbKN7kMHPvFXJ+8=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/rustyeddy/golab v0.0.0-20181021231310-8b9b0cf6286e h1:fA8+2HOD1ehyXIXzgQ3Py1PQ9m+MevXdhs5hWprKuj4=
+github.com/rustyeddy/logrus v1.0.5 h1:qa8nPiLeoc+kUrlWwpxvIEflov3o63prZYYV39/c93o=
+github.com/rustyeddy/logrus v1.0.5/go.mod h1:+UEuPMYfzlUcgchFiMyinR2YfoEELYwX+Df+qtn4BoI=
 github.com/rustyeddy/store v0.0.0-20181018202852-21207579ae80 h1:uVJcfkgqDX2s/PcQRNTumWI67kE11paCASozq+K7BJI=
 github.com/rustyeddy/store v0.0.0-20181018202852-21207579ae80/go.mod h1:n4dbTqpqNBSeO+pd7RHHwDNy91Y0FmFNcs0aX1MONXg=
 github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca h1:NugYot0LIVPxTvN8n+Kvkn6TrbMyxQiuvKdEwFdR9vI=

@@ -14,6 +14,7 @@ require (
 	github.com/mattn/go-isatty v0.0.4 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
 	github.com/mgutz/logxi v0.0.0-20161027140823-aebf8a7d67ab
+	github.com/rustyeddy/logrus v1.0.5
 	github.com/rustyeddy/store v0.0.0-20181018202852-21207579ae80
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect
 	github.com/sirupsen/logrus v1.1.1

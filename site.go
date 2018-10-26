@@ -2,6 +2,8 @@ package moni
 
 import (
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // Site is basically a website wich includes API interfaces

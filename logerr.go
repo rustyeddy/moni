@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -19,62 +19,39 @@ const (
 
 type Logerr struct {
 	Name string // we love our logger so we give em names!
-
-	logger *logrus.Logger
-	*logrus.Entry
+	*log.Logger
 }
 
-var (
-	log    Logerr
-	logman *LogManager
-)
-
-func init() {
-	logman = new(LogManager)
-	log = NewLogerr("main")
+func NewLogerr(name string) (nl *Logerr) {
+	return &Logerr{Name: name}
 }
 
-func NewLogerr(name string) (nl Logerr) {
-	nl = Logerr{Name: name}
-	nl.Logger = logrus.New()
-	if logman == nil {
-		logman = &LogManager{
-			Logmap:     make(Logmap),
-			LogChannel: make(chan Err),
-		}
-	}
-	return nl
+func SetValues(out io.Writer, formatter log.Formatter, level log.Level) {
+	log.SetOutput(out)
+	log.SetFormatter(formatter)
+	log.SetLevel(level)
 }
 
 // SetValues is simple to set ofl values
-func (l *Logerr) SetValues(out io.Writer, formatter logrus.Formatter, level logrus.Level) *Logerr {
-	l.logger.SetFormatter(formatter)
-	l.logger.SetOutput(out)
-	l.logger.SetLevel(logrus.DebugLevel)
+func (l *Logerr) SetValues(out io.Writer, formatter log.Formatter, level log.Level) *Logerr {
+	l.SetFormatter(formatter)
+	l.SetOutput(out)
+	l.SetLevel(level)
 	return l
 }
 
 func (l *Logerr) SetDebugging() {
-	l.SetValues(os.Stdout, &logrus.TextFormatter{}, logrus.DebugLevel)
+	l.SetValues(os.Stdout, &log.TextFormatter{}, log.DebugLevel)
 }
 
 func (l *Logerr) SetTesting() {
-	l.SetValues(os.Stdout, &logrus.JSONFormatter{}, logrus.WarnLevel)
+	l.SetValues(os.Stdout, &log.JSONFormatter{}, log.WarnLevel)
 }
 
 func (l *Logerr) SetProduction(filename string) {
 	file, err := os.Create(filename)
-	l.IfErrorFatal(err, "SetTesting", filename)
-	l.SetValues(file, &logrus.JSONFormatter{}, logrus.WarnLevel)
-}
-
-// Clone an existing logger, with a new name
-func (l Logerr) Clone(name string) (nl Logerr) {
-	nl = NewLogerr(name)
-	nl.logger.SetLevel(l.logger.Level)
-	nl.logger.SetOutput(l.logger.Out)
-	nl.logger.SetFormatter(l.logger.Formatter)
-	return nl
+	IfErrorFatal(err, "SetTesting", filename)
+	l.SetValues(file, &log.JSONFormatter{}, log.WarnLevel)
 }
 
 // errorWatcher = log error messages
@@ -92,7 +69,7 @@ func (lm *Logerr) WatchChannel(errch chan error) {
 // This maybe too drastic in production cases, where we may want to
 // remove an errant service, and perhaps put them into a "zombie"
 // state, for post mortem analysis (or prohibit massive respawns)
-func (l *Logerr) IfErrorFatal(err error, msgs ...string) error {
+func IfErrorFatal(err error, msgs ...string) error {
 	// If err is nil .. all is well
 	if err == nil {
 		return nil // we are good, nothing to do
@@ -102,7 +79,7 @@ func (l *Logerr) IfErrorFatal(err error, msgs ...string) error {
 	if msgs != nil {
 		msg = strings.Join(msgs, ", ")
 	}
-	l.Fatalln(msg, err)
+	log.Fatalln(msg, err)
 	return err
 }
 
@@ -113,7 +90,7 @@ func (l *Logerr) IfErrorFatal(err error, msgs ...string) error {
 // This maybe too drastic in production cases, where we may want to
 // remove an errant service, and perhaps put them into a "zombie"
 // state, for post mortem analysis (or prohibit massive respawns)
-func (l *Logerr) IfNilError(obj interface{}, msgs ...string) bool {
+func IfNilError(obj interface{}, msgs ...string) bool {
 	// If err is nil .. all is well
 	if obj != nil {
 		return false // we are good, nothing to do
@@ -124,7 +101,7 @@ func (l *Logerr) IfNilError(obj interface{}, msgs ...string) bool {
 	if msgs != nil {
 		msg = strings.Join(msgs, ", ")
 	}
-	l.Errorln(msg)
+	log.Errorln(msg)
 	return true
 }
 

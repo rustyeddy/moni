@@ -3,6 +3,8 @@ package moni
 import (
 	"html/template"
 	"net/http"
+
+	log "github.com/sirupsen/logrus"
 )
 
 /*

@@ -10,6 +10,8 @@ import (
 	"net/http/httptest"
 	"os"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // Client represents our http client (duh).  TODO Move
