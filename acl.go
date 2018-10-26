@@ -19,7 +19,7 @@ func NewACL() *AccessList {
 		Rejected:    make(map[string]int),
 		Unsupported: make(map[string]int),
 	}
-	acl.Logerr = newDevJSON("access-list")
+	acl.Logerr = log // Set the acl logger to the global logger
 	return acl
 }
 
