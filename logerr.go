@@ -21,25 +21,37 @@ type Logerr struct {
 	*logrus.Logger
 }
 
+type Logmap map[string]*Logerr
+
 var (
-	log *Logerr
+	log    *Logerr
+	logmap *Logmap
 )
 
 func init() {
-	log = newDevtest()
+	logmap = new(Logmap)
+	log = newDevJSON("main")
 }
 
-func NewLogerr(name string) (lb *Logerr) {
-	return &Logerr{
-		Name:   name,
-		Logger: logrus.New(),
-	}
+func NewLogerr(name string) (nl *Logerr) {
+	nl = &Logerr{Name: name}
+	nl.Logger = logrus.New()
+	return nl
 }
 
 // NewDebugger
-func newDevtest() (l *Logerr) {
-	l = NewLogerr("devtest")
+func newDevtest(name string) (l *Logerr) {
+	l = NewLogerr(name)
 	l.SetFormatter(&logrus.TextFormatter{})
+	l.SetOutput(os.Stdout)
+	l.SetLevel(logrus.DebugLevel)
+	return l
+}
+
+// NewDebugger
+func newDevJSON(name string) (l *Logerr) {
+	l = NewLogerr(name)
+	l.SetFormatter(&logrus.JSONFormatter{})
 	l.SetOutput(os.Stdout)
 	l.SetLevel(logrus.DebugLevel)
 	return l
@@ -63,9 +75,9 @@ func (l *Logerr) SetLogfile(filename string) {
 	l.Infoln("Log file set to ", filename)
 }
 
-// Clone an existing logger
-func (l *Logerr) Clone() (nl *Logerr) {
-	nl = newProduction()
+// Clone an existing logger, with a new name
+func (l *Logerr) Clone(name string) (nl *Logerr) {
+	nl = NewLogerr(name)
 	nl.SetLevel(l.Level)
 	nl.SetOutput(l.Out)
 	nl.SetFormatter(l.Formatter)

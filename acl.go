@@ -7,27 +7,20 @@ type AccessList struct {
 	Allowed     map[string]int
 	Rejected    map[string]int
 	Unsupported map[string]int
+
+	*Logerr
 }
 
-var (
-	accessList = &AccessList{
+// ACL returns the accessList.  If the accessList does not exist
+// it will be created prior to return
+func NewACL() *AccessList {
+	acl := &AccessList{
 		Allowed:     make(map[string]int),
 		Rejected:    make(map[string]int),
 		Unsupported: make(map[string]int),
 	}
-)
-
-// ACL returns the accessList.  If the accessList does not exist
-// it will be created prior to return
-func ACL() *AccessList {
-	if accessList == nil {
-		accessList = &AccessList{
-			Allowed:     make(map[string]int),
-			Rejected:    make(map[string]int),
-			Unsupported: make(map[string]int),
-		}
-	}
-	return accessList
+	acl.Logerr = newDevJSON("access-list")
+	return acl
 }
 
 // AllowHost will naively take only the host, ignoring port,
@@ -35,9 +28,9 @@ func ACL() *AccessList {
 func (acl *AccessList) AllowHost(h string) {
 	if host := GetHostname(h); host != "" {
 		acl.Allowed[host]++
-		log.Debugln("added host ", host, " to Allowed list")
+		acl.Debugln("added host ", host, " to Allowed list")
 	} else {
-		log.Errorln("failed to add host", host, "allowed list")
+		acl.Errorln("failed to add host", host, "allowed list")
 	}
 }
 
@@ -46,9 +39,9 @@ func (acl *AccessList) AllowHost(h string) {
 func (acl *AccessList) RejectHost(h string) {
 	if host := GetHostname(h); host != "" {
 		acl.Rejected[host]++
-		log.Debugln("RejectHost ", h)
+		acl.Debugln("RejectHost ", h)
 	} else {
-		log.Errorln("RejectHost failed to get host for ", h)
+		acl.Errorln("RejectHost failed to get host for ", h)
 	}
 	return
 }

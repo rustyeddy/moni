@@ -25,12 +25,12 @@ func processURL(ustr string) *Page {
 	// name like "example.com" will be placeded in the url.URL.Path
 	// field instead of the Host field.  However url.String() makes
 	// everything right.
-	accessList.AllowHost(ustr)
+	Crawler.AllowHost(ustr) // AccessList
 
 	// If the url has too recently been scanned we will return
 	// null for the job, however a copy of the scan will is
 	// available and will be returned to the caller.
-	if page = CrawlOrNot(ustr); page == nil {
+	if page = Crawler.CrawlOrNot(ustr); page == nil {
 		log.Infoln("processURL rejected url ", ustr)
 		return nil
 	}
@@ -60,7 +60,7 @@ func NormalizeURL(urlstr string) (ustr string, err error) {
 	case "":
 		u.Scheme = "http"
 	default:
-		accessList.Unsupported[urlstr]++
+		Crawler.Unsupported[urlstr]++ // via AccessList
 		return "", fmt.Errorf("Error Not Supported")
 	}
 	ustr = u.String()

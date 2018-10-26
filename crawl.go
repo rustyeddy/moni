@@ -17,6 +17,7 @@ type CrawlDispatcher struct {
 	saveQ  chan *Page
 	errQ   chan error
 
+	*AccessList
 	qsize int
 }
 
@@ -35,13 +36,14 @@ var (
 )
 
 func init() {
-	Crawler = NewCrawler()
+	Crawler = NewDispatcher()
 }
 
 // NewCrawler will handle scheduling all call requests
-func NewCrawler() (crawler *CrawlDispatcher) {
+func NewDispatcher() (crawler *CrawlDispatcher) {
 	cr := &CrawlDispatcher{
-		qsize: 2,
+		AccessList: NewACL(),
+		qsize:      2,
 	}
 	cr.UrlQ = make(chan string, cr.qsize)
 	cr.crawlQ = make(chan *Page, cr.qsize)
@@ -128,21 +130,20 @@ func (cr *CrawlDispatcher) Crawl(pg *Page) {
 
 // CrawlOrNot will determine if the provided url is allowed to be crawled,
 // and if enough time has passed before the url can be scanned again
-func CrawlOrNot(urlstr string) (pi *Page) {
-	log.Infoln("crawl or not ", urlstr)
-	allowed := ACL().IsAllowed(urlstr)
-	if !allowed {
-		log.Infof("  not allowed %s add reason ..", urlstr)
+func (cr *CrawlDispatcher) CrawlOrNot(urlstr string) (pi *Page) {
+	cr.Infoln("crawl or not ", urlstr)
+	if !cr.IsAllowed(urlstr) {
+		cr.Infof("  not allowed %s add reason ..", urlstr)
 		return nil
 	}
 
 	if pi = PageFromURL(urlstr); pi == nil {
-		log.Errorf("page not found url %s", urlstr)
+		cr.Errorf("page not found url %s", urlstr)
 		return nil
 	}
 
 	if pi.CrawlState != CrawlReady {
-		log.Infof("  %s not ready to crawl ~ crawl bit off ", urlstr)
+		cr.Infof("  %s not ready to crawl ~ crawl bit off ", urlstr)
 		return nil
 	}
 	return pi

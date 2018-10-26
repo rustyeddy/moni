@@ -7,12 +7,8 @@ import (
 )
 
 func TestACL(t *testing.T) {
-	acl := AccessList{
-		Allowed:     make(map[string]int),
-		Rejected:    make(map[string]int),
-		Unsupported: make(map[string]int),
-	}
 
+	acl := NewACL()
 	acl.AllowHost("http://allowme.com")
 	acl.RejectHost("http://rejectme.com")
 
