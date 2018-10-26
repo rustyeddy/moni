@@ -106,7 +106,7 @@ func (n *Element) OpenTag(w http.ResponseWriter) error {
 	}
 	tag += ">"
 	if _, err := w.Write([]byte(tag)); err != nil {
-		return fmt.Errorf("failed writing OpenTag ", tag, err.Error())
+		return fmt.Errorf("failed writing OpenTag %s %v", tag, err)
 	}
 	return nil
 }
@@ -115,7 +115,7 @@ func (n *Element) OpenTag(w http.ResponseWriter) error {
 // all children (if any should have been output as well)
 func (n *Element) CloseTag(w http.ResponseWriter) error {
 	if _, err := fmt.Fprintf(w, "</%s> <!-- %s --> ", n.Name, n.Classtr); err != nil {
-		return fmt.Errorf("failed to write CloseTag", n.Name, err.Error())
+		return fmt.Errorf("failed to write CloseTag %s %v", n.Name, err)
 	}
 	return nil
 }

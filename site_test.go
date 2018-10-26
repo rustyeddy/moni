@@ -9,7 +9,7 @@ import (
 func TestSiteListHandler(t *testing.T) {
 
 	url := "/sites"
-	resp := ServiceTester(t, SiteListHandler, "get", url)
+	resp := ServiceLoopback(SiteListHandler, "get", url)
 
 	body := GetBody(resp)
 	if body == nil {
@@ -36,7 +36,7 @@ func TestSiteIdHandler(t *testing.T) {
 	url := "/site/"
 	var body []byte
 
-	resp := ServiceTester(t, SiteIdHandler, "get", url+"/"+url)
+	resp := ServiceLoopback(SiteIdHandler, "get", url+"/"+url)
 	if body = GetBody(resp); body == nil {
 		t.Errorf("failed to get body from response")
 	}

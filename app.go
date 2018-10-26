@@ -9,64 +9,77 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-/*
- * The One TRUE App
- */
+var (
+	app *App
+)
+
+func init() {
+	app = NewApp(config)
+}
+
+// ====================================================================
+//                           App
+// ====================================================================
+
+// App is the One TRUE App! All Hail the App!  It is the global context
+// of everything.  It contains some information for the web page to be
+// displayed, it also maintains configurations and managers the server
+// and the scheduler.
 type App struct {
 
-	// Basic meta stuff
+	// Basic meta stuff for App web page and content
 	Title string // name of the page (url title)
 	Name  string // name for fun and profit
 	Tmpl  string // base or frame template
 	Frag  string // request.URL.Fragment
 
-	Configuration
-
 	// Tmplates to handle html and text formatting
 	AppTemplates
-
-	// The following
-	cards []*Card
-
-	// We will Explicitly list our cards here
-	*SitesCard
-	*StorageCard
-	LogCard *Card // Just a Card
 }
 
+// NewApp will produce a new App
+func NewApp(config *Configuration) (app *App) {
+	// XXX Ignoring configuration
+	app = &App{
+		Name:  "ClowOpsApp",
+		Title: "Clowd ~ Operations",
+		Tmpl:  "index.html",
+	}
+	app.Title = app.Name
+	return app
+}
+
+// NewApp will produce a new App
+func NewTestApp(config *Configuration) (app *App) {
+	app = &App{
+		Name:  "ClowOpsApp",
+		Title: "Clowd ~ Operations",
+		Tmpl:  "index.html",
+	}
+	app.Title = app.Name
+	return app
+}
+
+// ====================================================================
+//                      App Templates
+// ====================================================================
+
+// Contains various pointers to Go templates and the compiled
+// version of the templates.
 type AppTemplates struct {
 	TmplBasedir string
 	TmplName    string
 	*template.Template
 }
 
-// NewApp will produce a new App
-func NewApp(name string) (app *App) {
-	app = &App{
-		Name:  name,
-		Tmpl:  "index.html",
-		Title: name, // default name, but can change
-	}
-	app.TmplBasedir = "../tmpl"
-	app.TmplName = "index.html"
-	app.Title = "Clowd ~ Operations"
-	app.Name = "Rusty Eddy"
-
-	// Prepare templates now
-	app.PrepareTemplates()
-
-	return app
-}
-
 // Builder constructs (and sends) the response back to the
 // user.  It determines with template pieces to put together,
 // assembles them and off they go
-func (app *App) PrepareTemplates() {
-	pattern := filepath.Join(app.TmplBasedir, "*.html")
+func (app *App) PrepareTemplates(tmpldir string) {
+	pattern := filepath.Join(tmpldir, "*.html")
+
+	fmt.Printf("Reading templates dir %s from %s\n", tmpldir, pattern)
 	app.Template = template.Must(template.ParseGlob(pattern))
-	if app.Debug {
-		app.DumpTemplates()
-	}
 }
 
 func (app *App) DumpTemplates() {
@@ -74,20 +87,22 @@ func (app *App) DumpTemplates() {
 	fmt.Println(app.DefinedTemplates())
 }
 
-// AddCard to the applicaiton
-func (a *App) AddCard(c *Card) *App {
-	a.cards = append(a.cards, c)
-	return a // allow chaining
-}
+// ====================================================================
+//                      App Assembler
+// ====================================================================
 
 // Assemble traverses our local representation of the outgoing documents,
 // occaisionally run stuff through a template, writing out successful
 // stuff as required.
-func (a *App) Assemble(w http.ResponseWriter, tmplname string) {
+func (app *App) Assemble(w http.ResponseWriter, tmplname string) {
 	// Here we go, create our html for our site.  Building the page happens
 	// in two parts.  1. A semi-generic frame is created with designated areas
 	// can be overwritten with application specific information.
-	if err := a.ExecuteTemplate(w, "index.html", a); err != nil {
+
+	if app.Template == nil {
+		app.PrepareTemplates(config.Tmpldir)
+	}
+	if err := app.ExecuteTemplate(w, "index.html", app); err != nil {
 		log.Fatalln(err)
 	}
 }

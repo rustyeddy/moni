@@ -6,6 +6,15 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// registerCrawlers will register all handlers related to the
+// crawling activities
+func registerCrawlers(r *mux.Router) {
+	r.HandleFunc("/acl", ACLHandler)               // Display ACLs
+	r.HandleFunc("/crawlids", CrawlListHandler)    // Display "recent" crawl jobs
+	r.HandleFunc("/crawl/{url}", CrawlHandler)     // Create a (recurring) crawl job for url
+	r.HandleFunc("/crawlid/{cid}", CrawlIdHandler) // Display a specific crawl job
+}
+
 // ServiceHandlers
 // ========================================================================
 
@@ -17,7 +26,7 @@ func CrawlHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	ustr := vars["url"]
 
-	sched.URLQ <- ustr
+	Crawler.UrlQ <- ustr
 }
 
 // CrawlListHandler will return a list of all recent crawls.
@@ -32,10 +41,9 @@ func CrawlIdHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract the url(s) that we are going to walk
 	vars := mux.Vars(r)
 	cid := vars["cid"]
-	st := GetStorage()
 
 	page := new(Page)
-	_, err := st.FetchObject(cid, page)
+	_, err := storage.FetchObject(cid, page)
 	if err != nil {
 		JSONError(w, err)
 		return

@@ -20,14 +20,9 @@ func registerApp(r *mux.Router) {
 // send back to the caller
 func AppHandler(w http.ResponseWriter, r *http.Request) {
 
-	app := NewApp(":8888")
 	app.Title = "Application Interface"
 	app.Name = "Rusty Eddy"
 	app.Frag = r.URL.Fragment
-
-	app.SitesCard = NewSitesCard()
-	app.StorageCard = NewStorageCard()
-	app.LogCard = NewLogCard("I will log forever")
 
 	app.Assemble(w, "index.html")
 }

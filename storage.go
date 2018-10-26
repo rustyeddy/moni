@@ -1,21 +1,18 @@
 package moni
 
 import (
+	"log"
+
 	"github.com/rustyeddy/store"
-	log "github.com/sirupsen/logrus"
 )
 
 var (
-	moniStore *store.Store
+	storage *store.Store
 )
 
-// GetStorage will return and possibly create (if needed) the storage
-func GetStorage() *store.Store {
+func init() {
 	var err error
-	if moniStore == nil {
-		if moniStore, err = store.UseStore(config.StoreDir); err != nil {
-			log.Fatalf("Unable to access our store")
-		}
+	if storage, err = store.UseStore(config.Storedir); err != nil {
+		log.Fatalf("failed to get storage %s ", config.Storedir)
 	}
-	return moniStore
 }

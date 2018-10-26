@@ -5,9 +5,17 @@ import (
 	"testing"
 )
 
+var (
+	tapp *App
+)
+
+func init() {
+	tapp = NewApp(&DefaultConfig)
+}
+
 // TestAppHandler checks what we get with /
 func TestAppRootHandler(t *testing.T) {
-	resp := ServiceTester(t, AppHandler, "get", "/")
+	resp := ServiceLoopback(AppHandler, "get", "/")
 	if resp == nil {
 		t.Error("Failed appHandler /")
 	}
@@ -28,14 +36,13 @@ func TestAppRootHandler(t *testing.T) {
 // javascript along with our index files, etc..
 func TestStaticFiles(t *testing.T) {
 	var resp *http.Response
-	if resp = ServiceTester(t, AppHandler, "get", "/static/css/app.css"); resp == nil {
+	if resp = ServiceLoopback(AppHandler, "get", "/css/app.css"); resp == nil {
 		t.Error("expected /static/css/app.css got (nil) ")
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Expected status code (20x) got (%d) ", resp.StatusCode)
 	}
-
 	ct := resp.Header.Get("Content-Type")
 	if ct == "" {
 		t.Errorf("Expected content type (text/html) got (%s) ", ct)

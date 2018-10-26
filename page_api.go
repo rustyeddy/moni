@@ -5,8 +5,15 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
+
+// Register the page routes
+func registerPages(r *mux.Router) {
+	r.HandleFunc("/pages", PageListHandler).Methods("GET")
+	r.HandleFunc("/page/{url}", PageIdHandler).Methods("GET", "POST", "DELETE")
+}
 
 func PageListHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, pages)
@@ -41,8 +48,7 @@ func PageIdHandler(w http.ResponseWriter, r *http.Request) {
 			// Nothing to get or delete
 			err = errors.New("object not found " + name)
 		case "PUT", "POST":
-			st := GetStorage()
-			if _, err := st.StoreObject(name, page); err != nil {
+			if _, err := storage.StoreObject(name, page); err != nil {
 				err = fmt.Errorf("page %s error %v", url, err)
 			} else {
 				out = `{"msg": "done"}`

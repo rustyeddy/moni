@@ -35,13 +35,13 @@ type Page struct {
 	Finish      time.Time
 }
 
-var (
-	pages Pagemap
-)
-
 // Pagemap
 // ********************************************************************
 type Pagemap map[string]*Page
+
+var (
+	pages Pagemap
+)
 
 // String will represent the Page
 // ====================================================================
@@ -50,17 +50,15 @@ func (p *Page) String() string {
 	return str
 }
 
-func GetPages() Pagemap {
+func GetPagemap() Pagemap {
 	if pages == nil {
 		pages = make(Pagemap)
 
-		st := GetStorage()
-		if _, err := st.FetchObject("pages", &pages); err != nil {
+		if _, err := storage.FetchObject("pages", pages); err != nil {
 			log.Debugf("Empty pages %v, creating ...", err)
 			// TODO ~ make sure the error is NOT found
 
-			pages = make(Pagemap)
-			_, err := st.StoreObject("pages", pages)
+			_, err := storage.StoreObject("pages", pages)
 			if err != nil {
 				log.Errorf("Store: failed to create pages: %v ", err)
 				return pages
@@ -71,8 +69,7 @@ func GetPages() Pagemap {
 }
 
 func savePagemap() error {
-	st := GetStorage()
-	if _, err := st.StoreObject("pages", pages); err != nil {
+	if _, err := storage.StoreObject("pages", pages); err != nil {
 		log.Errorf("failed to save page map %v", err)
 		return err
 	}
@@ -100,7 +97,7 @@ func PageFromURL(ustr string) (pi *Page) {
 }
 
 func (pm Pagemap) Get(url string) (p *Page) {
-	if p, e := pages[url]; e {
+	if p, e := pm[url]; e {
 		return p
 	}
 	return nil
@@ -114,5 +111,5 @@ func (pm Pagemap) Exists(url string) bool {
 }
 
 func (pm Pagemap) Set(url string, p *Page) {
-	pages[url] = p
+	pm[url] = p
 }

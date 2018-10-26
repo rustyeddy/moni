@@ -1,8 +1,6 @@
 package moni
 
 import (
-	"net/http"
-
 	log "github.com/sirupsen/logrus"
 )
 
@@ -70,9 +68,4 @@ func (acl *AccessList) IsAllowed(urlstr string) (allow bool) {
 	}
 	acl.Rejected[host]++
 	return false
-}
-
-// ACLHandler will respond to ACL requests
-func ACLHandler(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, accessList)
 }

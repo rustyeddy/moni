@@ -9,10 +9,10 @@ type SitesCard struct {
 	Sitemap
 }
 
-func NewSitesCard() (c *SitesCard) {
+func (app *App) NewSitesCard() (c *SitesCard) {
 	c = &SitesCard{
 		Card:    NewCard("Sites"),
-		Sitemap: Sites,
+		Sitemap: sites,
 	}
 	return c
 }

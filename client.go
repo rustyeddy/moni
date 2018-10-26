@@ -59,7 +59,7 @@ func (cli *Client) Start() {
 
 	for running {
 
-		fmt.Print("prompt~> ")
+		fmt.Print("moni ~> ")
 		line, err := reader.ReadString('\n')
 		if err != nil {
 			log.Errorf("failed to read string %+v", err)
@@ -119,6 +119,7 @@ func (cli *Client) Start() {
 //
 //
 func (cli *Client) Do(cmd string, url string) (resp *http.Response) {
+	//app := NewTestApp(&DefaultConfig)
 
 	// Prepare a request
 	req, err := http.NewRequest(cmd, url, nil)
@@ -131,7 +132,7 @@ func (cli *Client) Do(cmd string, url string) (resp *http.Response) {
 	// CrawlHandler is the same function called by the HTTP server!
 	// which takes care of sanitizing the URL(s) and other house
 	// keeping functions, we will just reuse it from the command line.
-	r := Server().Handler
+	r := NewServer(":8888").Handler
 	r.ServeHTTP(w, req)
 
 	// 8>< ------------ ><8   Cut Here   8>< -------------- ><8

@@ -20,10 +20,10 @@ func registerSites(r *mux.Router) {
 
 // SiteListHandler may respond with multiple Site entries
 func SiteListHandler(w http.ResponseWriter, r *http.Request) {
-	if Sites == nil || len(Sites) < 1 {
+	if sites == nil || len(sites) < 1 {
 		fmt.Fprintf(w, "")
 	}
-	writeJSON(w, Sites)
+	writeJSON(w, sites)
 }
 
 // SiteIdHandler manages requests targeted for a specific site.
@@ -34,10 +34,10 @@ func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		if site := Sites.Get(url); site != nil {
+		if site := sites.Get(url); site != nil {
 			writeJSON(w, site)
 		} else {
-			JSONError(w, ErrorNotFound(url+" site not found "))
+			JSONError(w, fmt.Errorf("site not found %s", url))
 		}
 
 	case "PUT", "POST":
@@ -52,7 +52,7 @@ func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 		RemoveSite(h)
 
 	default:
-		JSONError(w, ErrorNotSupported("unspported method "+r.Method))
+		JSONError(w, fmt.Errorf("unspported method "+r.Method))
 	}
 	return
 }

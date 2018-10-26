@@ -4,3 +4,7 @@ curl -X POST http://localhost:8888/site/gardenpassages.com
 curl -X POST http://localhost:8888/site/mojavetropicofilming.com
 curl -X POST http://localhost:8888/site/sierrahydrographics.com
 
+sleep 1
+
+curl http://localhost:8888/sites
+

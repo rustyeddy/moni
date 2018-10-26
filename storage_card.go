@@ -9,10 +9,10 @@ type StorageCard struct {
 }
 
 // Create some useful information from storage
-func NewStorageCard() *StorageCard {
+func (app *App) NewStorageCard() *StorageCard {
 	sc := &StorageCard{
 		Card:  NewCard("Storage"),
-		Store: GetStorage(),
+		Store: storage,
 	}
 
 	return sc

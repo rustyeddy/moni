@@ -9,10 +9,10 @@ import (
 // Get storage will return import information about the storage
 // we are using.
 func registerStorage(r *mux.Router) {
-	r.HandleFunc("/storage", StorageHandler).Methods("GET")
+	r.HandleFunc("/storage", storageHandler).Methods("GET")
 }
 
 // StorageHandler manages requests from a client
-func StorageHandler(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, GetStorage())
+func storageHandler(w http.ResponseWriter, r *http.Request) {
+	writeJSON(w, storage)
 }

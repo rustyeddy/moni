@@ -1,6 +1,7 @@
 package moni
 
 import (
+	"fmt"
 	"net/url"
 	"strings"
 	"time"
@@ -9,24 +10,78 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Crawler represents the crawling
+type CrawlDispatcher struct {
+	*App
+	UrlQ   chan string // public used externally to submit urls
+	crawlQ chan *Page
+	saveQ  chan *Page
+	errQ   chan error
+
+	qsize int
+}
+
+// CrawlJob is created periodically to manage a crawl request
+type CrawlJob struct {
+	crawlId int64
+	url     string  // site url for this job
+	pages   []*Page // pages for this crawl
+	depth   int     // crawl depth (see conni)
+	time.Time
+}
+
 var (
-	CrawlDepth int = 1
+	CrawlDepth int = 2
+	Crawler    *CrawlDispatcher
 )
 
-func crawlWatcher(chpg chan *Page, errch chan error) {
-	for {
-		pg := <-chpg
-		log.Infoln("CrawlWatcher")
-		Crawl(pg)
+func init() {
+	Crawler = NewCrawler()
+}
 
-		st := GetStorage()
-		st.StoreObject(pg.URL, pg)
+// NewCrawler will handle scheduling all call requests
+func NewCrawler() (crawler *CrawlDispatcher) {
+	cr := &CrawlDispatcher{
+		qsize: 2,
+	}
+	cr.UrlQ = make(chan string, cr.qsize)
+	cr.crawlQ = make(chan *Page, cr.qsize)
+	cr.saveQ = make(chan *Page, cr.qsize)
+	cr.errQ = make(chan error, cr.qsize)
+	Crawler = cr
+	return Crawler
+}
+
+func (cr *CrawlDispatcher) WatchChannels() {
+	for {
+		log.Infoln("URLQ Channel Watcher waiting for URL ... ")
+		ts := time.Now()
+
+		select {
+		case url := <-cr.UrlQ:
+			log.Infof("urlChan recieved %s ~ %v ", url, time.Since(ts))
+			if pg := processURL(url); pg != nil {
+				cr.crawlQ <- pg
+			} else {
+				cr.errQ <- fmt.Errorf("url %s has errored ", url)
+			}
+
+		case page := <-cr.crawlQ:
+
+			cr.Crawl(page)
+
+		case page := <-cr.saveQ:
+			storage.StoreObject(page.URL, page)
+
+		case err := <-cr.errQ:
+			log.Error(err)
+		}
 	}
 }
 
 // Crawl will visit the given URL, and depending on configuration
 // options potentially walk internal links.
-func Crawl(pg *Page) {
+func (cr *CrawlDispatcher) Crawl(pg *Page) {
 
 	// Create the collector and go get shit! (preserve?)
 	c := colly.NewCollector(
@@ -35,41 +90,15 @@ func Crawl(pg *Page) {
 
 	c.OnRequest(func(r *colly.Request) {
 		ustr := r.URL.String()
-		ustr, err := NormalizeURL(ustr)
-		if err != nil {
-			pg.CrawlState = CrawlErrored
-			log.Errorf("normalizing url %s => %v", r.URL, err)
-			return
-		}
-		pg.CrawlState = CrawlRequestSent
+
+		cr.UrlQ <- ustr
 	})
 
+	// OnHTML will be called when we encounter a page reference
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
-		link := e.Request.AbsoluteURL(e.Attr("href"))
-		if link == "" {
-			return
-		}
-
-		// Parsing and converting seems necessary
-		ustr, err := NormalizeURL(link)
-		if err != nil {
-			log.Errorf("expected url got error %v", err)
-			return
-		}
-
-		newpg := CrawlOrNot(ustr)
-		if newpg == nil {
-			// The link has been filtered for one
-			// reason or another, we will move along
-			log.Debugf("  ignoring %s ", ustr)
-			pg.Ignored[ustr]++
-			return
-		}
-		pg.Links[ustr] = newpg
-
-		if newpg.CrawlState == CrawlReady {
-			e.Request.Visit(newpg.URL)
-
+		if link := e.Request.AbsoluteURL(e.Attr("href")); link != "" {
+			// Just send the link to the URL Q for processing
+			cr.UrlQ <- link
 		}
 	})
 
@@ -101,11 +130,10 @@ func Crawl(pg *Page) {
 // CrawlOrNot will determine if the provided url is allowed to be crawled,
 // and if enough time has passed before the url can be scanned again
 func CrawlOrNot(urlstr string) (pi *Page) {
-
 	log.Infoln("crawl or not ", urlstr)
 	allowed := ACL().IsAllowed(urlstr)
 	if !allowed {
-		log.Infoln("  not allowed %s add reason ..", urlstr)
+		log.Infof("  not allowed %s add reason ..", urlstr)
 		return nil
 	}
 
@@ -126,11 +154,7 @@ func CrawlOrNot(urlstr string) (pi *Page) {
 // the page is fetched a lot.
 func storePageCrawl(pg *Page) {
 	name := NameFromURL(pg.URL)
-	st := GetStorage()
-	_, err := st.StoreObject(name, pg)
-	if err != nil {
-		log.Errorln("Failed to create local store")
-	}
+	storage.StoreObject(name, pg)
 }
 
 func NameFromURL(urlstr string) (name string) {
@@ -147,11 +171,10 @@ func NameFromURL(urlstr string) (name string) {
 
 // GetCrawls
 func GetCrawls() []string {
-	st := GetStorage()
 	pat := "crawl-"
 	patlen := len(pat)
 
-	crawls, _ := st.FilterNames(func(name string) string {
+	crawls, _ := storage.FilterNames(func(name string) string {
 		if len(name) < patlen {
 			return ""
 		}
@@ -164,4 +187,13 @@ func GetCrawls() []string {
 		crawls = []string{}
 	}
 	return crawls
+}
+
+// GetTimeStamp returns a timestamp in a modified RFC3339
+// format, basically remove all colons ':' from filename, since
+// they have a specific use with Unix pathnames, hence must be
+// escaped when used in a filename.
+func TimeStamp() string {
+	ts := time.Now().UTC().Format(time.RFC3339)
+	return strings.Replace(ts, ":", "", -1) // get rid of offesnive colons
 }
