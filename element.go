@@ -3,8 +3,6 @@ package moni
 import (
 	"fmt"
 	"net/http"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // Element Writer (HTML) ~~~ Interface

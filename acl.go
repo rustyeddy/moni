@@ -1,9 +1,5 @@
 package moni
 
-import (
-	log "github.com/sirupsen/logrus"
-)
-
 // AccessList is a list of domains or url paths that are either
 // allowed or denied.  AccessLists may not have both allow and deny
 // entries, hence the list is one or the other.

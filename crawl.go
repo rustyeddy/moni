@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/gocolly/colly"
-	log "github.com/sirupsen/logrus"
 )
 
 // Crawler represents the crawling

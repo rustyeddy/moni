@@ -3,8 +3,6 @@ package moni
 import (
 	"fmt"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
 const (

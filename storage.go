@@ -1,8 +1,6 @@
 package moni
 
 import (
-	"log"
-
 	"github.com/rustyeddy/store"
 )
 
@@ -10,9 +8,16 @@ var (
 	storage *store.Store
 )
 
-func init() {
+func GetStorage() (st *store.Store) {
 	var err error
-	if storage, err = store.UseStore(config.Storedir); err != nil {
-		log.Fatalf("failed to get storage %s ", config.Storedir)
+
+	dir := "/srv/moni"
+	if config != nil && config.ConfigFile != "" {
+		dir = config.ConfigFile
 	}
+	if st, err = store.UseStore(dir); err != nil {
+		return st
+	}
+	log.Fatalf("failed to get storage %s err %v ", dir, err)
+	return st
 }

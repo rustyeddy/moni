@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	log "github.com/sirupsen/logrus"
 )
 
 var (

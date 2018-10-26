@@ -3,8 +3,6 @@ package moni
 import (
 	"errors"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -60,8 +58,15 @@ var (
 	}
 )
 
+// SetConfig sets and reconfigures the application
+func SetConfig(cfg *Configuration) {
+	// Set the global config
+	config = cfg
+
+	// TODO: Investigate and react to changes in config in necessary
+}
+
 // StoreObject will write the configuration out to our Storage as
-// JSON.  As of now we are using the Storage interface to save our
 // configurations.  Hence, we will use a label name and not a
 // filename, although the label name can look like a filename..  That
 // is a label can be "config.json" but it can NOT have any leading

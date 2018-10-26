@@ -4,8 +4,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"testing"
-
-	log "github.com/sirupsen/logrus"
 )
 
 func TestACL(t *testing.T) {

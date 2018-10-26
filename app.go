@@ -5,8 +5,6 @@ import (
 	"html/template"
 	"net/http"
 	"path/filepath"
-
-	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -38,14 +36,15 @@ type App struct {
 }
 
 // NewApp will produce a new App
-func NewApp(config *Configuration) (app *App) {
-	// XXX Ignoring configuration
+func NewApp(cfg *Configuration) (app *App) {
 	app = &App{
 		Name:  "ClowOpsApp",
 		Title: "Clowd ~ Operations",
 		Tmpl:  "index.html",
 	}
 	app.Title = app.Name
+
+	SetConfig(cfg)
 	return app
 }
 
