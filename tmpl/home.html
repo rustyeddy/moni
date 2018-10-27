@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+
+  {{ template "head.html" . }}
+
+  <body>
+    <div class="wrapper">
+      <div class="d-flex">
+
+	{{ template "header.html" . }}
+
+	<main class="content">
+	  <div class="container-fluid p-0">
+	    {{ template "masthead.html" . }}
+
+	    <div class="row">
+
+	      <h1>Home Sweet Home</h1>
+
+	    </div> <!-- row -->	      
+	  </div> <!-- container-fluid -->
+	</main> <!-- content -->
+
+	{{ template "footer.html" . }}
+
+      </div> <!-- d-flex -->
+    </div> <!-- wrapper -->
+    <script src="/static/js/app.js"></script>
+  </body>
+</html>

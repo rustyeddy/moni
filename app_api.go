@@ -26,3 +26,16 @@ func AppHandler(w http.ResponseWriter, r *http.Request) {
 
 	app.Assemble(w, "index.html")
 }
+
+// AppHandler will compose a response to the request
+// and in the process most likely need to gather a few peices
+// of information, put them together in the right order and
+// send back to the caller
+func HomeHandler(w http.ResponseWriter, r *http.Request) {
+
+	app.Title = "Home Handler"
+	app.Name = "Rusty Eddy"
+	app.Frag = r.URL.Fragment
+
+	app.Assemble(w, "home.html")
+}

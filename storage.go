@@ -16,6 +16,8 @@ func GetStorage() (st *store.Store) {
 	if config != nil && config.ConfigFile != "" {
 		dir = config.ConfigFile
 	}
+
+	log.Infoln("Useing store ", dir)
 	if st, err = store.UseStore(dir); err != nil {
 		return st
 	}

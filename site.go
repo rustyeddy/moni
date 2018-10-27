@@ -19,15 +19,24 @@ type Site struct {
 	CrawlState  int
 
 	*time.Timer
+	*log.Entry
 }
-
-type Sitemap map[string]*Site
 
 var (
 	sites Sitemap = make(Sitemap)
+	sm    SiteManager
 )
 
-func (app *App) FetchSites() Sitemap {
+func init() {
+	sm = SiteManager{
+		Sitemap: new(Sitemap),
+	}
+	sm.Entry = log.WithFields(log.Fields{
+		"name":  "Sites",
+		"sites": len(*sm.Sitemap),
+	})
+}
+func FetchSites() Sitemap {
 	if _, err := storage.FetchObject("sites", sites); err != nil {
 		log.Errorf(" failed to read saved 'sites' %v", err)
 		sites = make(Sitemap)
@@ -86,6 +95,11 @@ func (s *Site) ScheduleCrawl() {
 	defer timer.Stop()
 }
 
+// SiteManager
+// ====================================================================
+
+type Sitemap map[string]*Site
+
 func (s Sitemap) Find(url string) (site *Site, ex bool) {
 	site, ex = s[url]
 	return site, ex
@@ -107,4 +121,15 @@ func (s Sitemap) Delete(url string) {
 	if _, ex := s[url]; ex {
 		delete(s, url)
 	}
+}
+
+// SiteManager
+// ====================================================================
+
+type SiteManager struct {
+	*Sitemap
+	*log.Entry
+}
+
+func (sm *SiteManager) init() {
 }

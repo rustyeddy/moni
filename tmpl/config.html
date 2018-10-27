@@ -2,14 +2,13 @@
   <div class="card-header">
     <h5 class="card-title mb-0">Configuration</h5>
   </div> <!-- card-header -->
-  {{ with .Config }}
   <div class="card-subtitle">
     <h6 class="text-muted">{{ .String }}</h6>
   </div> <!-- card-subtitle -->
   <div class="card-body">
     <ul class="list-inline">
-      {{ .Configuration }}
+	{{ .Configuration }}
     </ul>
   </div> <!-- card-body -->
-  {{ end }}
 </div> <!-- card -->
+

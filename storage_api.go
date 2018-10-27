@@ -14,5 +14,8 @@ func registerStorage(r *mux.Router) {
 
 // StorageHandler manages requests from a client
 func storageHandler(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, storage)
+	if st := GetStorage(); st == nil {
+		writeJSON(w, "Nothing here...")
+	}
+	writeJSON(w, GetStorage())
 }
