@@ -123,9 +123,9 @@ func (app *App) Assemble(w http.ResponseWriter, tmplname string) {
 	}
 
 	d := &Appdata{
-		Sitemap:       &sites,
-		Configuration: config,
-		Store:         storage,
+		Sitemap: &sites,
+		Store:   &storage,
+		Config:  config,
 	}
 
 	if err := app.ExecuteTemplate(w, "index.html", d); err != nil {

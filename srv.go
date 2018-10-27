@@ -24,7 +24,7 @@ func StartServer() {
 }
 
 func (app *App) Shutdown(ctx context.Context) {
-	app.Shutdown(ctx)
+	server.Shutdown(ctx)
 }
 
 // httpServer creates the router, registers the handlers then
