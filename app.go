@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"github.com/rustyeddy/store"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -14,7 +15,7 @@ var (
 )
 
 func init() {
-	app = NewApp(config)
+	app = NewApp(&DefaultConfig)
 }
 
 // ====================================================================
@@ -47,7 +48,6 @@ func NewApp(cfg *Configuration) (app *App) {
 		Tmpl:  "index.html",
 	}
 	app.Title = app.Name
-
 	SetConfig(cfg)
 
 	// Setup the logger
@@ -69,6 +69,10 @@ func NewTestApp(config *Configuration) (app *App) {
 	return app
 }
 
+func (app *App) Start() {
+	StartServer()
+}
+
 // ====================================================================
 //                      App Templates
 // ====================================================================
@@ -79,6 +83,13 @@ type AppTemplates struct {
 	TmplBasedir string
 	TmplName    string
 	*template.Template
+}
+
+// Acculmulate the data needed for the template
+type Appdata struct {
+	*Sitemap
+	*Configuration
+	*store.Store
 }
 
 // Builder constructs (and sends) the response back to the
@@ -107,11 +118,17 @@ func (app *App) Assemble(w http.ResponseWriter, tmplname string) {
 	// Here we go, create our html for our site.  Building the page happens
 	// in two parts.  1. A semi-generic frame is created with designated areas
 	// can be overwritten with application specific information.
-
 	if app.Template == nil {
 		app.PrepareTemplates(config.Tmpldir)
 	}
-	if err := app.ExecuteTemplate(w, "index.html", app); err != nil {
+
+	d := &Appdata{
+		Sitemap:       &sites,
+		Configuration: config,
+		Store:         storage,
+	}
+
+	if err := app.ExecuteTemplate(w, "index.html", d); err != nil {
 		app.Fatalln(err)
 	}
 }

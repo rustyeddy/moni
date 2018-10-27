@@ -2,6 +2,7 @@ package moni
 
 import (
 	"errors"
+	"io"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -12,19 +13,22 @@ var (
 )
 
 type ConfigLogger struct {
-	Logfile string
-	Level   string
-	Format  string
+	LevelString  string
+	FormatString string
+	Logfile      string
+
+	log.Level
+	log.Formatter
+	Out io.Writer
 }
 
 type Configuration struct {
 	Addrport string
-
-	Basedir string
-
-	Client bool
+	Basedir  string
+	Client   bool
 
 	ConfigLogger
+
 	ConfigFile string
 	Cli        bool
 	Daemon     bool
@@ -49,10 +53,6 @@ type Command struct {
 }
 
 var (
-	DefaultConfig Configuration
-)
-
-func init() {
 	DefaultConfig = Configuration{
 		Addrport: ":8888",
 		Daemon:   false,
@@ -63,8 +63,7 @@ func init() {
 		Storedir: "/srv/moni", // or "./.moni"
 		Tmpldir:  "tmpl",
 	}
-	DefaultConfig.Logfile = "moni.log"
-}
+)
 
 // SetConfig sets and reconfigures the application
 func SetConfig(cfg *Configuration) {

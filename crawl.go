@@ -12,7 +12,6 @@ import (
 
 // Crawler represents the crawling
 type CrawlDispatcher struct {
-	*App
 	UrlQ   chan string // public used externally to submit urls
 	crawlQ chan *Page
 	saveQ  chan *Page

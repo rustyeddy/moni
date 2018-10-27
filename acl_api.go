@@ -1,12 +1,20 @@
 package moni
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
+
+func init() {
+
+}
 
 // ACLHandler will respond to ACL requests
 func ACLHandler(w http.ResponseWriter, r *http.Request) {
 	acl := Crawler.AccessList
+
 	if IfNilError(acl, "crawler handler") {
-		w.Write([]byte("internal error"))
+		JSONError(w, fmt.Errorf("Expected (acl) got () "))
 		return
 	}
 

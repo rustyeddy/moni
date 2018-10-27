@@ -10,3 +10,4 @@ moni
 var/store-tests
 var/tstore
 node_modules
+moni.debug

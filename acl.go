@@ -24,8 +24,9 @@ func NewACL() *AccessList {
 
 	// straigh logrus
 	flds := logrus.Fields{
-		"Allowed": "Rejected",
-		"Five":    6,
+		"Allowed":     len(acl.Allowed),
+		"Rejected":    len(acl.Rejected),
+		"Unsupported": len(acl.Unsupported),
 	}
 	acl.Entry = logrus.WithFields(flds)
 	return acl
