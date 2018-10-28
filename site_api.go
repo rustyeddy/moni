@@ -1,7 +1,6 @@
 package moni
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -14,16 +13,14 @@ import (
 
 // Register the site routes
 func registerSites(r *mux.Router) {
-	r.HandleFunc("/sites", SiteListHandler).Methods("GET")
+	r.HandleFunc("/site", HostSiteHandler).Methods("GET")
+	r.HandleFunc("/site/", SiteListHandler).Methods("GET")
 	r.HandleFunc("/site/{url}", SiteIdHandler).Methods("GET", "POST", "PUT", "DELETE")
 }
 
 // SiteListHandler may respond with multiple Site entries
 func SiteListHandler(w http.ResponseWriter, r *http.Request) {
-	if sites == nil || len(sites) < 1 {
-		fmt.Fprintf(w, "")
-	}
-	writeJSON(w, sites)
+	writeJSON(w, FetchSites())
 }
 
 // SiteIdHandler manages requests targeted for a specific site.
@@ -34,25 +31,28 @@ func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		if site := sites.Get(url); site != nil {
+		if site := FetchSite(url); site != nil {
 			writeJSON(w, site)
 		} else {
 			JSONError(w, fmt.Errorf("site not found %s", url))
 		}
 
 	case "PUT", "POST":
-		if nsite := AddNewSite(url); nsite != nil {
-			writeJSON(w, nsite)
-		} else {
-			JSONError(w, errors.New("Failed to Add "+url))
-		}
+		// Need a little more fan fair
+		Crawler.UrlQ <- url
+		writeJSON(w, map[string]string{"saved": url})
 
 	case "DELETE":
 		h := GetHostname(url)
-		RemoveSite(h)
+		DeleteSite(h)
 
 	default:
 		JSONError(w, fmt.Errorf("unspported method "+r.Method))
 	}
 	return
+}
+
+// HostSiteHandler returns data about this particular site (server really)
+func HostSiteHandler(w http.ResponseWriter, r *http.Request) {
+
 }

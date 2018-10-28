@@ -1,26 +1,21 @@
 package moni
 
 import (
-	"github.com/rustyeddy/store"
-	log "github.com/sirupsen/logrus"
+	"io"
 )
 
-var (
-	storage *store.Store
-)
+type Object interface {
+	io.Reader
+	io.Writer
+}
 
-func GetStorage() (st *store.Store) {
-	var err error
+type Storage interface {
+	UseStore(name string) Storage
+	List() (names []string, err error)
+	Store(name string, obj interface{}) (err error)
+	Fetch(name string, obj interface{}) (err error)
+}
 
-	dir := "/srv/moni"
-	if config != nil && config.ConfigFile != "" {
-		dir = config.ConfigFile
-	}
-
-	log.Infoln("Useing store ", dir)
-	if st, err = store.UseStore(dir); err != nil {
-		return st
-	}
-	log.Fatalf("failed to get storage %s err %v ", dir, err)
-	return st
+type StorageInfo struct {
+	Name string
 }

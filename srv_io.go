@@ -7,23 +7,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Write the response as HTML
-/*
-func writeHTML(w http.ResponseWriter, title string, body string) {
-	if Config.Hasfiles {
-		t, err := template.ParseFiles("tmpl/index.html")
-		if err != nil {
-			HTMLError(w, err.Error())
-			return
-		}
-		p := NewPage(title, body)
-		if err = t.Execute(w, p); err != nil {
-			HTMLError(w, err.Error())
-		}
-	}
-}
-*/
-
 // Write the response back to the caller as JSON
 func writeJSON(w http.ResponseWriter, obj interface{}) {
 	var jbytes []byte
@@ -49,6 +32,7 @@ func JSONError(w http.ResponseWriter, err error) {
 }
 
 func HTMLError(w http.ResponseWriter, err string) {
+	w.Header().Set("Content-Type", "text/html")
 	http.Error(w, err, 500)
 	log.Error(err)
 }

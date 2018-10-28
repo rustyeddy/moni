@@ -1,7 +1,6 @@
 package moni
 
 import (
-	"errors"
 	"io"
 	"time"
 
@@ -75,24 +74,15 @@ func SetConfig(cfg *Configuration) {
 	}
 }
 
-// StoreObject will write the configuration out to our Storage as
-// configurations.  Hence, we will use a label name and not a
-// filename, although the label name can look like a filename..  That
-// is a label can be "config.json" but it can NOT have any leading
-// path '/' characters
-func (c *Configuration) StoreConfig() {
-	_, err := storage.StoreObject("config", c)
-	if err != nil {
-		log.Errorln("Failed writing configuration", c.ConfigFile, err)
-	}
+func StoreConfig() {
+	col := mdb.Collection("config")
+	IfNilError(col, "getting config collection")
+	panic("todo store the configuration")
 }
 
-// ReadFile fetches our configuration object from our storage
-// container, if needed, the object will be converted from JSON to a
-// Go object before being returned.
-func (c *Configuration) FetchConfig() error {
-	if _, err := storage.FetchObject("config", c); err != nil {
-		return errors.New("failed to read config from store")
-	}
-	return nil
+func FetchConfig() {
+	col := mdb.Collection("config")
+	IfNilError(col, "FetchConfig")
+
+	panic("todo fetch the configuration")
 }

@@ -42,9 +42,8 @@ func CrawlIdHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	cid := vars["cid"]
 
-	page := new(Page)
-	_, err := storage.FetchObject(cid, page)
-	if err != nil {
+	var page *Page
+	if page := FetchPage(cid); page != nil {
 		JSONError(w, err)
 		return
 	}

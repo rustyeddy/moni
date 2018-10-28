@@ -79,7 +79,7 @@ func (cr *CrawlDispatcher) WatchChannels() {
 			cr.Crawl(page)
 
 		case page := <-cr.saveQ:
-			storage.StoreObject(page.URL, page)
+			StorePage(page)
 
 		case err := <-cr.errQ:
 			log.Error(err)
@@ -156,14 +156,6 @@ func (cr *CrawlDispatcher) CrawlOrNot(urlstr string) (pi *Page) {
 	return pi
 }
 
-// Cache the page if there is an error we just won't have a
-// cached page and will need to refetch.  Can get ugly if
-// the page is fetched a lot.
-func storePageCrawl(pg *Page) {
-	name := NameFromURL(pg.URL)
-	storage.StoreObject(name, pg)
-}
-
 func NameFromURL(urlstr string) (name string) {
 	u, err := url.Parse(urlstr)
 	if err != nil {
@@ -176,23 +168,36 @@ func NameFromURL(urlstr string) (name string) {
 	return name
 }
 
-// GetCrawls
-func GetCrawls() []string {
-	pat := "crawl-"
-	patlen := len(pat)
+func FindCrawls(pattern string) (crawl []string) {
+	panic("TodO implement")
+	return crawl
+}
 
-	crawls, _ := storage.FilterNames(func(name string) string {
-		if len(name) < patlen {
+// GetCrawls
+func GetCrawls() (crawl []string) {
+	FindCrawls("foo")
+	return crawl
+}
+
+func OldGetCrawls() (crawls []string) {
+	/*
+		// DEFUCT ~
+		pat := "crawl-"
+		patlen := len(pat)
+
+		crawls, _ := storage.FilterNames(func(name string) string {
+			if len(name) < patlen {
+				return ""
+			}
+			if name[0:patlen] == pat {
+				return name
+			}
 			return ""
+		})
+		if crawls == nil {
+			crawls = []string{}
 		}
-		if name[0:patlen] == pat {
-			return name
-		}
-		return ""
-	})
-	if crawls == nil {
-		crawls = []string{}
-	}
+	*/
 	return crawls
 }
 

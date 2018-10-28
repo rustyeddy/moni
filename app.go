@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/rustyeddy/store"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -70,6 +69,7 @@ func NewTestApp(config *Configuration) (app *App) {
 }
 
 func (app *App) Start() {
+	//StartDatabase()
 	StartServer()
 }
 
@@ -87,9 +87,7 @@ type AppTemplates struct {
 
 // Acculmulate the data needed for the template
 type Appdata struct {
-	*Sitemap
 	*Configuration
-	*store.Store
 }
 
 // Builder constructs (and sends) the response back to the
@@ -123,8 +121,6 @@ func (app *App) Assemble(w http.ResponseWriter, tmplname string) {
 	}
 
 	d := &Appdata{
-		Sitemap:       &sites,
-		Store:         storage,
 		Configuration: config,
 	}
 
