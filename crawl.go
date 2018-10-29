@@ -175,30 +175,8 @@ func FindCrawls(pattern string) (crawl []string) {
 
 // GetCrawls
 func GetCrawls() (crawl []string) {
-	FindCrawls("foo")
+	panic("todo write this function")
 	return crawl
-}
-
-func OldGetCrawls() (crawls []string) {
-	/*
-		// DEFUCT ~
-		pat := "crawl-"
-		patlen := len(pat)
-
-		crawls, _ := storage.FilterNames(func(name string) string {
-			if len(name) < patlen {
-				return ""
-			}
-			if name[0:patlen] == pat {
-				return name
-			}
-			return ""
-		})
-		if crawls == nil {
-			crawls = []string{}
-		}
-	*/
-	return crawls
 }
 
 // GetTimeStamp returns a timestamp in a modified RFC3339

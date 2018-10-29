@@ -20,12 +20,15 @@ func registerSites(r *mux.Router) {
 
 // SiteListHandler may respond with multiple Site entries
 func SiteListHandler(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, FetchSites())
+	sites := FetchSites()
+	fmt.Fprintf(w, "Site List Handler! %+v\n", sites)
+	//writeJSON(w, FetchSites())
 }
 
 // SiteIdHandler manages requests targeted for a specific site.
 func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 
+	fmt.Println("site id handler")
 	url := urlFromRequest(r)
 	log.Debugln("SiteIdHandler request ", url)
 
@@ -39,6 +42,7 @@ func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 
 	case "PUT", "POST":
 		// Need a little more fan fair
+		log.Infof("Adding url %s to the thing", url)
 		Crawler.UrlQ <- url
 		writeJSON(w, map[string]string{"saved": url})
 
@@ -50,9 +54,4 @@ func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 		JSONError(w, fmt.Errorf("unspported method "+r.Method))
 	}
 	return
-}
-
-// HostSiteHandler returns data about this particular site (server really)
-func HostSiteHandler(w http.ResponseWriter, r *http.Request) {
-
 }

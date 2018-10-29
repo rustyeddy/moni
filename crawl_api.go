@@ -9,7 +9,6 @@ import (
 // registerCrawlers will register all handlers related to the
 // crawling activities
 func registerCrawlers(r *mux.Router) {
-	r.HandleFunc("/acl", ACLHandler)               // Display ACLs
 	r.HandleFunc("/crawlids", CrawlListHandler)    // Display "recent" crawl jobs
 	r.HandleFunc("/crawl/{url}", CrawlHandler)     // Create a (recurring) crawl job for url
 	r.HandleFunc("/crawlid/{cid}", CrawlIdHandler) // Display a specific crawl job

@@ -87,6 +87,7 @@ type AppTemplates struct {
 
 // Acculmulate the data needed for the template
 type Appdata struct {
+	Sites []*Site
 	*Configuration
 }
 
@@ -122,6 +123,7 @@ func (app *App) Assemble(w http.ResponseWriter, tmplname string) {
 
 	d := &Appdata{
 		Configuration: config,
+		Sites:         FetchSites(),
 	}
 
 	if err := app.ExecuteTemplate(w, "index.html", d); err != nil {

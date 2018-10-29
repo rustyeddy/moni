@@ -1,7 +1,6 @@
-{{ with .Sitemap }}
 <div class="card">
   <div class="card-header">
-    <h5 class="card-title mb-0">{{ .Title }}</h5>
+    <h5 class="card-title mb-0">Sites</h5>
   </div> <!-- card-header -->
   <div class="card-body">
     <p class="card-text">
@@ -14,7 +13,7 @@
 	  <th scope="col">Avg Responose</th>
 	</thead>
 	<tbody>
-	  {{ range .Sitemap }}
+	  {{ range .Sites }}
 	  <tr>
 	    <td><a target="_blank" href="{{ .URL }}">{{ .URL }}</a></td>
 	    <td>{{ .IP }}</td>
@@ -26,4 +25,4 @@
     </p>
   </div>
 </div>
-{{ end }}
+

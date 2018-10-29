@@ -30,11 +30,11 @@ type Site struct {
 // ====================================================================
 func siteCollection() (col *mongo.Collection) {
 	col = mdb.Collection("sites")
-	IfNilFatal(err, "GetSitesCollection")
+	IfNilFatal(col, "GetSitesCollection")
 	return col
 }
 
-func FetchSites() (sites []string) {
+func FetchSites() (sites []*Site) {
 	col := siteCollection()
 	cur, err := col.Find(context.Background(), nil)
 	if err != nil {
@@ -76,6 +76,11 @@ func StoreSite(s *Site) (id int64) {
 		s.ID = res.InsertedID.(int64)
 	}
 	return s.ID
+}
+
+func StoreManySites(s []*Site) (ids []int64) {
+	panic("Todo need to implement")
+	return ids
 }
 
 func DeleteSite(url string) {

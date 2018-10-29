@@ -20,7 +20,7 @@ func TestSiteListHandler(t *testing.T) {
 		t.Errorf("expected content type (application/json) got (%s)", ctype)
 	}
 
-	var sites Sitemap
+	var sites []*Site
 	err := json.Unmarshal(body, &sites)
 	if err != nil {
 		t.Errorf("failed unmarshallng sites %v ", err)
