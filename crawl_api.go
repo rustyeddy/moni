@@ -19,12 +19,7 @@ func registerCrawlers(r *mux.Router) {
 
 // CrawlHandler will handle incoming HTTP request to crawl a URL
 func CrawlHandler(w http.ResponseWriter, r *http.Request) {
-
-	// Prepare for Execution
-	// Extract the url(s) that we are going to walk
-	vars := mux.Vars(r)
-	ustr := vars["url"]
-
+	ustr := urlFromRequest(r)
 	Crawler.UrlQ <- ustr
 }
 
@@ -37,7 +32,6 @@ func CrawlListHandler(w http.ResponseWriter, r *http.Request) {
 // CrawlIdHandler will return a list of all recent crawls.
 // As stored in our storage (json) file.
 func CrawlIdHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract the url(s) that we are going to walk
 	vars := mux.Vars(r)
 	cid := vars["cid"]
 

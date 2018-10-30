@@ -12,11 +12,6 @@ type MDB struct {
 	*mongo.Client
 }
 
-type Collection struct {
-	*mongo.Collection
-	*bson.Document
-}
-
 var (
 	mdb MDB = MDB{}
 	err error

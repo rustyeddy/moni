@@ -34,22 +34,24 @@ func NewACL() *AccessList {
 
 // AllowHost will naively take only the host, ignoring port,
 // and other fields to just the host.
-func (acl *AccessList) AllowHost(h string) {
+func (acl *AccessList) AddHost(h string) {
 	if host := GetHostname(h); host != "" {
 		acl.Allowed[host]++
 		acl.Debugln("added host ", host, " to Allowed list")
 	} else {
+		acl.Allowed[h] = 1
 		acl.Errorln("failed to add host", host, "allowed list")
 	}
 }
 
 // Reject takes the host name and creates an acl entry.
 // And naively ignores things like scheme and port, etc.
-func (acl *AccessList) RejectHost(h string) {
+func (acl *AccessList) AddReject(h string) {
 	if host := GetHostname(h); host != "" {
 		acl.Rejected[host]++
 		acl.Debugln("RejectHost ", h)
 	} else {
+		acl.Rejected[h] = 1
 		acl.Errorln("RejectHost failed to get host for ", h)
 	}
 	return

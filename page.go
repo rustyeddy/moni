@@ -24,6 +24,7 @@ type Page struct {
 	Ignored map[string]int
 
 	CrawlState int
+	CrawlReady bool
 
 	StatusCode int
 	Err        error

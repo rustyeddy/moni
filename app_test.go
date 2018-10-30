@@ -39,7 +39,6 @@ func TestStaticFiles(t *testing.T) {
 	if resp = ServiceLoopback(AppHandler, "get", "/css/app.css"); resp == nil {
 		t.Error("expected /static/css/app.css got (nil) ")
 	}
-
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Expected status code (20x) got (%d) ", resp.StatusCode)
 	}

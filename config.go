@@ -2,17 +2,14 @@ package moni
 
 import (
 	"io"
+	"os"
 	"time"
 
 	log "github.com/sirupsen/logrus"
 )
 
-var (
-	config *Configuration
-)
-
 type ConfigLogger struct {
-	LevelString  string
+	LogLevel     string
 	FormatString string
 	Logfile      string
 
@@ -62,13 +59,14 @@ var (
 		Storedir: "/srv/moni", // or "./.moni"
 		Tmpldir:  "tmpl",
 	}
+
+	// Setup defaults
+	config *Configuration = &DefaultConfig
 )
 
 // SetConfig sets and reconfigures the application
 func SetConfig(cfg *Configuration) {
-	// Set the global config
 	config = cfg
-
 	if config.Logerr == nil {
 		config.Logerr = NewLogerr("config")
 	}
@@ -85,4 +83,61 @@ func FetchConfig() {
 	IfNilError(col, "FetchConfig")
 
 	panic("todo fetch the configuration")
+}
+
+// SetLogger adjusts logger configs after a configuration change, such as
+// immediately after parsing flags
+func (c *Configuration) SetLogger() {
+	if config.Logfile != "stdout" && config.Logfile != "stderr" {
+		if wr, err := os.Open(config.Logfile); err != nil {
+			log.Fatalln("Failed to open logfile ", config.Logfile)
+		} else {
+			log.SetOutput(wr)
+		}
+	}
+
+	if l, err := log.ParseLevel(config.LogLevel); err != nil {
+		log.Fatalln("failed to parse level ", config.Level)
+	} else {
+		log.SetLevel(l)
+	}
+
+	switch config.FormatString {
+	case "text":
+		log.SetFormatter(&log.TextFormatter{})
+	case "json":
+		log.SetFormatter(&log.JSONFormatter{})
+	default:
+		log.Fatalln("can not use formatter ", config.FormatString)
+	}
+}
+
+func (c *Configuration) DebugLogger() {
+	log.SetFormatter(&log.TextFormatter{
+		DisableColors:    true,
+		DisableTimestamp: true,
+		DisableSorting:   true,
+	})
+	log.SetOutput(os.Stdout)
+	log.SetLevel(log.DebugLevel)
+}
+
+func GetDebugLogger() (l *log.Logger) {
+	l = log.New()
+	l.SetFormatter(&log.TextFormatter{
+		DisableColors:    false,
+		DisableTimestamp: true,
+		DisableSorting:   true,
+	})
+	l.SetOutput(os.Stdout)
+	l.SetLevel(log.DebugLevel)
+	return l
+}
+
+func ProdLogger() (l *log.Logger) {
+	l = log.New()
+	l.SetFormatter(&log.JSONFormatter{})
+	l.SetOutput(os.Stdout)
+	l.SetLevel(log.WarnLevel)
+	return l
 }

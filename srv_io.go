@@ -36,3 +36,19 @@ func HTMLError(w http.ResponseWriter, err string) {
 	http.Error(w, err, 500)
 	log.Error(err)
 }
+
+func HTTPGetError(url string, err error) error {
+	log.WithFields(log.Fields{
+		"url": url,
+		"err": err,
+	}).Error("HTTP Get ")
+	return err
+}
+
+func IOReadError(url string, err error) error {
+	log.WithFields(log.Fields{
+		"url": url,
+		"err": err,
+	}).Error("IO Readall ")
+	return err
+}

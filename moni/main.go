@@ -20,7 +20,7 @@ func init() {
 
 	// Logerr settings
 	flag.StringVar(&config.Logfile, "logfile", "stdout", "Were to send log output")
-	flag.StringVar(&config.LevelString, "level", "warn", "Log level to set")
+	flag.StringVar(&config.LogLevel, "level", "warn", "Log level to set")
 	flag.StringVar(&config.FormatString, "format", "json", "Format to print log files")
 
 	// Crank up the verbosity a bit

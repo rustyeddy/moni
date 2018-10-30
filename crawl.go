@@ -68,14 +68,26 @@ func (cr *CrawlDispatcher) WatchChannels() {
 		select {
 		case url := <-cr.UrlQ:
 			log.Infof("urlChan recieved %s ~ %v ", url, time.Since(ts))
-			if pg := processURL(url); pg != nil {
-				cr.crawlQ <- pg
-			} else {
-				cr.errQ <- fmt.Errorf("url %s has errored ", url)
+
+			// normalize the URL
+			urlstr, err := NormalizeURL(url)
+			if err != nil {
+				cr.errQ <- fmt.Errorf("url normaization failed %v", err)
+				continue
+			}
+
+			page := FetchPage(urlstr)
+			IfNilFatal(page, "get page "+urlstr)
+
+			if !cr.IsAllowed(page.URL) {
+				continue
+			}
+
+			if page.CrawlReady {
+				cr.crawlQ <- page
 			}
 
 		case page := <-cr.crawlQ:
-
 			cr.Crawl(page)
 
 		case page := <-cr.saveQ:
@@ -89,6 +101,8 @@ func (cr *CrawlDispatcher) WatchChannels() {
 
 // Crawl will visit the given URL, and depending on configuration
 // options potentially walk internal links.
+//
+// Order of the callbacks http://go-colly.org/docs/introduction/start/
 func (cr *CrawlDispatcher) Crawl(pg *Page) {
 
 	// Create the collector and go get shit! (preserve?)
