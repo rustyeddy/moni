@@ -32,11 +32,6 @@ func DropDatabase(name string) {
 	)
 }
 
-func FetchStorage() (si *StorageInfo) {
-	panic("must implement")
-	return si
-}
-
 func (mdb *MDB) connect() {
 	cli, err := mongo.Connect(context.Background(), "mongodb://localhost:27017", nil)
 	IfErrorFatal(err, "mongo connect")
