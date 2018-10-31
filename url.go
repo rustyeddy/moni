@@ -10,34 +10,19 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func processURL(ustr string) *Page {
-
-	var page *Page
+// helper extract url from string
+func urlFromRequest(r *http.Request) string {
+	// Extract the url(s) that we are going to walk
+	vars := mux.Vars(r)
+	ustr := vars["url"]
 
 	// Normalize the URL and fill in a scheme it does not exist
-	log.Infoln("processURL ", ustr)
 	ustr, err := NormalizeURL(ustr)
 	if err != nil {
-		log.Infoln("processURL Normalize failed ", ustr)
-		return nil
+		log.Errorf("I had a problem with the url %v", ustr)
+		return ""
 	}
-
-	// This conversion back to string is necessary and simple domain
-	// name like "example.com" will be placeded in the url.URL.Path
-	// field instead of the Host field.  However url.String() makes
-	// everything right.
-	Crawler.AllowHost(ustr) // AccessList
-
-	// If the url has too recently been scanned we will return
-	// null for the job, however a copy of the scan will is
-	// available and will be returned to the caller.
-	if page = Crawler.CrawlOrNot(ustr); page == nil {
-		log.Infoln("processURL rejected url ", ustr)
-		return nil
-	}
-
-	log.Infoln("returning from process URL with page ", page.URL)
-	return page
+	return ustr
 }
 
 // NormalizeURL will make sure a scheme (protocol) is prepended
@@ -66,20 +51,6 @@ func NormalizeURL(urlstr string) (ustr string, err error) {
 	}
 	ustr = u.String()
 	return ustr, nil
-}
-
-func urlFromRequest(r *http.Request) string {
-	// Extract the url(s) that we are going to walk
-	vars := mux.Vars(r)
-	ustr := vars["url"]
-
-	// Normalize the URL and fill in a scheme it does not exist
-	ustr, err := NormalizeURL(ustr)
-	if err != nil {
-		log.Errorf("I had a problem with the url %v", ustr)
-		return ""
-	}
-	return ustr
 }
 
 // GetHostname from a URL type string

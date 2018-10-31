@@ -3,10 +3,16 @@ package moni
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 func init() {
 
+}
+
+func registerACLHandler(r *mux.Router) {
+	r.HandleFunc("/acl", ACLHandler) // Display ACLs
 }
 
 // ACLHandler will respond to ACL requests
@@ -18,6 +24,6 @@ func ACLHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	acl.Infoln("ACLHandler returning access list")
+	acl.Debugln("ACLHandler returning access list")
 	writeJSON(w, acl)
 }

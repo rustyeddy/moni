@@ -38,6 +38,9 @@ func NewServer(addrport string) *http.Server {
 	// Register the application url and handlers
 	registerApp(r)
 
+	// The ACL handler
+	registerACLHandler(r)
+
 	// Register the site handler
 	registerSites(r)
 

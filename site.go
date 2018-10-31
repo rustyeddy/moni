@@ -8,81 +8,62 @@ import (
 
 // Site is basically a website wich includes API interfaces
 type Site struct {
-	URL    string
-	IP     string
-	Health bool
-	Pagemap
+	ID      int64  `bson:"_id" json:"id"`
+	URL     string `bson:"url" json:"url"`
+	IP      string `bson:"ip" json:"ip"`
+	Health  bool   `bson:"health" json:"health"`
+	Pagemap `bson:"pagemap" json:"pagemap"`
 
 	// Crawl job info
-	lastCrawled time.Time
-	nextCrawl   time.Time
-	CrawlState  int
+	LastCrawled time.Time `bson:"last_crawled" json:"last_crawled"`
 
+	nextCrawl  time.Time // Ignore this in
+	crawlState int
 	*time.Timer
-	*log.Entry
+	*log.Entry // Ignore
 }
+
+// Sitemap
+// ====================================================================
+type Sitemap map[string]*Site
 
 var (
-	sites Sitemap = make(Sitemap)
-	sm    SiteManager
+	sites Sitemap
 )
 
-func init() {
-	sm = SiteManager{
-		Sitemap: new(Sitemap),
-	}
-	sm.Entry = log.WithFields(log.Fields{
-		"name":  "Sites",
-		"sites": len(*sm.Sitemap),
-	})
-}
-func FetchSites() Sitemap {
-	if _, err := storage.FetchObject("sites", sites); err != nil {
-		log.Errorf(" failed to read saved 'sites' %v", err)
-		sites = make(Sitemap)
-	} else {
-		log.Infof("retrived Sites from the filesystem %+v", sites)
-	}
+func ReadSites() (sites []string) {
+	st := UseStore(config.Storedir)
+	IfNilFatal(st)
+
+	err := st.Get("sites.json", sites)
+	IfErrorFatal(err, "reading sites.json")
+
 	return sites
 }
 
-// StoreSites will attempt to store our memory version of
-// the Sitemap to a file.  Hope it all works out, we will get
-// a log message if there is a problem
-func (app *App) StoreSites() {
-	if obj, err := storage.StoreObject("sites", sites); err != nil {
-		log.Errorf("failed StoreObject Sites %v", err)
-	} else {
-		log.Infof("Sites stored object: %+v\n", obj)
-	}
+func SaveSites() {
+	st := UseStore(config.Storedir)
+	IfNilFatal(st)
+
+	err := st.Put("config.json", sites)
+	IfErrorFatal(err)
+}
+
+func DeleteSite(url string) {
+	panic("todo")
 }
 
 // AddNewSite will create a New Site from the url, including
 // verify and sanitize the url and so on.
-func AddNewSite(url string) *Site {
-	s := &Site{
-		URL:     url,
-		Pagemap: make(Pagemap),
-	}
-	sites[url] = s
+func AddUrl(url string) {
+
+	panic("need to do this")
 
 	// Schedule a new crawl
 	// Store the site
 	log.Infof("Added new site %s ~ calling StoreSites()", url)
 
 	Crawler.UrlQ <- url
-
-	// This should not cause any problems, que no?
-	go app.StoreSites()
-	return s
-}
-
-// RemoveSite represented by the URL from the list of sites to manage
-func RemoveSite(url string) {
-
-	// Unschedule the site from the crawler
-	log.Infoln("Deleting URL ", url)
-	sites.Delete(url)
 }
 
 // ====================================================================
@@ -90,46 +71,7 @@ func RemoveSite(url string) {
 // ScheduleCrawl
 func (s *Site) ScheduleCrawl() {
 	timer := time.AfterFunc(time.Minute*5, func() {
-		s.CrawlState = CrawlReady
+		s.crawlState = CrawlReady
 	})
 	defer timer.Stop()
-}
-
-// SiteManager
-// ====================================================================
-
-type Sitemap map[string]*Site
-
-func (s Sitemap) Find(url string) (site *Site, ex bool) {
-	site, ex = s[url]
-	return site, ex
-}
-
-func (s Sitemap) Get(url string) (site *Site) {
-	if site, ex := s.Find(url); ex {
-		return site
-	}
-	return nil
-}
-
-func (s Sitemap) Exists(url string) bool {
-	_, ex := s.Find(url)
-	return ex
-}
-
-func (s Sitemap) Delete(url string) {
-	if _, ex := s[url]; ex {
-		delete(s, url)
-	}
-}
-
-// SiteManager
-// ====================================================================
-
-type SiteManager struct {
-	*Sitemap
-	*log.Entry
-}
-
-func (sm *SiteManager) init() {
 }

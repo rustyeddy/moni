@@ -1,6 +1,7 @@
 package moni
 
 import (
+	"errors"
 	"io"
 	"os"
 	"strings"
@@ -50,7 +51,7 @@ func (l *Logerr) SetTesting() {
 
 func (l *Logerr) SetProduction(filename string) {
 	file, err := os.Create(filename)
-	IfErrorFatal(err, "SetTesting", filename)
+	IfErrorFatal(err, "SetTesting "+filename)
 	l.SetValues(file, &log.JSONFormatter{}, log.WarnLevel)
 }
 
@@ -81,6 +82,19 @@ func IfErrorFatal(err error, msgs ...string) error {
 	}
 	log.Fatalln(msg, err)
 	return err
+}
+
+func IfNilFatal(obj interface{}, msgs ...string) (iserr bool) {
+	if obj != nil {
+		return false // no error
+	}
+	// If we have an error, print and die
+	msg := ""
+	if msgs != nil {
+		msg = strings.Join(msgs, ", ")
+	}
+	log.Fatalln(msg, errors.New(""))
+	return true
 }
 
 // FatalError checks the incoming error message, if it is nil, there

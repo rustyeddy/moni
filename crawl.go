@@ -68,18 +68,30 @@ func (cr *CrawlDispatcher) WatchChannels() {
 		select {
 		case url := <-cr.UrlQ:
 			log.Infof("urlChan recieved %s ~ %v ", url, time.Since(ts))
-			if pg := processURL(url); pg != nil {
-				cr.crawlQ <- pg
-			} else {
-				cr.errQ <- fmt.Errorf("url %s has errored ", url)
+
+			// normalize the URL
+			urlstr, err := NormalizeURL(url)
+			if err != nil {
+				cr.errQ <- fmt.Errorf("url normaization failed %v", err)
+				continue
+			}
+
+			page := FetchPage(urlstr)
+			IfNilFatal(page, "get page "+urlstr)
+
+			if !cr.IsAllowed(page.URL) {
+				continue
+			}
+
+			if page.CrawlReady {
+				cr.crawlQ <- page
 			}
 
 		case page := <-cr.crawlQ:
-
 			cr.Crawl(page)
 
 		case page := <-cr.saveQ:
-			storage.StoreObject(page.URL, page)
+			StorePage(page)
 
 		case err := <-cr.errQ:
 			log.Error(err)
@@ -89,12 +101,18 @@ func (cr *CrawlDispatcher) WatchChannels() {
 
 // Crawl will visit the given URL, and depending on configuration
 // options potentially walk internal links.
+//
+// Order of the callbacks http://go-colly.org/docs/introduction/start/
 func (cr *CrawlDispatcher) Crawl(pg *Page) {
 
 	// Create the collector and go get shit! (preserve?)
 	c := colly.NewCollector(
 		colly.MaxDepth(4),
+		colly.DisallowedDomains("namecheap.com", "www.namecheap.com", "wordpress.org", "www.wordpress.org", "developer.wordpress.org"),
+		//colly.Async(true),
 	)
+	// Limit parallelism to 2
+	c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 2})
 
 	c.OnRequest(func(r *colly.Request) {
 		ustr := r.URL.String()
@@ -156,18 +174,10 @@ func (cr *CrawlDispatcher) CrawlOrNot(urlstr string) (pi *Page) {
 	return pi
 }
 
-// Cache the page if there is an error we just won't have a
-// cached page and will need to refetch.  Can get ugly if
-// the page is fetched a lot.
-func storePageCrawl(pg *Page) {
-	name := NameFromURL(pg.URL)
-	storage.StoreObject(name, pg)
-}
-
 func NameFromURL(urlstr string) (name string) {
 	u, err := url.Parse(urlstr)
 	if err != nil {
-		log.Errorln(err)
+		log.Errorln("NameFromURL ", err)
 		return
 	}
 
@@ -176,23 +186,18 @@ func NameFromURL(urlstr string) (name string) {
 	return name
 }
 
-// GetCrawls
-func GetCrawls() []string {
-	pat := "crawl-"
-	patlen := len(pat)
+// FindCrawls will match a given pattern against keys in the store returning
+// a list of matching crawls if there are any
+func FindCrawls(pattern string) (crawls []string) {
+	st := GetStore()
+	crawls = st.Glob("crawl-*.json")
+	return crawls
+}
 
-	crawls, _ := storage.FilterNames(func(name string) string {
-		if len(name) < patlen {
-			return ""
-		}
-		if name[0:patlen] == pat {
-			return name
-		}
-		return ""
-	})
-	if crawls == nil {
-		crawls = []string{}
-	}
+// GetCrawls
+func GetCrawls() (crawls []string) {
+	st := GetStore()
+	st.Get("crawls", crawls)
 	return crawls
 }
 

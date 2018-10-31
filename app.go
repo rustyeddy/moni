@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/rustyeddy/store"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -70,6 +69,7 @@ func NewTestApp(config *Configuration) (app *App) {
 }
 
 func (app *App) Start() {
+	//StartDatabase()
 	StartServer()
 }
 
@@ -87,9 +87,8 @@ type AppTemplates struct {
 
 // Acculmulate the data needed for the template
 type Appdata struct {
-	*Sitemap
+	Sites []*Site
 	*Configuration
-	*store.Store
 }
 
 // Builder constructs (and sends) the response back to the
@@ -97,8 +96,6 @@ type Appdata struct {
 // assembles them and off they go
 func (app *App) PrepareTemplates(tmpldir string) {
 	pattern := filepath.Join(tmpldir, "*.html")
-
-	fmt.Printf("Reading templates dir %s from %s\n", tmpldir, pattern)
 	app.Template = template.Must(template.ParseGlob(pattern))
 }
 
@@ -123,8 +120,6 @@ func (app *App) Assemble(w http.ResponseWriter, tmplname string) {
 	}
 
 	d := &Appdata{
-		Sitemap:       &sites,
-		Store:         storage,
 		Configuration: config,
 	}
 

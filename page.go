@@ -3,8 +3,6 @@ package moni
 import (
 	"fmt"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -26,6 +24,7 @@ type Page struct {
 	Ignored map[string]int
 
 	CrawlState int
+	CrawlReady bool
 
 	StatusCode int
 	Err        error
@@ -50,30 +49,12 @@ func (p *Page) String() string {
 	return str
 }
 
-func GetPagemap() Pagemap {
-	if pages == nil {
-		pages = make(Pagemap)
-
-		if _, err := storage.FetchObject("pages", pages); err != nil {
-			log.Debugf("Empty pages %v, creating ...", err)
-			// TODO ~ make sure the error is NOT found
-
-			_, err := storage.StoreObject("pages", pages)
-			if err != nil {
-				log.Errorf("Store: failed to create pages: %v ", err)
-				return pages
-			}
-		}
-	}
-	return pages
+func FetchPage(url string) *Page {
+	panic("todo implement GetPage")
 }
 
-func savePagemap() error {
-	if _, err := storage.StoreObject("pages", pages); err != nil {
-		log.Errorf("failed to save page map %v", err)
-		return err
-	}
-	return nil
+func StorePage(p *Page) {
+	panic("todo implement save page")
 }
 
 // GetPage will sanitize the url, either find or create the
