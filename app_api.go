@@ -2,6 +2,7 @@ package moni
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 )
@@ -11,8 +12,12 @@ import (
 func registerApp(r *mux.Router) {
 	// This will serve files under http://localhost:8888/static/<filename>
 	staticdir := "../static"
-	//staticdir := "static"
-
+	if _, err := os.Stat(staticdir); os.IsNotExist(err) {
+		staticdir = "static"
+		if _, err := os.Stat(staticdir); os.IsNotExist(err) {
+			IfErrorFatal(err, "registerApp")
+		}
+	}
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticdir))))
 	r.HandleFunc("/", AppHandler)
 }
@@ -35,7 +40,6 @@ func AppHandler(w http.ResponseWriter, r *http.Request) {
 // of information, put them together in the right order and
 // send back to the caller
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-
 	app.Title = "Home Handler"
 	app.Name = "Rusty Eddy"
 	app.Frag = r.URL.Fragment

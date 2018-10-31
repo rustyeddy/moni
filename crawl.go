@@ -108,7 +108,11 @@ func (cr *CrawlDispatcher) Crawl(pg *Page) {
 	// Create the collector and go get shit! (preserve?)
 	c := colly.NewCollector(
 		colly.MaxDepth(4),
+		colly.DisallowedDomains("namecheap.com", "www.namecheap.com", "wordpress.org", "www.wordpress.org", "developer.wordpress.org"),
+		//colly.Async(true),
 	)
+	// Limit parallelism to 2
+	c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 2})
 
 	c.OnRequest(func(r *colly.Request) {
 		ustr := r.URL.String()
@@ -173,7 +177,7 @@ func (cr *CrawlDispatcher) CrawlOrNot(urlstr string) (pi *Page) {
 func NameFromURL(urlstr string) (name string) {
 	u, err := url.Parse(urlstr)
 	if err != nil {
-		log.Errorln(err)
+		log.Errorln("NameFromURL ", err)
 		return
 	}
 
@@ -182,15 +186,19 @@ func NameFromURL(urlstr string) (name string) {
 	return name
 }
 
-func FindCrawls(pattern string) (crawl []string) {
-	panic("TodO implement")
-	return crawl
+// FindCrawls will match a given pattern against keys in the store returning
+// a list of matching crawls if there are any
+func FindCrawls(pattern string) (crawls []string) {
+	st := GetStore()
+	crawls = st.Glob("crawl-*.json")
+	return crawls
 }
 
 // GetCrawls
-func GetCrawls() (crawl []string) {
-	panic("todo write this function")
-	return crawl
+func GetCrawls() (crawls []string) {
+	st := GetStore()
+	st.Get("crawls", crawls)
+	return crawls
 }
 
 // GetTimeStamp returns a timestamp in a modified RFC3339

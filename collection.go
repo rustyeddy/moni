@@ -5,8 +5,6 @@ import (
 	"time"
 
 	"github.com/gocolly/colly"
-	"github.com/mongodb/mongo-go-driver/bson"
-	"github.com/mongodb/mongo-go-driver/mongo"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -29,9 +27,6 @@ type Collection struct {
 
 	Pagemap // A collection of page
 	Links   map[string]*RoundTrip
-
-	*mongo.Collection
-	*bson.Document
 
 	*colly.Collector
 	*log.Logger

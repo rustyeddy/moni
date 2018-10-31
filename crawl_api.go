@@ -2,32 +2,58 @@ package moni
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 )
 
 // registerCrawlers will register all handlers related to the
 // crawling activities
 func registerCrawlers(r *mux.Router) {
-	r.HandleFunc("/crawlids", CrawlListHandler)    // Display "recent" crawl jobs
-	r.HandleFunc("/crawl/{url}", CrawlHandler)     // Create a (recurring) crawl job for url
-	r.HandleFunc("/crawlid/{cid}", CrawlIdHandler) // Display a specific crawl job
+	r.HandleFunc("/crawl", CrawlListHandler) // Display "recent" crawl jobs
+	r.HandleFunc("/crawl/", CrawlListHandler)
+	r.HandleFunc("/crawl/{url}", CrawlUrlHandler).Methods("PUT", "POST", "GET", "DELETE") // Display a specific crawl job
+
 }
 
 // ServiceHandlers
 // ========================================================================
 
-// CrawlHandler will handle incoming HTTP request to crawl a URL
-func CrawlHandler(w http.ResponseWriter, r *http.Request) {
-	ustr := urlFromRequest(r)
-	Crawler.UrlQ <- ustr
-}
-
 // CrawlListHandler will return a list of all recent crawls.
 // As stored in our storage (json) file.
 func CrawlListHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, GetCrawls())
+}
+
+// CrawlHandler will handle incoming HTTP request to crawl a URL
+func CrawlUrlHandler(w http.ResponseWriter, r *http.Request) {
+	ustr := urlFromRequest(r)
+
+	switch r.Method {
+
+	case "GET":
+		// Get crawl info about our site
+		crawls := FindCrawls("crawl-*-" + ustr + "*")
+		writeJSON(w, crawls)
+		return
+
+	case "PUT", "POST":
+		// Create a crawl request
+		Crawler.UrlQ <- ustr
+		writeJSON(w, ustr)
+		return
+
+	case "DELETE":
+		// Stop a scheduled job to stop
+		log.Infoln("URL Handler got delete ")
+		panic("TODO Implement CrawlUrlHandler ")
+
+	default:
+		log.Errorf("CrawlUrlHandler unexpected method (%s) ", r.Method)
+	}
+	JSONError(w, fmt.Errorf("nothing good happened"))
 }
 
 // CrawlIdHandler will return a list of all recent crawls.

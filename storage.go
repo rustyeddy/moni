@@ -2,8 +2,10 @@ package moni
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
+	"path/filepath"
 )
 
 type Object interface {
@@ -44,6 +46,12 @@ func UseStore(dir string) (s *Store) {
 	}
 }
 
+func (s *Store) Glob(pattern string) []string {
+	matches, err := filepath.Glob(pattern)
+	IfErrorFatal(err, "Glob")
+	return matches
+}
+
 func (s *Store) Put(name string, obj interface{}) (err error) {
 	var buf []byte
 
@@ -67,7 +75,7 @@ func (s *Store) Get(name string, obj interface{}) (err error) {
 	var buf []byte
 
 	if buf, err = ioutil.ReadFile(name); err != nil {
-		IfErrorFatal(err, "s.Get readfile"+name)
+		return fmt.Errorf("read index %s failed %v", name, err)
 	}
 
 	switch s.ContentType {
