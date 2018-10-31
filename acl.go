@@ -10,7 +10,7 @@ type AccessList struct {
 	Rejected    map[string]int
 	Unsupported map[string]int
 
-	*logrus.Entry
+	*logrus.Entry `json:"-"`
 }
 
 // ACL returns the accessList.  If the accessList does not exist

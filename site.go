@@ -1,11 +1,8 @@
 package moni
 
 import (
-	"context"
 	"time"
 
-	"github.com/mongodb/mongo-go-driver/bson"
-	"github.com/mongodb/mongo-go-driver/mongo"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -26,61 +23,30 @@ type Site struct {
 	*log.Entry // Ignore
 }
 
-// SiteManager
+// Sitemap
 // ====================================================================
-func siteCollection() (col *mongo.Collection) {
-	col = mdb.Collection("sites")
-	IfNilFatal(col, "GetSitesCollection")
-	return col
-}
+type Sitemap map[string]*Site
 
-func FetchSites() (sites []*Site) {
-	col := siteCollection()
-	cur, err := col.Find(context.Background(), nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer cur.Close(context.Background())
-	for cur.Next(context.Background()) {
-		elem := bson.NewDocument()
-		if err := cur.Decode(elem); err != nil {
-			log.Fatal(err)
-		}
-		log.Fatalf("cur: %+v\n", cur)
-	}
-	if err := cur.Err(); err != nil {
-		log.Fatal(err)
-	}
+var (
+	sites Sitemap
+)
+
+func ReadSites() (sites []string) {
+	st := UseStore(config.Storedir)
+	IfNilFatal(st)
+
+	err := st.Get("sites.json", sites)
+	IfErrorFatal(err, "reading sites.json")
+
 	return sites
 }
 
-func FetchSite(url string) *Site {
-	//site := bson.NewDocument()
-	filter := bson.NewDocument(bson.EC.String("URL", url))
-	col := siteCollection()
+func SaveSites() {
+	st := UseStore(config.Storedir)
+	IfNilFatal(st)
 
-	var site Site
-	err := col.FindOne(context.Background(), filter).Decode(&site)
+	err := st.Put("config.json", sites)
 	IfErrorFatal(err)
-
-	log.Fatalf("result %+v", site)
-	return &site
-}
-
-// map[string]string{"hello": "world"})
-func StoreSite(s *Site) (id int64) {
-	col := siteCollection()
-	if res, err := col.InsertOne(context.Background(), s); err != nil {
-		IfErrorFatal(err)
-	} else {
-		s.ID = res.InsertedID.(int64)
-	}
-	return s.ID
-}
-
-func StoreManySites(s []*Site) (ids []int64) {
-	panic("Todo need to implement")
-	return ids
 }
 
 func DeleteSite(url string) {
@@ -91,9 +57,7 @@ func DeleteSite(url string) {
 // verify and sanitize the url and so on.
 func AddUrl(url string) {
 
-	// Get the site collection to be added to
-	col := siteCollection()
-	IfNilError(col, "AddSite")
+	panic("need to do this")
 
 	// Schedule a new crawl
 	// Store the site

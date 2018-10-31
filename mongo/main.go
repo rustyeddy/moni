@@ -11,6 +11,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"testing"
 
 	"github.com/mongodb/mongo-go-driver/bson"
@@ -1894,4 +1895,48 @@ func DeleteExamples(t *testing.T, db *mongo.Database) {
 		require.NoError(t, err)
 		require.Equal(t, int64(2), result.DeletedCount)
 	}
+}
+
+func FetchSites() (sites []*Site) {
+	col := siteCollection()
+	cur, err := col.Find(context.Background(), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cur.Close(context.Background())
+	for cur.Next(context.Background()) {
+		elem := bson.NewDocument()
+		if err := cur.Decode(elem); err != nil {
+			log.Fatal(err)
+		}
+		log.Fatalf("cur: %+v\n", cur)
+	}
+	if err := cur.Err(); err != nil {
+		log.Fatal(err)
+	}
+	return sites
+}
+
+func FetchSite(url string) *Site {
+	//site := bson.NewDocument()
+	filter := bson.NewDocument(bson.EC.String("URL", url))
+	col := siteCollection()
+
+	var site Site
+	err := col.FindOne(context.Background(), filter).Decode(&site)
+	IfErrorFatal(err)
+
+	log.Fatalf("result %+v", site)
+	return &site
+}
+
+// map[string]string{"hello": "world"})
+func StoreSite(s *Site) (id int64) {
+	col := siteCollection()
+	if res, err := col.InsertOne(context.Background(), s); err != nil {
+		IfErrorFatal(err)
+	} else {
+		s.ID = res.InsertedID.(int64)
+	}
+	return s.ID
 }

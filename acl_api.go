@@ -24,6 +24,6 @@ func ACLHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	acl.Infoln("ACLHandler returning access list")
+	acl.Debugln("ACLHandler returning access list")
 	writeJSON(w, acl)
 }

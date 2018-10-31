@@ -96,8 +96,6 @@ type Appdata struct {
 // assembles them and off they go
 func (app *App) PrepareTemplates(tmpldir string) {
 	pattern := filepath.Join(tmpldir, "*.html")
-
-	fmt.Printf("Reading templates dir %s from %s\n", tmpldir, pattern)
 	app.Template = template.Must(template.ParseGlob(pattern))
 }
 
@@ -123,7 +121,6 @@ func (app *App) Assemble(w http.ResponseWriter, tmplname string) {
 
 	d := &Appdata{
 		Configuration: config,
-		Sites:         FetchSites(),
 	}
 
 	if err := app.ExecuteTemplate(w, "index.html", d); err != nil {
