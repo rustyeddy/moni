@@ -35,9 +35,10 @@ func TestAppRootHandler(t *testing.T) {
 // TestStaticFiles will verify we can access static files such as css and
 // javascript along with our index files, etc..
 func TestStaticFiles(t *testing.T) {
+
 	var resp *http.Response
 	if resp = ServiceLoopback(AppHandler, "get", "/css/app.css"); resp == nil {
-		t.Error("expected /static/css/app.css got (nil) ")
+		t.Error("expected /css/app.css got (nil) ")
 	}
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Expected status code (20x) got (%d) ", resp.StatusCode)

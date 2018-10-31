@@ -25,6 +25,17 @@ type Store struct {
 	Ext         string
 }
 
+var (
+	store *Store
+)
+
+func GetStore() *Store {
+	if store == nil {
+		store = UseStore(config.Storedir)
+	}
+	return store
+}
+
 func UseStore(dir string) (s *Store) {
 	return &Store{
 		Basedir:     dir,

@@ -10,7 +10,10 @@ import (
 // up the web pages for our application.
 func registerApp(r *mux.Router) {
 	// This will serve files under http://localhost:8888/static/<filename>
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("../static"))))
+	staticdir := "../static"
+	//staticdir := "static"
+
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticdir))))
 	r.HandleFunc("/", AppHandler)
 }
 

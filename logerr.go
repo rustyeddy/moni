@@ -1,6 +1,7 @@
 package moni
 
 import (
+	"errors"
 	"io"
 	"os"
 	"strings"
@@ -92,7 +93,7 @@ func IfNilFatal(obj interface{}, msgs ...string) (iserr bool) {
 	if msgs != nil {
 		msg = strings.Join(msgs, ", ")
 	}
-	log.Fatalln(msg, err)
+	log.Fatalln(msg, errors.New(""))
 	return true
 }
 

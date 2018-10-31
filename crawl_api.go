@@ -1,6 +1,7 @@
 package moni
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -37,7 +38,7 @@ func CrawlIdHandler(w http.ResponseWriter, r *http.Request) {
 
 	var page *Page
 	if page := FetchPage(cid); page != nil {
-		JSONError(w, err)
+		JSONError(w, errors.New("page fetch failed for cid "+cid))
 		return
 	}
 	writeJSON(w, page)

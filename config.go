@@ -72,19 +72,6 @@ func SetConfig(cfg *Configuration) {
 	}
 }
 
-func StoreConfig() {
-	col := mdb.Collection("config")
-	IfNilError(col, "getting config collection")
-	panic("todo store the configuration")
-}
-
-func FetchConfig() {
-	col := mdb.Collection("config")
-	IfNilError(col, "FetchConfig")
-
-	panic("todo fetch the configuration")
-}
-
 // SetLogger adjusts logger configs after a configuration change, such as
 // immediately after parsing flags
 func (c *Configuration) SetLogger() {
