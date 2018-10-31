@@ -70,6 +70,9 @@ func NewTestApp(config *Configuration) (app *App) {
 
 func (app *App) Start() {
 	//StartDatabase()
+	go Crawler.WatchChannels()
+
+	// Do we want to background this?
 	StartServer()
 }
 

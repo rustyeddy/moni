@@ -25,9 +25,9 @@ type Page struct {
 
 	CrawlState int
 	CrawlReady bool
-
 	StatusCode int
-	Err        error
+
+	Err error
 
 	LastCrawled time.Time
 	Start       time.Time
@@ -42,6 +42,16 @@ var (
 	pages Pagemap
 )
 
+// NewPage returns a newly created page represented by the URL, NewPage
+// registers itself the pages Pagemap.
+func NewPage(url string) *Page {
+	return &Page{
+		URL:     url,
+		Links:   make(map[string]*Page),
+		Ignored: make(map[string]int),
+	}
+}
+
 // String will represent the Page
 // ====================================================================
 func (p *Page) String() string {
@@ -49,12 +59,17 @@ func (p *Page) String() string {
 	return str
 }
 
-func FetchPage(url string) *Page {
-	panic("todo implement GetPage")
+// FetchPage returns the page from the pagemap if it exists. If
+// it does not exist, nil will be returned.
+func FetchPage(url string) (p *Page) {
+	return pages.Get(url)
 }
 
+// StorePage will save the page to the pagemap, if the page index does
+// not exist it will be created for the page.  If the page already
+// exists it will be overwritten with the new page.
 func StorePage(p *Page) {
-	panic("todo implement save page")
+	pages[p.URL] = p
 }
 
 // GetPage will sanitize the url, either find or create the

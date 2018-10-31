@@ -8,7 +8,6 @@ import (
 
 // Site is basically a website wich includes API interfaces
 type Site struct {
-	ID      int64  `bson:"_id" json:"id"`
 	URL     string `bson:"url" json:"url"`
 	IP      string `bson:"ip" json:"ip"`
 	Health  bool   `bson:"health" json:"health"`
@@ -28,8 +27,17 @@ type Site struct {
 type Sitemap map[string]*Site
 
 var (
-	sites Sitemap
+	sites Sitemap = make(map[string]*Site)
 )
+
+// NewSite will create a new *Site structure for the
+// given URL
+func NewSite(url string) (s *Site) {
+	s = &Site{URL: url}
+	sites[url] = s
+	log.Infof("Created new site %s total sites %d", url, len(sites))
+	return s
+}
 
 func ReadSites() (sites []string) {
 	st := UseStore(config.Storedir)
@@ -45,7 +53,7 @@ func SaveSites() {
 	st := UseStore(config.Storedir)
 	IfNilFatal(st)
 
-	err := st.Put("config.json", sites)
+	err := st.Put("sites.json", sites)
 	IfErrorFatal(err)
 }
 
@@ -53,21 +61,7 @@ func DeleteSite(url string) {
 	panic("todo")
 }
 
-// AddNewSite will create a New Site from the url, including
-// verify and sanitize the url and so on.
-func AddUrl(url string) {
-
-	panic("need to do this")
-
-	// Schedule a new crawl
-	// Store the site
-	log.Infof("Added new site %s ~ calling StoreSites()", url)
-
-	Crawler.UrlQ <- url
-}
-
 // ====================================================================
-
 // ScheduleCrawl
 func (s *Site) ScheduleCrawl() {
 	timer := time.AfterFunc(time.Minute*5, func() {

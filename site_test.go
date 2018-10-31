@@ -25,14 +25,13 @@ func TestSiteListHandler(t *testing.T) {
 		t.Errorf("failed unmarshallng sites %v ", err)
 	}
 
-	// fmt.Printf("sites %+v\n", sites)
 	if len(sites) < 0 {
 		t.Errorf("failed should have more sites")
 	}
 }
 
 func TestSiteIdHandler(t *testing.T) {
-	url := "/site/"
+	url := "/site/rustyeddy.com"
 	var body []byte
 
 	resp := ServiceLoopback(SiteIdHandler, "get", url)

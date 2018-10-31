@@ -77,7 +77,12 @@ func (cr *CrawlDispatcher) WatchChannels() {
 			}
 
 			page := FetchPage(urlstr)
-			IfNilFatal(page, "get page "+urlstr)
+			if page == nil {
+				if page = NewPage(urlstr); page == nil {
+					log.Infoln("Could not find page for ", urlstr, " must create ...")
+					continue
+				}
+			}
 
 			if !cr.IsAllowed(page.URL) {
 				continue

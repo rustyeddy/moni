@@ -2,6 +2,7 @@ package moni
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -21,6 +22,13 @@ const (
 type Logerr struct {
 	Name string // we love our logger so we give em names!
 	*log.Logger
+}
+
+func p(msgs ...string) {
+	if !config.Debug {
+		return
+	}
+	fmt.Println(msgs)
 }
 
 func NewLogerr(name string) (nl *Logerr) {
