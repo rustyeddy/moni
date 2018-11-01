@@ -58,7 +58,10 @@ func SaveSites() {
 }
 
 func DeleteSite(url string) {
-	panic("todo")
+	if _, ex := sites[url]; ex {
+		delete(sites, url)
+	}
+	SaveSites()
 }
 
 // ====================================================================

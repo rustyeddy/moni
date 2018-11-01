@@ -46,9 +46,10 @@ func CrawlUrlHandler(w http.ResponseWriter, r *http.Request) {
 		return
 
 	case "DELETE":
-		// Stop a scheduled job to stop
-		log.Infoln("URL Handler got delete ")
-		panic("TODO Implement CrawlUrlHandler ")
+		// Delete a site from this Crawler
+		if _, ex := sites[ustr]; ex {
+			delete(sites, ustr)
+		}
 
 	default:
 		log.Errorf("CrawlUrlHandler unexpected method (%s) ", r.Method)
