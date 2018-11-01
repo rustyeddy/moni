@@ -41,7 +41,7 @@ func CrawlUrlHandler(w http.ResponseWriter, r *http.Request) {
 
 	case "PUT", "POST":
 		// Create a crawl request
-		Crawler.UrlQ <- ustr
+		urlQ.Send(ustr)
 		writeJSON(w, ustr)
 		return
 

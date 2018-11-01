@@ -31,6 +31,7 @@ func SiteListHandler(w http.ResponseWriter, r *http.Request) {
 func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 	url := urlFromRequest(r)
 	log.Debugln("SiteIdHandler request ", url)
+
 	switch r.Method {
 	case "GET":
 		if site, ex := sites[url]; ex {
@@ -41,9 +42,20 @@ func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 
 	case "PUT", "POST":
 		log.Infof("Adding url %s to the thing", url)
-		_ = NewSite(url)
 
-		Crawler.UrlQ <- url
+		site := NewSite(url)
+
+		site.crawlable = true
+		site.crawlready = true
+		acl.AddHost(url)
+
+		// Now create the page for the new URL
+		page := NewPage(url)
+		page.CrawlReady = true
+
+		log.Infoln("sending url to URLq")
+
+		urlQ.Send(url)
 		writeJSON(w, map[string]string{"saved": url})
 
 	case "DELETE":

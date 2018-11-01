@@ -10,7 +10,8 @@ import (
 
 // Register the page routes
 func registerPages(r *mux.Router) {
-	r.HandleFunc("/pages", PageListHandler).Methods("GET")
+	r.HandleFunc("/page", PageListHandler).Methods("GET")
+	r.HandleFunc("/page/", PageListHandler).Methods("GET")
 	r.HandleFunc("/page/{url}", PageIdHandler).Methods("GET", "POST", "DELETE")
 }
 

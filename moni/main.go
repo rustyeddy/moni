@@ -55,6 +55,7 @@ func main() {
 
 	// Tell the app to start its server
 	if !config.NoServe {
+		app.Init()
 		go app.Start()
 	}
 

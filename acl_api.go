@@ -1,27 +1,50 @@
 package moni
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 )
 
-func init() {
-
-}
-
 func registerACLHandler(r *mux.Router) {
-	r.HandleFunc("/acl", ACLHandler) // Display ACLs
+	r.HandleFunc("/acl", ACLListHandler)
+	r.HandleFunc("/acl/", ACLListHandler).Methods("GET", "DELETE")
+	r.HandleFunc("/acl/{url}", ACLHandler).Methods("GET", "PUT", "POST", "DELETE")
 }
 
 // ACLHandler will respond to ACL requests
+func ACLListHandler(w http.ResponseWriter, r *http.Request) {
+	writeJSON(w, acl)
+}
+
 func ACLHandler(w http.ResponseWriter, r *http.Request) {
-	if IfNilError(acl, "crawler handler") {
-		JSONError(w, fmt.Errorf("Expected (acl) got () "))
+	var url string
+	if url = urlFromRequest(r); url == "" {
+		JSONError(w, errors.New("url From Request failed "+url))
 		return
 	}
 
-	acl.Debugln("ACLHandler returning access list")
-	writeJSON(w, acl)
+	switch r.Method {
+	case "GET":
+		if acl.IsAllowed(url) {
+			writeJSON(w, true)
+		} else {
+			writeJSON(w, struct{}{})
+		}
+
+	case "PUT", "POST":
+		acl.AddHost(url)
+		writeJSON(w, struct{ url string }{url})
+
+	case "DELETE":
+		if acl.IsAllowed(url) {
+			acl.RemoveHost(url)
+		}
+
+	default:
+		log.Errorf("I do not know what you are talking about", r.Method)
+	}
+	SaveACL()
 }

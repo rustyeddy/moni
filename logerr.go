@@ -127,6 +127,20 @@ func IfNilError(obj interface{}, msgs ...string) bool {
 	return true
 }
 
+func IfErrorWarning(err error, msgs ...string) error {
+	// If err is nil .. all is well
+	if err == nil {
+		return nil // we are good, nothing to do
+	}
+	// If we have an error, print and die
+	msg := ""
+	if msgs != nil {
+		msg = strings.Join(msgs, ", ")
+	}
+	log.Warnln(msg, err)
+	return err
+}
+
 // ====================================================================
 
 // Logmap is the struct holding loggers in the event our modules want

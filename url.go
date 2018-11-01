@@ -10,6 +10,9 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+//			      URL Cleansing and Normalization
+// ====================================================================
+
 // helper extract url from string
 func urlFromRequest(r *http.Request) string {
 	// Extract the url(s) that we are going to walk
@@ -49,7 +52,9 @@ func NormalizeURL(urlstr string) (ustr string, err error) {
 		acl.Unsupported[urlstr]++ // via AccessList
 		return "", fmt.Errorf("Error Not Supported")
 	}
+
 	ustr = u.String()
+	ustr = removeTrailingSlash(ustr)
 	return ustr, nil
 }
 
@@ -69,4 +74,38 @@ func GetHostname(h string) (host string) {
 		u.Path = ""
 	}
 	return u.Hostname()
+}
+
+func processURL(url string) (page *Page) {
+
+	log.Infoln("processURL ", url)
+
+	// normalize the URL
+	urlstr, err := NormalizeURL(url)
+	if err != nil {
+		log.Errorf("url normaization failed %v", err)
+		return nil
+	}
+
+	log.Infoln("  fetching page ", urlstr)
+	page = FetchPage(urlstr)
+	if page == nil {
+		log.Infoln("    not found ~ create a new one ..")
+		if page = NewPage(urlstr); page == nil {
+			log.Infoln("      Still could not find page for ", urlstr, " failing ...")
+			return nil
+		}
+
+		if page == nil {
+			panic("PAGE IS NIL ~ NEVER!")
+		}
+	}
+
+	log.Infoln("  ACL is this site allowed:  ", page.URL)
+	if !acl.IsAllowed(page.URL) {
+		log.Infof("  URL %s NOT allowed, skipping ... ", page.URL)
+		return nil
+	}
+	log.Infoln(page.URL, " is ready for crawling... ")
+	return page
 }

@@ -11,17 +11,9 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var (
-	server *http.Server
-)
-
 // ====================================================================
 //                      Start Server
 // ====================================================================
-func StartServer() {
-	server = NewServer(config.Addrport)
-	server.ListenAndServe()
-}
 
 func (app *App) Shutdown(ctx context.Context) {
 	server.Shutdown(ctx)

@@ -38,25 +38,36 @@ type Page struct {
 // ********************************************************************
 type Pagemap map[string]*Page
 
-var (
-	pages Pagemap
-)
+func initPages() (p Pagemap) {
+	return make(Pagemap)
+}
 
 // NewPage returns a newly created page represented by the URL, NewPage
 // registers itself the pages Pagemap.
-func NewPage(url string) *Page {
-	return &Page{
-		URL:     url,
-		Links:   make(map[string]*Page),
-		Ignored: make(map[string]int),
+func NewPage(url string) (p *Page) {
+	p = &Page{
+		URL:        url,
+		Links:      make(map[string]*Page),
+		Ignored:    make(map[string]int),
+		CrawlReady: true,
 	}
+	pages[url] = p
+	return p
 }
 
-// String will represent the Page
-// ====================================================================
-func (p *Page) String() string {
-	str := fmt.Sprintf("%s: lastcrawled: %s,  duration: %v links: %d ignored: %d\n", p.URL, p.LastCrawled, p.Finish, len(p.Links), len(p.Ignored))
-	return str
+func GetPage(url string) (p *Page) {
+	if p = pages.Get(url); p == nil {
+		p = NewPage(url)
+	}
+	return
+}
+
+func removeTrailingSlash(u string) string {
+	l := len(u) - 1
+	if u[l] == '/' {
+		return u[:l-1]
+	}
+	return u
 }
 
 // FetchPage returns the page from the pagemap if it exists. If
@@ -77,6 +88,8 @@ func StorePage(p *Page) {
 // find the corresponding site structure.
 func PageFromURL(ustr string) (pi *Page) {
 	var ex bool
+
+	ustr = removeTrailingSlash(ustr)
 	if pi, ex = pages[ustr]; !ex {
 		pi = &Page{
 			URL:        ustr,
@@ -92,7 +105,15 @@ func PageFromURL(ustr string) (pi *Page) {
 	return pi
 }
 
+// String will represent the Page
+// ====================================================================
+func (p *Page) String() string {
+	str := fmt.Sprintf("%s: lastcrawled: %s,  duration: %v links: %d ignored: %d\n", p.URL, p.LastCrawled, p.Finish, len(p.Links), len(p.Ignored))
+	return str
+}
+
 func (pm Pagemap) Get(url string) (p *Page) {
+	url = removeTrailingSlash(url)
 	if p, e := pm[url]; e {
 		return p
 	}

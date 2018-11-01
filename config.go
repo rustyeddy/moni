@@ -43,13 +43,10 @@ type Configuration struct {
 	*Logerr
 }
 
-type Command struct {
-	Command string
-	Args    []string
-}
-
-var (
-	DefaultConfig = Configuration{
+// DefaultConfig sets some reasonable defaults before any
+// configs can be read or any input from the external env
+func DefaultConfig() Configuration {
+	return Configuration{
 		Addrport: ":8888",
 		Daemon:   false,
 		Depth:    3,
@@ -59,10 +56,7 @@ var (
 		Storedir: "/srv/moni", // or "./.moni"
 		Tmpldir:  "tmpl",
 	}
-
-	// Setup defaults
-	config *Configuration = &DefaultConfig
-)
+}
 
 // SetConfig sets and reconfigures the application
 func SetConfig(cfg *Configuration) {

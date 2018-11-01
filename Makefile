@@ -23,6 +23,9 @@ test:
 testv:
 	go test -v
 
+ttv:
+	go test -v -trace=test.out
+
 serve:
 	go run *.go -http
 

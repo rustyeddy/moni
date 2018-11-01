@@ -18,6 +18,9 @@ type Site struct {
 
 	nextCrawl  time.Time // Ignore this in
 	crawlState int
+	crawlable  bool
+	crawlready bool
+
 	*time.Timer
 	*log.Entry // Ignore
 }
@@ -26,19 +29,21 @@ type Site struct {
 // ====================================================================
 type Sitemap map[string]*Site
 
-var (
-	sites Sitemap
-)
-
-func init() {
-	if sites = ReadSites(); sites == nil {
-		sites = make(map[string]*Site)
+func initSites() (sm Sitemap) {
+	if sm = ReadSites(); sites == nil {
+		sm = make(map[string]*Site)
 	}
+	return sm
 }
 
 // NewSite will create a new *Site structure for the
 // given URL
 func NewSite(url string) (s *Site) {
+
+	// append trailing slash to site url if one does not already exist
+	if url[len(url)-1] != '/' {
+		url = url + "/"
+	}
 	s = &Site{URL: url}
 	sites[url] = s
 	log.Infof("Created new site %s total sites %d", url, len(sites))
@@ -54,7 +59,7 @@ func ReadSites() (sites Sitemap) {
 
 	if acl != nil {
 		// add sites to the acl
-		for u, s := range sites {
+		for u, _ := range sites {
 			acl.AddHost(u)
 		}
 	}

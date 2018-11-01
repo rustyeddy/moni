@@ -54,7 +54,7 @@ func (s *Store) Glob(pattern string) []string {
 }
 
 func (s *Store) pathFromName(name string) string {
-	return s.Basedir + "/" + name
+	return s.Basedir + name
 }
 
 func (s *Store) Put(name string, obj interface{}) (err error) {

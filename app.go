@@ -9,12 +9,42 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// All global variables
 var (
-	app *App
+	config *Configuration
+	app    *App
+	acl    *AccessList
+	sites  Sitemap
+	pages  Pagemap
+
+	urlQ   *URLQ
+	crawlQ *CrawlQ
+	saveQ  *SaveQ
+
+	server *http.Server
 )
 
-func init() {
-	app = NewApp(&DefaultConfig)
+// After main is called and args are parsed
+func (a *App) Init() {
+	app = NewApp(config)
+	acl = initACL()
+	sites = initSites()
+	pages = initPages()
+
+	urlQ = NewURLQ()
+	crawlQ = NewCrawlQ()
+	saveQ = NewSaveQ()
+
+	server = NewServer(config.Addrport)
+}
+
+func (app *App) Start() {
+
+	go urlQ.Watch()
+	go crawlQ.Watch()
+	go saveQ.Watch()
+
+	server.ListenAndServe()
 }
 
 // ====================================================================
@@ -66,14 +96,6 @@ func NewTestApp(config *Configuration) (app *App) {
 	}
 	app.Title = app.Name
 	return app
-}
-
-func (app *App) Start() {
-	//StartDatabase()
-	go Crawler.WatchChannels()
-
-	// Do we want to background this?
-	StartServer()
 }
 
 // ====================================================================

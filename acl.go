@@ -13,12 +13,12 @@ type AccessList struct {
 	*logrus.Entry `json:"-"`
 }
 
-var (
-	acl *AccessList
-)
-
-func init() {
-	ReadACL()
+func initACL() (acl *AccessList) {
+	// ReadSaved acls if any
+	if acl = ReadACL(); acl == nil {
+		acl = NewACL()
+	}
+	return acl
 }
 
 // ACL returns the accessList.  If the accessList does not exist
@@ -29,15 +29,18 @@ func NewACL() *AccessList {
 		Rejected:    make(map[string]int),
 		Unsupported: make(map[string]int),
 	}
+	acl.Entry = acl.logEntry()
+	return acl
+}
 
+func (acl *AccessList) logEntry() *logrus.Entry {
 	// straigh logrus
 	flds := logrus.Fields{
 		"Allowed":     len(acl.Allowed),
 		"Rejected":    len(acl.Rejected),
 		"Unsupported": len(acl.Unsupported),
 	}
-	acl.Entry = logrus.WithFields(flds)
-	return acl
+	return logrus.WithFields(flds)
 }
 
 // AllowHost will naively take only the host, ignoring port,
@@ -49,6 +52,17 @@ func (acl *AccessList) AddHost(h string) {
 	} else {
 		acl.Allowed[h] = 1
 		acl.Errorln("failed to add host", host, "allowed list")
+	}
+}
+
+// RemoveHost will naively take only the host, ignoring port,
+// and other fields to just the host.
+func (acl *AccessList) RemoveHost(h string) {
+	if host := GetHostname(h); host != "" {
+		delete(acl.Allowed, host)
+		acl.Debugln("removed host ", host, " from Allowed list")
+	} else {
+		acl.Errorf("Host %s is not in ACL failed to remove", h)
 	}
 }
 
@@ -78,13 +92,18 @@ func (acl *AccessList) IsAllowed(urlstr string) (allow bool) {
 	return false
 }
 
-func ReadACL() (sites Sitemap) {
+// ReadACL will attempt to read the acl file (/srv/moni/acl.json)
+// by default.  If it fails, it will complain then allow you to
+// carry on.
+func ReadACL() (acl *AccessList) {
 	st := UseStore(config.Storedir)
 	IfNilFatal(st)
 
+	acl = new(AccessList)
 	err := st.Get("acl.json", acl)
-	IfErrorFatal(err, "reading acl.json")
-	return sites
+	IfErrorWarning(err, "reading acl.json")
+	acl.Entry = acl.logEntry()
+	return acl
 }
 
 func SaveACL() {
