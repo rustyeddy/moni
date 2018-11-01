@@ -46,7 +46,7 @@ func NormalizeURL(urlstr string) (ustr string, err error) {
 	case "":
 		u.Scheme = "http"
 	default:
-		Crawler.Unsupported[urlstr]++ // via AccessList
+		acl.Unsupported[urlstr]++ // via AccessList
 		return "", fmt.Errorf("Error Not Supported")
 	}
 	ustr = u.String()

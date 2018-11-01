@@ -52,6 +52,12 @@ func ReadSites() (sites Sitemap) {
 	err := st.Get("sites.json", &sites)
 	IfErrorFatal(err, "reading sites.json")
 
+	if acl != nil {
+		// add sites to the acl
+		for u, s := range sites {
+			acl.AddHost(u)
+		}
+	}
 	return sites
 }
 

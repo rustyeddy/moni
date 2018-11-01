@@ -17,9 +17,7 @@ type CrawlDispatcher struct {
 	saveQ  chan *Page
 	errQ   chan error
 
-	*AccessList
 	qsize int
-
 	*log.Entry
 }
 
@@ -44,8 +42,7 @@ func init() {
 // NewCrawler will handle scheduling all call requests
 func NewDispatcher() (crawler *CrawlDispatcher) {
 	cr := &CrawlDispatcher{
-		AccessList: NewACL(),
-		qsize:      2,
+		qsize: 2,
 	}
 	cr.UrlQ = make(chan string, cr.qsize)
 	cr.crawlQ = make(chan *Page, cr.qsize)
@@ -84,7 +81,7 @@ func (cr *CrawlDispatcher) WatchChannels() {
 				}
 			}
 
-			if !cr.IsAllowed(page.URL) {
+			if !acl.IsAllowed(page.URL) {
 				continue
 			}
 
@@ -162,7 +159,7 @@ func (cr *CrawlDispatcher) Crawl(pg *Page) {
 // and if enough time has passed before the url can be scanned again
 func (cr *CrawlDispatcher) CrawlOrNot(urlstr string) (pi *Page) {
 	cr.Infoln("crawl or not ", urlstr)
-	if !cr.IsAllowed(urlstr) {
+	if !acl.IsAllowed(urlstr) {
 		cr.Infof("  not allowed %s add reason ..", urlstr)
 		return nil
 	}

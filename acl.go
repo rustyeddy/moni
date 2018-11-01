@@ -13,6 +13,14 @@ type AccessList struct {
 	*logrus.Entry `json:"-"`
 }
 
+var (
+	acl *AccessList
+)
+
+func init() {
+	ReadACL()
+}
+
 // ACL returns the accessList.  If the accessList does not exist
 // it will be created prior to return
 func NewACL() *AccessList {
@@ -68,4 +76,21 @@ func (acl *AccessList) IsAllowed(urlstr string) (allow bool) {
 	}
 	acl.Rejected[host]++
 	return false
+}
+
+func ReadACL() (sites Sitemap) {
+	st := UseStore(config.Storedir)
+	IfNilFatal(st)
+
+	err := st.Get("acl.json", acl)
+	IfErrorFatal(err, "reading acl.json")
+	return sites
+}
+
+func SaveACL() {
+	st := UseStore(config.Storedir)
+	IfNilFatal(st)
+
+	err := st.Put("acl.json", acl)
+	IfErrorFatal(err)
 }
