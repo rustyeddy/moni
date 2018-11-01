@@ -27,8 +27,14 @@ type Site struct {
 type Sitemap map[string]*Site
 
 var (
-	sites Sitemap = make(map[string]*Site)
+	sites Sitemap
 )
+
+func init() {
+	if sites = ReadSites(); sites == nil {
+		sites = make(map[string]*Site)
+	}
+}
 
 // NewSite will create a new *Site structure for the
 // given URL
@@ -39,11 +45,11 @@ func NewSite(url string) (s *Site) {
 	return s
 }
 
-func ReadSites() (sites []string) {
+func ReadSites() (sites Sitemap) {
 	st := UseStore(config.Storedir)
 	IfNilFatal(st)
 
-	err := st.Get("sites.json", sites)
+	err := st.Get("sites.json", &sites)
 	IfErrorFatal(err, "reading sites.json")
 
 	return sites

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"path/filepath"
 )
 
@@ -52,6 +53,10 @@ func (s *Store) Glob(pattern string) []string {
 	return matches
 }
 
+func (s *Store) pathFromName(name string) string {
+	return s.Basedir + "/" + name
+}
+
 func (s *Store) Put(name string, obj interface{}) (err error) {
 	var buf []byte
 
@@ -61,12 +66,13 @@ func (s *Store) Put(name string, obj interface{}) (err error) {
 			IfErrorFatal(err, "marshaling json "+name)
 		}
 	default:
-		panic("did not expect this")
+		log.Fatalf("did not expect ContentType %s", s.ContentType)
 	}
 
 	// Write the file to disk
-	if err = ioutil.WriteFile(name, buf, 0755); err != nil {
-		IfErrorFatal(err, "writing buffer "+name)
+	path := s.pathFromName(name)
+	if err = ioutil.WriteFile(path, buf, 0755); err != nil {
+		IfErrorFatal(err, "writing buffer "+path)
 	}
 	return err
 }
@@ -74,8 +80,9 @@ func (s *Store) Put(name string, obj interface{}) (err error) {
 func (s *Store) Get(name string, obj interface{}) (err error) {
 	var buf []byte
 
-	if buf, err = ioutil.ReadFile(name); err != nil {
-		return fmt.Errorf("read index %s failed %v", name, err)
+	path := s.pathFromName(name)
+	if buf, err = ioutil.ReadFile(path); err != nil {
+		return fmt.Errorf("read index %s failed %v", path, err)
 	}
 
 	switch s.ContentType {
