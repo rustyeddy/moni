@@ -2,7 +2,7 @@ build:
 	go build -v
 
 run:
-	go run main.go -serve
+	go run main.go 
 
 
 clean:
