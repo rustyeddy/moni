@@ -2,7 +2,10 @@ package moni
 
 import (
 	"fmt"
+	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -45,6 +48,7 @@ func initPages() (p Pagemap) {
 // NewPage returns a newly created page represented by the URL, NewPage
 // registers itself the pages Pagemap.
 func NewPage(url string) (p *Page) {
+	log.Debugln("NewPage ", url)
 	p = &Page{
 		URL:        url,
 		Links:      make(map[string]*Page),
@@ -56,18 +60,20 @@ func NewPage(url string) (p *Page) {
 }
 
 func GetPage(url string) (p *Page) {
+
 	if p = pages.Get(url); p == nil {
 		p = NewPage(url)
 	}
 	return
 }
 
-func removeTrailingSlash(u string) string {
-	l := len(u) - 1
-	if u[l] == '/' {
-		return u[:l-1]
+func removeTrailingSlash(u string) (newu string) {
+	// remove a trailing slash, if there is one
+	newu = u
+	if strings.HasSuffix(newu, "/") {
+		newu = u[:len(u)-2]
 	}
-	return u
+	return newu
 }
 
 // FetchPage returns the page from the pagemap if it exists. If

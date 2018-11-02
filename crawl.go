@@ -38,17 +38,16 @@ func Crawl(pg *Page) {
 	c.OnRequest(func(r *colly.Request) {
 		ustr := r.URL.String()
 		log.Infoln("OnRequest ", ustr)
-		pg.CrawlReady = false
 	})
 
 	// OnHTML will be called when we encounter a page reference
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		if link := e.Request.AbsoluteURL(e.Attr("href")); link != "" {
-			log.Infoln("OnHTML link ", link)
+			log.Infoln("\tOnHTML link ", link)
 			// Just send the link to the URL Q for processing
 			if page := GetPage(link); page != nil {
 				if !page.CrawlReady {
-					log.Infoln("\t skip not crawl ready")
+					log.Infoln("\t  skip not crawl ready")
 					return
 				}
 			}
@@ -77,10 +76,10 @@ func Crawl(pg *Page) {
 
 	pg.Start = time.Now()
 
-	log.Infoln("Visiting ", pg.URL)
+	log.Infof("Visiting %s ready %v", pg.URL, pg.CrawlReady)
 	c.Visit(pg.URL)
 
-	log.Infoln("Crawl Finished ", pg.URL)
+	log.Infof("Crawl Finished ~ %s -> crawlready %v\n", pg.URL, pg.CrawlReady)
 }
 
 // CrawlOrNot will determine if the provided url is allowed to be crawled,

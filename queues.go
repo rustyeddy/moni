@@ -30,7 +30,7 @@ type URLQ struct {
 
 func NewURLQ() *URLQ {
 	q := new(URLQ)
-	q.qlen = 0
+	q.qlen = 2
 	q.Q = make(chan string, q.qlen)
 	return q
 }
@@ -67,9 +67,9 @@ func (q *URLQ) Watch() {
 
 func (q *URLQ) Send(url string) {
 	ts := time.Now()
-	log.Infof("  ~~> sendQ ~~> page %s crawl channel", url)
+	log.Infof("  ~~> urlQ ~~> send page %s crawl channel", url)
 	q.Q <- url
-	log.Infof("      sendQ complete %s, %v", url, time.Since(ts))
+	log.Infof("      urlQ send complete %s, %v", url, time.Since(ts))
 }
 
 //			      Crawl Channel
@@ -82,7 +82,7 @@ type CrawlQ struct {
 
 func NewCrawlQ() *CrawlQ {
 	q := new(CrawlQ)
-	q.qlen = 0
+	q.qlen = 2
 	q.Q = make(chan *Page, q.qlen)
 	return q
 }
@@ -94,8 +94,10 @@ func (q *CrawlQ) Watch() {
 		log.Infof("watching the crawl channel at %v ", ts)
 		select {
 		case page := <-q.Q:
+
 			ts = time.Now()
 			log.Infof("  <~~ crawlQ <~~ incoming for %s at %v", page.URL, ts)
+
 			Crawl(page)
 			log.Infof("      crawlQ finished for %s after %v", page.URL, time.Since(ts))
 		}
@@ -121,7 +123,7 @@ type SaveQ struct {
 
 func NewSaveQ() *SaveQ {
 	q := new(SaveQ)
-	q.qlen = 0 // arbitrary
+	q.qlen = 2 // arbitrary
 	q.Q = make(chan *Page, q.qlen)
 	return q
 }

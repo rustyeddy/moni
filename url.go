@@ -52,9 +52,7 @@ func NormalizeURL(urlstr string) (ustr string, err error) {
 		acl.Unsupported[urlstr]++ // via AccessList
 		return "", fmt.Errorf("Error Not Supported")
 	}
-
 	ustr = u.String()
-	ustr = removeTrailingSlash(ustr)
 	return ustr, nil
 }
 

@@ -41,8 +41,8 @@ func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 	case "PUT", "POST":
-		log.Infof("Adding url %s to the thing", url)
 
+		log.Infof("POST /site/%s ", url)
 		site := NewSite(url)
 
 		site.crawlable = true
@@ -50,7 +50,7 @@ func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 		acl.AddHost(url)
 
 		// Now create the page for the new URL
-		page := NewPage(url)
+		page := GetPage(url)
 		page.CrawlReady = true
 
 		log.Infoln("sending url to URLq")

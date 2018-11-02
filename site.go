@@ -39,11 +39,7 @@ func initSites() (sm Sitemap) {
 // NewSite will create a new *Site structure for the
 // given URL
 func NewSite(url string) (s *Site) {
-
-	// append trailing slash to site url if one does not already exist
-	if url[len(url)-1] != '/' {
-		url = url + "/"
-	}
+	log.Debugln("NewSite ", url)
 	s = &Site{URL: url}
 	sites[url] = s
 	log.Infof("Created new site %s total sites %d", url, len(sites))
