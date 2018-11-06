@@ -23,7 +23,7 @@ type Page struct {
 	URL string
 
 	Content []byte
-	Links   map[string]*Page
+	Links   map[string]int
 	Ignored map[string]int
 
 	CrawlState int
@@ -51,9 +51,13 @@ func NewPage(url string) (p *Page) {
 	log.Debugln("NewPage ", url)
 	p = &Page{
 		URL:        url,
-		Links:      make(map[string]*Page),
+		Links:      make(map[string]int),
 		Ignored:    make(map[string]int),
 		CrawlReady: true,
+		CrawlState: CrawlReady, // XXX Fix thsi
+	}
+	if pages == nil {
+		pages = make(map[string]*Page)
 	}
 	pages[url] = p
 	return p
@@ -87,28 +91,6 @@ func FetchPage(url string) (p *Page) {
 // exists it will be overwritten with the new page.
 func StorePage(p *Page) {
 	pages[p.URL] = p
-}
-
-// GetPage will sanitize the url, either find or create the
-// corresponding page structure.  If the URL is deep, we also
-// find the corresponding site structure.
-func PageFromURL(ustr string) (pi *Page) {
-	var ex bool
-
-	ustr = removeTrailingSlash(ustr)
-	if pi, ex = pages[ustr]; !ex {
-		pi = &Page{
-			URL:        ustr,
-			Links:      make(map[string]*Page),
-			Ignored:    make(map[string]int),
-			CrawlState: CrawlReady,
-		}
-		if pages == nil {
-			pages = make(map[string]*Page)
-		}
-		pages[ustr] = pi
-	}
-	return pi
 }
 
 // String will represent the Page

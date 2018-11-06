@@ -50,7 +50,7 @@ func Crawl(pg *Page) {
 					log.Infoln("\t  skip not crawl ready")
 					return
 				}
-				pg.Links[link] = page
+				pg.Links[link]++
 			}
 			//urlQ.Send(link)
 		}
@@ -92,7 +92,7 @@ func CrawlOrNot(urlstr string) (pi *Page) {
 		return nil
 	}
 
-	if pi = PageFromURL(urlstr); pi == nil {
+	if pi = NewPage(urlstr); pi == nil {
 		log.Errorf("page not found url %s", urlstr)
 		return nil
 	}

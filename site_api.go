@@ -53,6 +53,11 @@ func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 		page := GetPage(url)
 		page.CrawlReady = true
 
+		if site.Pagemap == nil {
+			site.Pagemap = make(Pagemap)
+		}
+		site.Pagemap[url] = page
+
 		log.Infoln("sending url to URLq")
 
 		urlQ.Send(url)
