@@ -10,7 +10,8 @@ var (
 )
 
 func init() {
-	tapp = NewApp(&DefaultConfig)
+	d := DefaultConfig()
+	tapp = NewApp(&d)
 }
 
 // TestAppHandler checks what we get with /

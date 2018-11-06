@@ -12,10 +12,11 @@ import (
 // All global variables
 var (
 	config *Configuration
-	app    *App
-	acl    *AccessList
-	sites  Sitemap
-	pages  Pagemap
+
+	app   *App
+	acl   *AccessList
+	sites Sitemap
+	pages Pagemap
 
 	urlQ   *URLQ
 	crawlQ *CrawlQ

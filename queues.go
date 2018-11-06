@@ -60,7 +60,7 @@ func (q *URLQ) Watch() {
 			} else {
 				log.Infof("  !!! page is not crawlQ ready skipping %s at %v", url, time.Since(ts))
 			}
-			log.Debugln("     urlQ incoming[%d] complete: %s", q.Incoming, url)
+			log.Debugf("     urlQ incoming[%d] complete: %s", q.Incoming, url)
 		}
 	}
 }
@@ -146,7 +146,7 @@ func (q *SaveQ) Watch() {
 func (q *SaveQ) Send(pg *Page) {
 	ts := time.Now()
 
-	log.Infoln("  ~~> saveQ ~~> send page %s to be saved %v ", pg.URL, ts)
+	log.Infof("  ~~> saveQ ~~> send page %s to be saved %v ", pg.URL, ts)
 	q.Q <- pg
-	log.Infoln("      saveQ send complete for %s at %v", pg.URL, time.Since(ts))
+	log.Infof("      saveQ send complete for %s at %v", pg.URL, time.Since(ts))
 }

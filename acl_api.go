@@ -44,7 +44,7 @@ func ACLHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 	default:
-		log.Errorf("I do not know what you are talking about", r.Method)
+		log.Errorf("method %s unknown", r.Method)
 	}
 	SaveACL()
 }

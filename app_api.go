@@ -7,6 +7,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
+func init() {
+	d := DefaultConfig()
+	app = NewApp(&d)
+}
+
 // RegisterApp will register a static file handler allowing us to serve
 // up the web pages for our application.
 func registerApp(r *mux.Router) {
@@ -27,7 +32,6 @@ func registerApp(r *mux.Router) {
 // of information, put them together in the right order and
 // send back to the caller
 func AppHandler(w http.ResponseWriter, r *http.Request) {
-
 	app.Title = "Application Interface"
 	app.Name = "Rusty Eddy"
 	app.Frag = r.URL.Fragment
