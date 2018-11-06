@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -19,31 +20,7 @@ var (
 	urlQ   *URLQ
 	crawlQ *CrawlQ
 	saveQ  *SaveQ
-
-	server *http.Server
 )
-
-// After main is called and args are parsed
-func (a *App) Init() {
-	acl = initACL()
-	sites = initSites()
-	pages = initPages()
-
-	urlQ = NewURLQ()
-	crawlQ = NewCrawlQ()
-	saveQ = NewSaveQ()
-
-	server = NewServer(config.Addrport)
-}
-
-func (app *App) Start() {
-
-	go urlQ.Watch()
-	go crawlQ.Watch()
-	go saveQ.Watch()
-
-	server.ListenAndServe()
-}
 
 // ====================================================================
 //                           App
@@ -64,6 +41,8 @@ type App struct {
 	// Tmplates to handle html and text formatting
 	AppTemplates
 
+	*http.Server
+	*mux.Router
 	*log.Entry
 }
 
@@ -82,6 +61,9 @@ func NewApp(cfg *Configuration) (app *App) {
 		"app":  app.Title,
 		"tmpl": app.Tmpl,
 	})
+
+	// TODO: setup router with subrouting
+	// code here xxx
 	return app
 }
 
@@ -94,6 +76,31 @@ func NewTestApp(config *Configuration) (app *App) {
 	}
 	app.Title = app.Name
 	return app
+}
+
+// After main is called and args are parsed
+func (app *App) Init() {
+
+	acl = initACL()
+	sites = initSites()
+	pages = initPages()
+
+	urlQ = NewURLQ()
+	crawlQ = NewCrawlQ()
+	saveQ = NewSaveQ()
+
+	// Create the server ~ And register the app
+	app.Server, app.Router = NewServer(config.Addrport)
+	app.Register(app.Router)
+}
+
+func (app *App) Start() {
+
+	go urlQ.Watch()
+	go crawlQ.Watch()
+	go saveQ.Watch()
+	// app.Server.ListenAndServe()
+	app.ListenAndServe()
 }
 
 // ====================================================================
@@ -109,7 +116,7 @@ type AppTemplates struct {
 }
 
 // Acculmulate the data needed for the template
-type Appdata struct {
+type AppData struct {
 	Sites []*Site
 	*Configuration
 }
@@ -141,11 +148,9 @@ func (app *App) Assemble(w http.ResponseWriter, tmplname string) {
 	if app.Template == nil {
 		app.PrepareTemplates(config.Tmpldir)
 	}
-
-	d := &Appdata{
+	d := &AppData{
 		Configuration: config,
 	}
-
 	if err := app.ExecuteTemplate(w, "index.html", d); err != nil {
 		app.Fatalln(err)
 	}

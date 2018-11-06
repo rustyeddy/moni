@@ -16,7 +16,7 @@ import (
 // ====================================================================
 
 func (app *App) Shutdown(ctx context.Context) {
-	server.Shutdown(ctx)
+	app.Shutdown(ctx)
 }
 
 // httpServer creates the router, registers the handlers then
@@ -24,11 +24,8 @@ func (app *App) Shutdown(ctx context.Context) {
 // *http.Server back to the caller, allowing it (main as of this
 // writing) it to `go startServer(srv)` start the server as a
 // Go Routine().
-func NewServer(addrport string) *http.Server {
-	r := mux.NewRouter()
-
-	// Register the application url and handlers
-	registerApp(r)
+func NewServer(addrport string) (s *http.Server, r *mux.Router) {
+	r = mux.NewRouter()
 
 	// The ACL handler
 	registerACLHandler(r)
@@ -49,7 +46,7 @@ func NewServer(addrport string) *http.Server {
 	registerProfiler(r) // make these plugins ...
 
 	// Create the Server setting the address, router and some timeouts
-	server = &http.Server{
+	s = &http.Server{
 		Addr: addrport,
 		// Good practice to set timeouts to avoid Slowloris attacks.
 		WriteTimeout: time.Second * 15,
@@ -57,7 +54,7 @@ func NewServer(addrport string) *http.Server {
 		IdleTimeout:  time.Second * 60,
 		Handler:      r, // Pass our instance of gorilla/mux in.
 	}
-	return server
+	return s, r
 }
 
 // RequestLoopback will pass the given handler and url to a special
@@ -77,8 +74,8 @@ func ServiceLoopback(h http.HandlerFunc, verb string, url string) *http.Response
 	// will not have been processed.  Register it as a handler the let mux
 	// parse our the args and setup other important things, then let it
 	// call the handler itself.
-	srv := NewServer(":8888")
-	r := srv.Handler
+	_, r := NewServer(":8888")
+	//r := srv.Handler
 
 	// This will cause the actual crawling, CrawlHandler will be called
 	// with all the appropriate header and argument processing.

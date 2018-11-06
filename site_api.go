@@ -71,9 +71,7 @@ func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 		JSONError(w, fmt.Errorf("unspported method "+r.Method))
 	}
 
-	// SaveSites in case of PUT / DELETE (wont hurt for GET??).
-	// XXX Clearly broken, need to queue & rate limit etc..
+	// SaveSites XXX Broken XXX
 	SaveSites()
-
 	return
 }
