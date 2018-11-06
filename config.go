@@ -53,7 +53,7 @@ func DefaultConfig() Configuration {
 		Profile:  false,
 		Pubdir:   "docs",
 		NoServe:  false,
-		Storedir: "/srv/moni", // or "./.moni"
+		Storedir: "/srv/moni",
 		Tmpldir:  "tmpl",
 	}
 }

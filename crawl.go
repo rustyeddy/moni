@@ -33,7 +33,7 @@ func Crawl(pg *Page) {
 		//colly.Async(true),
 	)
 	// Limit parallelism to 2
-	c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 2})
+	// c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 2})
 
 	c.OnRequest(func(r *colly.Request) {
 		ustr := r.URL.String()
@@ -50,8 +50,9 @@ func Crawl(pg *Page) {
 					log.Infoln("\t  skip not crawl ready")
 					return
 				}
+				pg.Links[link] = page
 			}
-			urlQ.Send(link)
+			//urlQ.Send(link)
 		}
 	})
 

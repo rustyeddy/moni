@@ -12,11 +12,9 @@ import (
 // All global variables
 var (
 	config *Configuration
-
-	app   *App
-	acl   *AccessList
-	sites Sitemap
-	pages Pagemap
+	acl    *AccessList
+	sites  Sitemap
+	pages  Pagemap
 
 	urlQ   *URLQ
 	crawlQ *CrawlQ
@@ -27,7 +25,6 @@ var (
 
 // After main is called and args are parsed
 func (a *App) Init() {
-	app = NewApp(config)
 	acl = initACL()
 	sites = initSites()
 	pages = initPages()
