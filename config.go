@@ -32,8 +32,8 @@ type Configuration struct {
 	Depth   int
 
 	Pubdir   string
-	Storedir string
 	Tmpldir  string
+	Storedir string
 
 	Wait time.Duration
 	*Logerr

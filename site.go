@@ -1,6 +1,8 @@
 package moni
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -41,36 +43,46 @@ func initSites() (sm Sitemap) {
 func NewSite(url string) (s *Site) {
 	log.Debugln("NewSite ", url)
 	s = &Site{URL: url}
-	app.Sitemap[url] = s
-	log.Infof("Created new site %s total sites %d", url, len(app.Sitemap))
 	return s
 }
 
 func ReadSites() (sites Sitemap) {
-	st := UseStore(app.Storedir)
+	var (
+		buf []byte
+		err error
+	)
+	st := GetStore()
 	IfNilFatal(st)
 
-	err := st.Get("sites.json", &sites)
-	IfErrorFatal(err, "reading sites.json")
+	path := st.PathFromName("sites.json")
+	if buf, err = ioutil.ReadFile(path); err != nil {
+		log.Errorf("read index %s failed %v", path, err)
+		return nil
+	}
 
-	// add sites to the acl
-	for u, _ := range sites {
-		app.AddHost(u)
+	sites = make(Sitemap)
+	switch st.ContentType {
+	case "application/json":
+		if err = json.Unmarshal(buf, &sites); err != nil {
+			IfErrorFatal(err, "get failed marshaling json "+path)
+		}
+	default:
+		panic("did not expect this")
 	}
 	return sites
 }
 
 func SaveSites() {
-	st := UseStore(app.Storedir)
+	st := GetStore()
 	IfNilFatal(st)
 
-	err := st.Put("sites.json", app.Sitemap)
+	err := st.Put("sites.json", sites)
 	IfErrorFatal(err)
 }
 
 func DeleteSite(url string) {
-	if _, ex := app.Sitemap[url]; ex {
-		delete(app.Sitemap, url)
+	if _, ex := sites[url]; ex {
+		delete(sites, url)
 	}
 	SaveSites()
 }

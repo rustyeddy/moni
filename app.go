@@ -18,6 +18,10 @@ var (
 	app    *App
 	server *http.Server
 	router *mux.Router
+	store  *Store
+	acl    *AccessList
+	sites  Sitemap
+	pages  Pagemap
 
 	//urlQ   *URLQ
 	//crawlQ *CrawlQ
@@ -43,10 +47,6 @@ type App struct {
 	// This is only real configuration
 	Configuration
 
-	AccessList
-	Sitemap
-	Pagemap
-
 	// Tmplates to handle html and text formatting
 	AppTemplates
 	*log.Entry
@@ -71,19 +71,23 @@ func GetApp(cfg *Configuration) (app *App) {
 	}
 	// TODO: setup router with subrouting
 	// code here xxx
+	return app
+}
 
+func (app *App) Init() *App {
 	// Some global could make them the apps
-	acl := initACL()
-	app.AccessList = *acl
-	app.Sitemap = initSites()
-	app.Pagemap = initPages()
+
+	store = GetStore()
+	acl = initACL()
+	sites = initSites()
+	pages = initPages()
 
 	// urlQ = NewURLQ()
 	// crawlQ = NewCrawlQ()
 	// saveQ = NewSaveQ()
 
 	// Create the server ~ And register the app
-	server, router = NewServer(app.Addrport)
+	server, router = GetServer(app.Addrport)
 	app.Register(router)
 	return app
 }

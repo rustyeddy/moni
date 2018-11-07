@@ -47,8 +47,8 @@ func CrawlUrlHandler(w http.ResponseWriter, r *http.Request) {
 
 	case "DELETE":
 		// Delete a site from this Crawler
-		if _, ex := app.Sitemap[ustr]; ex {
-			delete(app.Sitemap, ustr)
+		if _, ex := sites[ustr]; ex {
+			delete(sites, ustr)
 		}
 
 	default:

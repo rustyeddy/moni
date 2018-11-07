@@ -132,7 +132,7 @@ func (cli *Client) Do(cmd string, url string) (resp *http.Response) {
 	// CrawlHandler is the same function called by the HTTP server!
 	// which takes care of sanitizing the URL(s) and other house
 	// keeping functions, we will just reuse it from the command line.
-	_, r := NewServer(":8888")
+	_, r := GetServer(":8888")
 	r.ServeHTTP(w, req)
 
 	// 8>< ------------ ><8   Cut Here   8>< -------------- ><8

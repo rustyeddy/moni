@@ -1,6 +1,11 @@
 package moni
 
-import "github.com/sirupsen/logrus"
+import (
+	"encoding/json"
+	"io/ioutil"
+
+	log "github.com/sirupsen/logrus"
+)
 
 // AccessList is a list of domains or url paths that are either
 // allowed or denied.  AccessLists may not have both allow and deny
@@ -10,21 +15,13 @@ type AccessList struct {
 	Rejected    map[string]int
 	Unsupported map[string]int
 
-	*logrus.Entry `json:"-"`
-}
-
-func initACL() (acl *AccessList) {
-	// ReadSaved acls if any
-	if acl = ReadACL(); acl == nil {
-		acl = NewACL()
-	}
-	return acl
+	*log.Entry `json:"-"`
 }
 
 // ACL returns the accessList.  If the accessList does not exist
 // it will be created prior to return
-func NewACL() *AccessList {
-	acl := &AccessList{
+func NewACL() AccessList {
+	acl := AccessList{
 		Allowed:     make(map[string]int),
 		Rejected:    make(map[string]int),
 		Unsupported: make(map[string]int),
@@ -33,24 +30,33 @@ func NewACL() *AccessList {
 	return acl
 }
 
-func (acl *AccessList) logEntry() *logrus.Entry {
+func initACL() (acl *AccessList) {
+	if acl = ReadACL(); acl == nil {
+		*acl = NewACL()
+	}
+	return acl
+}
+
+func (acl *AccessList) logEntry() *log.Entry {
 	// straigh logrus
-	flds := logrus.Fields{
+	flds := log.Fields{
 		"Allowed":     len(acl.Allowed),
 		"Rejected":    len(acl.Rejected),
 		"Unsupported": len(acl.Unsupported),
 	}
-	return logrus.WithFields(flds)
+	return log.WithFields(flds)
 }
 
 // AllowHost will naively take only the host, ignoring port,
 // and other fields to just the host.
 func (acl *AccessList) AddHost(h string) {
 	if host := GetHostname(h); host != "" {
-		acl.Allowed[host]++
-		acl.Debugln("added host ", host, " to Allowed list")
+		if _, ex := acl.Allowed[host]; ex {
+			acl.Allowed[host]++
+		} else {
+			acl.Allowed[host] = 1
+		}
 	} else {
-		acl.Allowed[h] = 1
 		acl.Errorln("failed to add host", host, "allowed list")
 	}
 }
@@ -95,21 +101,50 @@ func (acl *AccessList) IsAllowed(urlstr string) (allow bool) {
 // ReadACL will attempt to read the acl file (/srv/moni/acl.json)
 // by default.  If it fails, it will complain then allow you to
 // carry on.
-func ReadACL() (acl *AccessList) {
-	st := UseStore(app.Storedir)
+func ReadACL() *AccessList {
+	var (
+		buf []byte
+		a   AccessList
+		err error
+	)
+	st := GetStore()
 	IfNilFatal(st)
 
-	acl = new(AccessList)
-	err := st.Get("acl.json", acl)
-	IfErrorWarning(err, "reading acl.json")
-	acl.Entry = acl.logEntry()
-	return acl
+	path := st.PathFromName("acl.json")
+	if buf, err = ioutil.ReadFile(path); err != nil {
+		log.Errorf("read index %s failed %v", path, err)
+		return nil
+	}
+
+	switch st.ContentType {
+	case "application/json":
+		if err = json.Unmarshal(buf, &a); err != nil {
+			IfErrorFatal(err, "get failed marshaling json "+path)
+		}
+	default:
+		panic("did not expect this")
+	}
+
+	/*
+			nacl := AccessList{
+				Allowed:     make(map[string]int),
+				Rejected:    make(map[string]int),
+				Unsupported: make(map[string]int),
+			}
+		fmt.Printf("going to get acl.json")
+		if err := st.Get("acl.json", &nacl); err != nil {
+			log.Warnf("acl.json could not be read %v", err)
+			return nil
+		}
+	*/
+	return &a
 }
 
+// SaveACL stores the acl in our store
 func SaveACL() {
-	st := UseStore(app.Storedir)
+	st := GetStore()
 	IfNilFatal(st)
 
-	err := st.Put("acl.json", app.Storedir)
+	err := st.Put("acl.json", acl)
 	IfErrorFatal(err)
 }

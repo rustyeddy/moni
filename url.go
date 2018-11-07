@@ -49,7 +49,7 @@ func NormalizeURL(urlstr string) (ustr string, err error) {
 	case "":
 		u.Scheme = "http"
 	default:
-		app.Unsupported[urlstr]++ // via AccessList
+		acl.Unsupported[urlstr]++ // via AccessList
 		return "", fmt.Errorf("Error Not Supported")
 	}
 	ustr = u.String()
@@ -100,7 +100,7 @@ func processURL(url string) (page *Page) {
 	}
 
 	log.Infoln("  ACL is this site allowed:  ", page.URL)
-	if !app.IsAllowed(page.URL) {
+	if !acl.IsAllowed(page.URL) {
 		log.Infof("  URL %s NOT allowed, skipping ... ", page.URL)
 		return nil
 	}

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"path/filepath"
+	"strings"
 )
 
 type Object interface {
@@ -22,19 +23,17 @@ type Storage interface {
 	Close() (err error)
 }
 
+var DefaultStoreDir = "/srv/moni"
+
 type Store struct {
 	Basedir     string
 	ContentType string
 	Ext         string
 }
 
-var (
-	store *Store
-)
-
 func GetStore() *Store {
 	if store == nil {
-		store = UseStore(app.Storedir)
+		store = UseStore(DefaultStoreDir)
 	}
 	return store
 }
@@ -53,8 +52,14 @@ func (s *Store) Glob(pattern string) []string {
 	return matches
 }
 
-func (s *Store) pathFromName(name string) string {
-	return s.Basedir + name
+func (s *Store) PathFromName(name string) string {
+	path := s.Basedir
+	if strings.HasSuffix(s.Basedir, "/") {
+		path = path + name
+	} else {
+		path = path + "/" + name
+	}
+	return path
 }
 
 func (s *Store) Put(name string, obj interface{}) (err error) {
@@ -63,14 +68,14 @@ func (s *Store) Put(name string, obj interface{}) (err error) {
 	switch s.ContentType {
 	case "application/json":
 		if buf, err = json.Marshal(obj); err != nil {
-			IfErrorFatal(err, "marshaling json "+name)
+			IfErrorFatal(err, "put failed marshaling json "+name)
 		}
 	default:
 		log.Fatalf("did not expect ContentType %s", s.ContentType)
 	}
 
 	// Write the file to disk
-	path := s.pathFromName(name)
+	path := s.PathFromName(name)
 	if err = ioutil.WriteFile(path, buf, 0755); err != nil {
 		IfErrorFatal(err, "writing buffer "+path)
 	}
@@ -80,15 +85,15 @@ func (s *Store) Put(name string, obj interface{}) (err error) {
 func (s *Store) Get(name string, obj interface{}) (err error) {
 	var buf []byte
 
-	path := s.pathFromName(name)
+	path := s.PathFromName(name)
 	if buf, err = ioutil.ReadFile(path); err != nil {
 		return fmt.Errorf("read index %s failed %v", path, err)
 	}
 
 	switch s.ContentType {
 	case "application/json":
-		if err = json.Unmarshal(buf, obj); err != nil {
-			IfErrorFatal(err, "marshaling json "+name)
+		if err = json.Unmarshal(buf, &obj); err != nil {
+			IfErrorFatal(err, "get failed marshaling json "+name)
 		}
 	default:
 		panic("did not expect this")

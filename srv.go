@@ -24,7 +24,7 @@ func (app *App) Shutdown(ctx context.Context) {
 // *http.Server back to the caller, allowing it (main as of this
 // writing) it to `go startServer(srv)` start the server as a
 // Go Routine().
-func NewServer(addrport string) (s *http.Server, r *mux.Router) {
+func GetServer(addrport string) (s *http.Server, r *mux.Router) {
 	r = mux.NewRouter()
 
 	//registerAppHandler(r)
@@ -76,7 +76,7 @@ func ServiceLoopback(h http.HandlerFunc, verb string, url string) *http.Response
 	// will not have been processed.  Register it as a handler the let mux
 	// parse our the args and setup other important things, then let it
 	// call the handler itself.
-	_, r := NewServer(":8888")
+	_, r := GetServer(":8888")
 	//r := srv.Handler
 
 	// This will cause the actual crawling, CrawlHandler will be called

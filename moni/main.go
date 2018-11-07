@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	app moni.App
+	app *moni.App
 	cfg moni.Configuration
 )
 
@@ -43,5 +43,6 @@ func main() {
 
 	// Gets the cfg, and saves the configuration file with the cfg
 	app := moni.GetApp(&cfg)
+	app.Init()
 	app.StartService()
 }
