@@ -52,47 +52,46 @@ func main() {
 
 	// Gets the app, and saves the configuration file with the app
 	app := moni.NewApp(&config)
-
-	// Tell the app to start its server
-	if !config.NoServe {
-		app.Init()
-		go app.Start()
+	app.Init()
+	if config.Cli {
+		StartClient(app)
+	} else {
+		StartServer(app)
 	}
+}
 
-	// Get into a CLI loop if we want
-	//if config.Cli {
-	//	go app.Cmdloop()
-	//}
+func StartServer(app *moni.App) {
+
+	//go app.Server.Start()
+	app.Start()
 
 	// Wait for the server (and/or) client to end
 	// ====================================================================
 	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
 	// SIGKILL, SIGQUIT or SIGTERM (Ctrl+/) will not be caught.
-	if config.Cli || !config.NoServe {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
 
-		c := make(chan os.Signal, 1)
-		signal.Notify(c, os.Interrupt)
+	// Block until we receive our signal.
+	<-c
 
-		// Block until we receive our signal.
-		<-c
+	// Create a deadline to wait for.
+	ctx, cancel := context.WithTimeout(context.Background(), config.Wait)
+	defer cancel()
+	// Doesn't block if no connections, but will otherwise wait
+	// until the timeout deadline.
+	app.Shutdown(ctx)
 
-		// Create a deadline to wait for.
-		ctx, cancel := context.WithTimeout(context.Background(), config.Wait)
-		defer cancel()
-		// Doesn't block if no connections, but will otherwise wait
-		// until the timeout deadline.
-		app.Shutdown(ctx)
+	// Optionally, you could run srv.Shutdown in a goroutine and block on
+	// <-ctx.Done() if your application should wait for other services
+	// to finalize based on context cancellation.
+	log.Println("shutting down")
 
-		// Optionally, you could run srv.Shutdown in a goroutine and block on
-		// <-ctx.Done() if your application should wait for other services
-		// to finalize based on context cancellation.
-		log.Println("shutting down")
-
-	}
 	os.Exit(0)
+
 }
 
-func cmdloop() {
+func StartClient(app *moni.App) {
 
 	// ========================================================================
 	// Process commands from the command line
@@ -108,27 +107,21 @@ func cmdloop() {
 
 		// Run a single command in the foreground
 		switch cmd {
-		case "GET", "POST", "PUT", "DELETE":
-
+		case "GET", "POST", "PUT", "DELETE", "get", "post", "put", "delete":
 			resp = cli.Do(cmd, arg)
+
 			body := moni.GetBody(resp)
+			fmt.Printf("Body %+v", body)
+			/*
+				case "crawl":
+					cli.CrawlUrl(arg)
 
-			fmt.Fprintf(cli.Writer, "%s %s\n", cmd, arg)
-			fmt.Fprintf(cli.Writer, "\t%s\n", string(body))
-		case "crawl":
-			cli.CrawlUrl(arg)
+				case "crawlids":
+					cli.CrawlList()
 
-		case "crawlids":
-			cli.CrawlList()
-
-		case "view":
-			cli.CrawlId(arg)
-
+				case "view":
+					cli.CrawlId(arg)
+			*/
 		}
 	}
-}
-
-func ShutdownHandler(w http.ResponseWriter, r *http.Request) {
-	// Time to write out all open files
-	os.Exit(2)
 }

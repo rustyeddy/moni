@@ -85,13 +85,16 @@ func (app *App) Init() {
 	sites = initSites()
 	pages = initPages()
 
-	urlQ = NewURLQ()
-	crawlQ = NewCrawlQ()
-	saveQ = NewSaveQ()
+	if app.Server != nil {
+		urlQ = NewURLQ()
+		crawlQ = NewCrawlQ()
+		saveQ = NewSaveQ()
 
-	// Create the server ~ And register the app
-	app.Server, app.Router = NewServer(config.Addrport)
-	app.Register(app.Router)
+		// Create the server ~ And register the app
+		app.Server, app.Router = NewServer(config.Addrport)
+		app.Register(app.Router)
+	}
+
 }
 
 func (app *App) Start() {
