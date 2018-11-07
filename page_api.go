@@ -16,7 +16,7 @@ func registerPages(r *mux.Router) {
 }
 
 func PageListHandler(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, pages)
+	writeJSON(w, app.Pagemap)
 }
 
 func PageIdHandler(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +29,7 @@ func PageIdHandler(w http.ResponseWriter, r *http.Request) {
 	url := urlFromRequest(r)
 	name := NameFromURL(url)
 
-	if page := pages.Get(url); page != nil {
+	if page := app.Pagemap.Get(url); page != nil {
 		switch r.Method {
 		case "GET":
 			writeJSON(w, page)
@@ -37,7 +37,7 @@ func PageIdHandler(w http.ResponseWriter, r *http.Request) {
 		case "PUT", "POST":
 			log.Infoln("overwriting ", name)
 		case "DELETE":
-			delete(pages, name)
+			delete(app.Pagemap, name)
 		}
 	} else {
 		switch r.Method {

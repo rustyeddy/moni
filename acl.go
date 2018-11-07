@@ -96,7 +96,7 @@ func (acl *AccessList) IsAllowed(urlstr string) (allow bool) {
 // by default.  If it fails, it will complain then allow you to
 // carry on.
 func ReadACL() (acl *AccessList) {
-	st := UseStore(config.Storedir)
+	st := UseStore(app.Storedir)
 	IfNilFatal(st)
 
 	acl = new(AccessList)
@@ -107,9 +107,9 @@ func ReadACL() (acl *AccessList) {
 }
 
 func SaveACL() {
-	st := UseStore(config.Storedir)
+	st := UseStore(app.Storedir)
 	IfNilFatal(st)
 
-	err := st.Put("acl.json", acl)
+	err := st.Put("acl.json", app.Storedir)
 	IfErrorFatal(err)
 }

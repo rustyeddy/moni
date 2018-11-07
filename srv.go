@@ -27,6 +27,8 @@ func (app *App) Shutdown(ctx context.Context) {
 func NewServer(addrport string) (s *http.Server, r *mux.Router) {
 	r = mux.NewRouter()
 
+	//registerAppHandler(r)
+
 	// The ACL handler
 	registerACLHandler(r)
 

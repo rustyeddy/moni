@@ -41,14 +41,14 @@ func CrawlUrlHandler(w http.ResponseWriter, r *http.Request) {
 
 	case "PUT", "POST":
 		// Create a crawl request
-		urlQ.Send(ustr)
+		// urlQ.Send(ustr)
 		writeJSON(w, ustr)
 		return
 
 	case "DELETE":
 		// Delete a site from this Crawler
-		if _, ex := sites[ustr]; ex {
-			delete(sites, ustr)
+		if _, ex := app.Sitemap[ustr]; ex {
+			delete(app.Sitemap, ustr)
 		}
 
 	default:

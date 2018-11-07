@@ -25,7 +25,7 @@ type Logerr struct {
 }
 
 func p(msgs ...string) {
-	if !config.Debug {
+	if !app.Configuration.Debug {
 		return
 	}
 	fmt.Println(msgs)

@@ -62,7 +62,7 @@ func Crawl(pg *Page) {
 		pg.StatusCode = r.StatusCode
 		pg.Finish = time.Now()
 		pg.CrawlReady = false
-		pages[link] = pg
+		app.Pagemap[link] = pg
 	})
 
 	c.OnError(func(r *colly.Response, err error) {
@@ -72,7 +72,7 @@ func Crawl(pg *Page) {
 		pg.Finish = time.Now()
 		pg.CrawlReady = false
 		link := r.Request.URL.String()
-		pages[link] = pg
+		app.Pagemap[link] = pg
 	})
 
 	pg.Start = time.Now()
@@ -87,7 +87,7 @@ func Crawl(pg *Page) {
 // and if enough time has passed before the url can be scanned again
 func CrawlOrNot(urlstr string) (pi *Page) {
 	log.Infoln("crawl or not ", urlstr)
-	if !acl.IsAllowed(urlstr) {
+	if !app.IsAllowed(urlstr) {
 		log.Infof("  not allowed %s add reason ..", urlstr)
 		return nil
 	}

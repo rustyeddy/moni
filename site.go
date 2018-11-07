@@ -30,7 +30,7 @@ type Site struct {
 type Sitemap map[string]*Site
 
 func initSites() (sm Sitemap) {
-	if sm = ReadSites(); sites == nil {
+	if sm = ReadSites(); sm == nil {
 		sm = make(map[string]*Site)
 	}
 	return sm
@@ -41,38 +41,36 @@ func initSites() (sm Sitemap) {
 func NewSite(url string) (s *Site) {
 	log.Debugln("NewSite ", url)
 	s = &Site{URL: url}
-	sites[url] = s
-	log.Infof("Created new site %s total sites %d", url, len(sites))
+	app.Sitemap[url] = s
+	log.Infof("Created new site %s total sites %d", url, len(app.Sitemap))
 	return s
 }
 
 func ReadSites() (sites Sitemap) {
-	st := UseStore(config.Storedir)
+	st := UseStore(app.Storedir)
 	IfNilFatal(st)
 
 	err := st.Get("sites.json", &sites)
 	IfErrorFatal(err, "reading sites.json")
 
-	if acl != nil {
-		// add sites to the acl
-		for u, _ := range sites {
-			acl.AddHost(u)
-		}
+	// add sites to the acl
+	for u, _ := range sites {
+		app.AddHost(u)
 	}
 	return sites
 }
 
 func SaveSites() {
-	st := UseStore(config.Storedir)
+	st := UseStore(app.Storedir)
 	IfNilFatal(st)
 
-	err := st.Put("sites.json", sites)
+	err := st.Put("sites.json", app.Sitemap)
 	IfErrorFatal(err)
 }
 
 func DeleteSite(url string) {
-	if _, ex := sites[url]; ex {
-		delete(sites, url)
+	if _, ex := app.Sitemap[url]; ex {
+		delete(app.Sitemap, url)
 	}
 	SaveSites()
 }

@@ -55,11 +55,11 @@ func (q *URLQ) Watch() {
 				continue
 			}
 
-			if pg.CrawlReady {
-				crawlQ.Send(pg)
-			} else {
-				log.Infof("  !!! page is not crawlQ ready skipping %s at %v", url, time.Since(ts))
-			}
+			// if pg.CrawlReady {
+			// 	crawlQ.Send(pg)
+			// } else {
+			// 	log.Infof("  !!! page is not crawlQ ready skipping %s at %v", url, time.Since(ts))
+			// }
 			log.Debugf("     urlQ incoming[%d] complete: %s", q.Incoming, url)
 		}
 	}

@@ -16,7 +16,7 @@ func registerACLHandler(r *mux.Router) {
 
 // ACLHandler will respond to ACL requests
 func ACLListHandler(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, acl)
+	writeJSON(w, app.AccessList)
 }
 
 func ACLHandler(w http.ResponseWriter, r *http.Request) {
@@ -28,19 +28,19 @@ func ACLHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		if acl.IsAllowed(url) {
+		if app.IsAllowed(url) {
 			writeJSON(w, true)
 		} else {
 			writeJSON(w, struct{}{})
 		}
 
 	case "PUT", "POST":
-		acl.AddHost(url)
+		app.AddHost(url)
 		writeJSON(w, struct{ url string }{url})
 
 	case "DELETE":
-		if acl.IsAllowed(url) {
-			acl.RemoveHost(url)
+		if app.IsAllowed(url) {
+			app.RemoveHost(url)
 		}
 
 	default:

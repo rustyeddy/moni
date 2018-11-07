@@ -18,28 +18,24 @@ type ConfigLogger struct {
 	Out io.Writer
 }
 
+// Configuration sports the major configurable items
+// of our moni application
 type Configuration struct {
 	Addrport string
 	Basedir  string
-	Client   bool
 
 	ConfigLogger
-
 	ConfigFile string
-	Cli        bool
-	Daemon     bool
-	Debug      bool
-	Depth      int
-
-	NoServe bool
 
 	Profile bool
-	Pubdir  string
+	Debug   bool
+	Depth   int
 
+	Pubdir   string
 	Storedir string
 	Tmpldir  string
-	Wait     time.Duration
 
+	Wait time.Duration
 	*Logerr
 }
 
@@ -48,48 +44,37 @@ type Configuration struct {
 func DefaultConfig() Configuration {
 	return Configuration{
 		Addrport: ":8888",
-		Daemon:   false,
 		Depth:    3,
-		Profile:  false,
 		Pubdir:   "docs",
-		NoServe:  false,
 		Storedir: "/srv/moni",
 		Tmpldir:  "tmpl",
 	}
 }
 
-// SetConfig sets and reconfigures the application
-func SetConfig(cfg *Configuration) {
-	config = cfg
-	if config.Logerr == nil {
-		config.Logerr = NewLogerr("config")
-	}
-}
-
-// SetLogger adjusts logger configs after a configuration change, such as
+// SetLogger adjusts logger configs after a Configuration change, such as
 // immediately after parsing flags
 func (c *Configuration) SetLogger() {
-	if config.Logfile != "stdout" && config.Logfile != "stderr" {
-		if wr, err := os.Open(config.Logfile); err != nil {
-			log.Fatalln("Failed to open logfile ", config.Logfile)
+	if app.Logfile != "stdout" && app.Logfile != "stderr" {
+		if wr, err := os.Open(app.Logfile); err != nil {
+			log.Fatalln("Failed to open logfile ", app.Logfile)
 		} else {
 			log.SetOutput(wr)
 		}
 	}
 
-	if l, err := log.ParseLevel(config.LogLevel); err != nil {
-		log.Fatalln("failed to parse level ", config.Level)
+	if l, err := log.ParseLevel(app.LogLevel); err != nil {
+		log.Fatalln("failed to parse level ", app.Level)
 	} else {
 		log.SetLevel(l)
 	}
 
-	switch config.FormatString {
+	switch app.FormatString {
 	case "text":
 		log.SetFormatter(&log.TextFormatter{})
 	case "json":
 		log.SetFormatter(&log.JSONFormatter{})
 	default:
-		log.Fatalln("can not use formatter ", config.FormatString)
+		log.Fatalln("can not use formatter ", app.FormatString)
 	}
 }
 

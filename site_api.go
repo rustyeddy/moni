@@ -20,11 +20,11 @@ func registerSites(r *mux.Router) {
 
 // SiteListHandler may respond with multiple Site entries
 func SiteListHandler(w http.ResponseWriter, r *http.Request) {
-	log.Infof("SiteListHandler sites %+v", sites)
-	if len(sites) < 1 {
-		sites = Sitemap{}
+	log.Infof("SiteListHandler sites %+v", app.Sitemap)
+	if len(app.Sitemap) < 1 {
+		app.Sitemap = Sitemap{}
 	}
-	writeJSON(w, sites)
+	writeJSON(w, app.Sitemap)
 }
 
 // SiteIdHandler manages requests targeted for a specific site.
@@ -34,7 +34,7 @@ func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		if site, ex := sites[url]; ex {
+		if site, ex := app.Sitemap[url]; ex {
 			writeJSON(w, site)
 		} else {
 			JSONError(w, fmt.Errorf("site not found %s", url))
@@ -47,7 +47,7 @@ func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 
 		site.crawlable = true
 		site.crawlready = true
-		acl.AddHost(url)
+		app.AddHost(url)
 
 		// Now create the page for the new URL
 		page := GetPage(url)
@@ -60,7 +60,7 @@ func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
 
 		log.Infoln("sending url to URLq")
 
-		urlQ.Send(url)
+		//urlQ.Send(url)
 		writeJSON(w, map[string]string{"saved": url})
 
 	case "DELETE":

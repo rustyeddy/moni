@@ -1,9 +1,12 @@
 package moni
 
 import (
+	"context"
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
+	"os/signal"
 	"path/filepath"
 
 	"github.com/gorilla/mux"
@@ -12,14 +15,13 @@ import (
 
 // All global variables
 var (
-	config *Configuration
-	acl    *AccessList
-	sites  Sitemap
-	pages  Pagemap
+	app    *App
+	server *http.Server
+	router *mux.Router
 
-	urlQ   *URLQ
-	crawlQ *CrawlQ
-	saveQ  *SaveQ
+	//urlQ   *URLQ
+	//crawlQ *CrawlQ
+	//saveQ  *SaveQ
 )
 
 // ====================================================================
@@ -38,72 +40,59 @@ type App struct {
 	Tmpl  string // base or frame template
 	Frag  string // request.URL.Fragment
 
+	// This is only real configuration
+	Configuration
+
+	AccessList
+	Sitemap
+	Pagemap
+
 	// Tmplates to handle html and text formatting
 	AppTemplates
-
-	*http.Server
-	*mux.Router
 	*log.Entry
 }
 
 // NewApp will produce a new App
-func NewApp(cfg *Configuration) (app *App) {
-	app = &App{
-		Name:  "ClowOpsApp",
-		Title: "Clowd ~ Operations",
-		Tmpl:  "index.html",
+func GetApp(cfg *Configuration) (app *App) {
+	if app == nil {
+		app = &App{
+			Name:  "ClowOpsApp",
+			Title: "Clowd ~ Operations",
+			Tmpl:  "index.html",
+		}
+		app.Title = app.Name
+		app.Configuration = *cfg
+
+		// Setup the logger
+		app.Entry = log.WithFields(log.Fields{
+			"app":  app.Title,
+			"tmpl": app.Tmpl,
+		})
 	}
-	app.Title = app.Name
-	SetConfig(cfg)
-
-	// Setup the logger
-	app.Entry = log.WithFields(log.Fields{
-		"app":  app.Title,
-		"tmpl": app.Tmpl,
-	})
-
 	// TODO: setup router with subrouting
 	// code here xxx
+
+	// Some global could make them the apps
+	acl := initACL()
+	app.AccessList = *acl
+	app.Sitemap = initSites()
+	app.Pagemap = initPages()
+
+	// urlQ = NewURLQ()
+	// crawlQ = NewCrawlQ()
+	// saveQ = NewSaveQ()
+
+	// Create the server ~ And register the app
+	server, router = NewServer(app.Addrport)
+	app.Register(router)
 	return app
 }
 
-// NewApp will produce a new App
-func NewTestApp(config *Configuration) (app *App) {
-	app = &App{
-		Name:  "ClowOpsApp",
-		Title: "Clowd ~ Operations",
-		Tmpl:  "index.html",
-	}
-	app.Title = app.Name
-	return app
-}
-
-// After main is called and args are parsed
-func (app *App) Init() {
-
-	acl = initACL()
-	sites = initSites()
-	pages = initPages()
-
-	if app.Server != nil {
-		urlQ = NewURLQ()
-		crawlQ = NewCrawlQ()
-		saveQ = NewSaveQ()
-
-		// Create the server ~ And register the app
-		app.Server, app.Router = NewServer(config.Addrport)
-		app.Register(app.Router)
-	}
-
-}
-
-func (app *App) Start() {
-
-	go urlQ.Watch()
-	go crawlQ.Watch()
-	go saveQ.Watch()
-	// app.Server.ListenAndServe()
-	app.ListenAndServe()
+func (app *App) StartService() {
+	//go urlQ.Watch()
+	//go crawlQ.Watch()
+	//go saveQ.Watch()
+	server.ListenAndServe()
 }
 
 // ====================================================================
@@ -149,12 +138,38 @@ func (app *App) Assemble(w http.ResponseWriter, tmplname string) {
 	// in two parts.  1. A semi-generic frame is created with designated areas
 	// can be overwritten with application specific information.
 	if app.Template == nil {
-		app.PrepareTemplates(config.Tmpldir)
+		app.PrepareTemplates(app.Tmpldir)
 	}
 	d := &AppData{
-		Configuration: config,
+		Configuration: &app.Configuration,
 	}
 	if err := app.ExecuteTemplate(w, "index.html", d); err != nil {
 		app.Fatalln(err)
 	}
+}
+
+func (app *App) Run() {
+	// Wait for the server (and/or) client to end
+	// ====================================================================
+	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
+	// SIGKILL, SIGQUIT or SIGTERM (Ctrl+/) will not be caught.
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+
+	// Block until we receive our signal.
+	<-c
+
+	// Create a deadline to wait for.
+	ctx, cancel := context.WithTimeout(context.Background(), app.Wait)
+	defer cancel()
+	// Doesn't block if no connections, but will otherwise wait
+	// until the timeout deadline.
+	app.Shutdown(ctx)
+
+	// Optionally, you could run srv.Shutdown in a goroutine and block on
+	// <-ctx.Done() if your application should wait for other services
+	// to finalize based on context cancellation.
+	log.Println("shutting down")
+
+	os.Exit(0)
 }

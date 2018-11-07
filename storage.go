@@ -34,7 +34,7 @@ var (
 
 func GetStore() *Store {
 	if store == nil {
-		store = UseStore(config.Storedir)
+		store = UseStore(app.Storedir)
 	}
 	return store
 }
