@@ -10,34 +10,22 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func processURL(ustr string) *Page {
+//			      URL Cleansing and Normalization
+// ====================================================================
 
-	var page *Page
+// helper extract url from string
+func urlFromRequest(r *http.Request) string {
+	// Extract the url(s) that we are going to walk
+	vars := mux.Vars(r)
+	ustr := vars["url"]
 
 	// Normalize the URL and fill in a scheme it does not exist
-	log.Infoln("processURL ", ustr)
 	ustr, err := NormalizeURL(ustr)
 	if err != nil {
-		log.Infoln("processURL Normalize failed ", ustr)
-		return nil
+		log.Errorf("I had a problem with the url %v", ustr)
+		return ""
 	}
-
-	// This conversion back to string is necessary and simple domain
-	// name like "example.com" will be placeded in the url.URL.Path
-	// field instead of the Host field.  However url.String() makes
-	// everything right.
-	Crawler.AllowHost(ustr) // AccessList
-
-	// If the url has too recently been scanned we will return
-	// null for the job, however a copy of the scan will is
-	// available and will be returned to the caller.
-	if page = Crawler.CrawlOrNot(ustr); page == nil {
-		log.Infoln("processURL rejected url ", ustr)
-		return nil
-	}
-
-	log.Infoln("returning from process URL with page ", page.URL)
-	return page
+	return ustr
 }
 
 // NormalizeURL will make sure a scheme (protocol) is prepended
@@ -61,25 +49,11 @@ func NormalizeURL(urlstr string) (ustr string, err error) {
 	case "":
 		u.Scheme = "http"
 	default:
-		Crawler.Unsupported[urlstr]++ // via AccessList
+		acl.Unsupported[urlstr]++ // via AccessList
 		return "", fmt.Errorf("Error Not Supported")
 	}
 	ustr = u.String()
 	return ustr, nil
-}
-
-func urlFromRequest(r *http.Request) string {
-	// Extract the url(s) that we are going to walk
-	vars := mux.Vars(r)
-	ustr := vars["url"]
-
-	// Normalize the URL and fill in a scheme it does not exist
-	ustr, err := NormalizeURL(ustr)
-	if err != nil {
-		log.Errorf("I had a problem with the url %v", ustr)
-		return ""
-	}
-	return ustr
 }
 
 // GetHostname from a URL type string
@@ -98,4 +72,38 @@ func GetHostname(h string) (host string) {
 		u.Path = ""
 	}
 	return u.Hostname()
+}
+
+func processURL(url string) (page *Page) {
+
+	log.Infoln("processURL ", url)
+
+	// normalize the URL
+	urlstr, err := NormalizeURL(url)
+	if err != nil {
+		log.Errorf("url normaization failed %v", err)
+		return nil
+	}
+
+	log.Infoln("  fetching page ", urlstr)
+	page = FetchPage(urlstr)
+	if page == nil {
+		log.Infoln("    not found ~ create a new one ..")
+		if page = NewPage(urlstr); page == nil {
+			log.Infoln("      Still could not find page for ", urlstr, " failing ...")
+			return nil
+		}
+
+		if page == nil {
+			panic("PAGE IS NIL ~ NEVER!")
+		}
+	}
+
+	log.Infoln("  ACL is this site allowed:  ", page.URL)
+	if !acl.IsAllowed(page.URL) {
+		log.Infof("  URL %s NOT allowed, skipping ... ", page.URL)
+		return nil
+	}
+	log.Infoln(page.URL, " is ready for crawling... ")
+	return page
 }

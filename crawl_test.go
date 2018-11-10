@@ -1,7 +1,6 @@
 package moni
 
 import (
-	"encoding/json"
 	"testing"
 )
 
@@ -9,7 +8,7 @@ func TestCrawlHandler(t *testing.T) {
 	url := "/crawl/example.com"
 
 	// Get the response from the handler so it can be varified
-	resp := ServiceLoopback(CrawlHandler, "POST", url)
+	resp := ServiceLoopback(CrawlUrlHandler, "POST", url)
 	if resp == nil {
 		t.Error("CrawlHandler test failed to get a response")
 	}
@@ -25,7 +24,7 @@ func TestCrawlHandler(t *testing.T) {
 }
 
 func TestCrawlListHandler(t *testing.T) {
-	url := "/crawlids"
+	url := "/crawl/"
 	resp := ServiceLoopback(CrawlListHandler, "get", url)
 	body := GetBody(resp)
 	if body == nil {
@@ -38,24 +37,27 @@ func TestCrawlListHandler(t *testing.T) {
 }
 
 func TestCrawlIdHandler(t *testing.T) {
-	url := "http://localhost:8888/store/crawl-example-com.json"
-	resp := ServiceLoopback(CrawlIdHandler, "get", url)
-	body := GetBody(resp)
-	if body == nil {
-		t.Errorf("crawl list read body failed")
-	}
-	ctype := resp.Header.Get("Content-Type")
-	if ctype != "application/json" {
-		t.Errorf("expected content type (application/json) got (%s)", ctype)
-	}
+	t.Error("pass TestCrawlIdHandler")
+	/*
+		url := "http://localhost:8888/store/crawl-example-com.json"
+		resp := ServiceLoopback(CrawlIdHandler, "get", url)
+		body := GetBody(resp)
+		if body == nil {
+			t.Errorf("crawl list read body failed")
+		}
+		ctype := resp.Header.Get("Content-Type")
+		if ctype != "application/json" {
+			t.Errorf("expected content type (application/json) got (%s)", ctype)
+		}
 
-	var page Page
-	err := json.Unmarshal(body, &page)
-	if err != nil {
-		t.Errorf("failed unmarshallng body %v ", err)
-	}
+		var page Page
+		err := json.Unmarshal(body, &page)
+		if err != nil {
+			t.Errorf("failed unmarshallng body %v ", err)
+		}
 
-	if page.URL != "gardenpassages.com" {
-		t.Errorf("expected (gardenpassages.com) got (%s)", page.URL)
-	}
+		if page.URL != "example.com" {
+			t.Errorf("expected (.com) got (%s)", page.URL)
+		}
+	*/
 }

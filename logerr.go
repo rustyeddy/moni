@@ -1,6 +1,8 @@
 package moni
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -20,6 +22,13 @@ const (
 type Logerr struct {
 	Name string // we love our logger so we give em names!
 	*log.Logger
+}
+
+func p(msgs ...string) {
+	if !app.Configuration.Debug {
+		return
+	}
+	fmt.Println(msgs)
 }
 
 func NewLogerr(name string) (nl *Logerr) {
@@ -50,7 +59,7 @@ func (l *Logerr) SetTesting() {
 
 func (l *Logerr) SetProduction(filename string) {
 	file, err := os.Create(filename)
-	IfErrorFatal(err, "SetTesting", filename)
+	IfErrorFatal(err, "SetTesting "+filename)
 	l.SetValues(file, &log.JSONFormatter{}, log.WarnLevel)
 }
 
@@ -83,6 +92,19 @@ func IfErrorFatal(err error, msgs ...string) error {
 	return err
 }
 
+func IfNilFatal(obj interface{}, msgs ...string) (iserr bool) {
+	if obj != nil {
+		return false // no error
+	}
+	// If we have an error, print and die
+	msg := ""
+	if msgs != nil {
+		msg = strings.Join(msgs, ", ")
+	}
+	log.Fatalln(msg, errors.New(""))
+	return true
+}
+
 // FatalError checks the incoming error message, if it is nil, there
 // is no error, everything is fine, this function sliently returns
 // An error however will be printed and the application will die
@@ -103,6 +125,20 @@ func IfNilError(obj interface{}, msgs ...string) bool {
 	}
 	log.Errorln(msg)
 	return true
+}
+
+func IfErrorWarning(err error, msgs ...string) error {
+	// If err is nil .. all is well
+	if err == nil {
+		return nil // we are good, nothing to do
+	}
+	// If we have an error, print and die
+	msg := ""
+	if msgs != nil {
+		msg = strings.Join(msgs, ", ")
+	}
+	log.Warnln(msg, err)
+	return err
 }
 
 // ====================================================================

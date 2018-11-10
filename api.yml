@@ -1,0 +1,21 @@
+---
+api:
+  components:
+    - Sites
+    - Domains
+    - Crawls
+    - Storage
+
+  db:
+    - UseStore()
+    - List()
+    - Fetch()
+    - Store()
+    - Delete()
+
+  tmpl:
+    - List()
+    - FrameTemplates()
+    - PartialTemplates()
+    - TemplateFilename()
+    - TemplateTags()

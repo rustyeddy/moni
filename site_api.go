@@ -1,7 +1,6 @@
 package moni
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -14,45 +13,71 @@ import (
 
 // Register the site routes
 func registerSites(r *mux.Router) {
-	r.HandleFunc("/sites", SiteListHandler).Methods("GET")
+	r.HandleFunc("/site", SiteListHandler).Methods("GET")
+	r.HandleFunc("/site/", SiteListHandler).Methods("GET")
 	r.HandleFunc("/site/{url}", SiteIdHandler).Methods("GET", "POST", "PUT", "DELETE")
 }
 
 // SiteListHandler may respond with multiple Site entries
 func SiteListHandler(w http.ResponseWriter, r *http.Request) {
-	if sites == nil || len(sites) < 1 {
-		fmt.Fprintf(w, "")
+	log.Infof("SiteListHandler sites %+v", sites)
+	if len(sites) < 1 {
+		sites = Sitemap{}
 	}
 	writeJSON(w, sites)
 }
 
 // SiteIdHandler manages requests targeted for a specific site.
 func SiteIdHandler(w http.ResponseWriter, r *http.Request) {
-
 	url := urlFromRequest(r)
 	log.Debugln("SiteIdHandler request ", url)
 
 	switch r.Method {
 	case "GET":
-		if site := sites.Get(url); site != nil {
+		if site, ex := sites[url]; ex {
 			writeJSON(w, site)
 		} else {
 			JSONError(w, fmt.Errorf("site not found %s", url))
 		}
 
 	case "PUT", "POST":
-		if nsite := AddNewSite(url); nsite != nil {
-			writeJSON(w, nsite)
-		} else {
-			JSONError(w, errors.New("Failed to Add "+url))
+
+		log.Infof("POST /site/%s ", url)
+		site := NewSite(url)
+		sites[url] = site
+
+		site.crawlable = true
+		site.crawlready = true
+		acl.AddHost(url)
+
+		// Now create the page for the new URL
+		page := GetPage(url)
+		page.CrawlReady = true
+
+		if site.Pagemap == nil {
+			site.Pagemap = make(Pagemap)
 		}
+		site.Pagemap[url] = page
+
+		log.Infoln("sending url to URLq")
+
+		//urlQ.Send(url)
+		writeJSON(w, map[string]string{"saved": url})
 
 	case "DELETE":
 		h := GetHostname(url)
-		RemoveSite(h)
+		DeleteSite(h)
+		writeJSON(w, struct {
+			Msg string
+		}{
+			Msg: "Deleted " + url,
+		})
 
 	default:
 		JSONError(w, fmt.Errorf("unspported method "+r.Method))
 	}
+
+	// SaveSites XXX Broken XXX
+	SaveSites()
 	return
 }

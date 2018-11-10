@@ -11,8 +11,8 @@ import (
 func TestACL(t *testing.T) {
 
 	acl := NewACL()
-	acl.AllowHost("http://allowme.com")
-	acl.RejectHost("http://rejectme.com")
+	acl.AddHost("http://allowme.com")
+	acl.AddReject("http://rejectme.com")
 
 	var tsts = []struct {
 		host     string

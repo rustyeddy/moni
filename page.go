@@ -1,7 +1,10 @@
 package moni
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -22,13 +25,14 @@ type Page struct {
 	URL string
 
 	Content []byte
-	Links   map[string]*Page
+	Links   map[string]int
 	Ignored map[string]int
 
 	CrawlState int
-
+	CrawlReady bool
 	StatusCode int
-	Err        error
+
+	Err error
 
 	LastCrawled time.Time
 	Start       time.Time
@@ -39,9 +43,63 @@ type Page struct {
 // ********************************************************************
 type Pagemap map[string]*Page
 
-var (
-	pages Pagemap
-)
+func initPages() Pagemap {
+	if pages == nil {
+		if pages = ReadPages(); pages == nil {
+			pages = make(Pagemap)
+		}
+	}
+	return pages
+}
+
+// NewPage returns a newly created page represented by the URL, NewPage
+// registers itself the pages Pagemap.
+func NewPage(url string) (p *Page) {
+	log.Debugln("NewPage ", url)
+	p = &Page{
+		URL:        url,
+		Links:      make(map[string]int),
+		Ignored:    make(map[string]int),
+		CrawlReady: true,
+		CrawlState: CrawlReady, // XXX Fix thsi
+	}
+	if pages == nil {
+		pages = make(map[string]*Page)
+	}
+	pages[url] = p
+	return p
+}
+
+func GetPage(url string) (p *Page) {
+
+	if p = pages.Get(url); p == nil {
+		p = NewPage(url)
+	}
+	return
+}
+
+func removeTrailingSlash(u string) (newu string) {
+	// remove a trailing slash, if there is one
+	newu = u
+	if strings.HasSuffix(newu, "/") {
+		newu = u[:len(u)-2]
+	}
+	return newu
+}
+
+// FetchPage returns the page from the pagemap if it exists. If
+// it does not exist, nil will be returned.
+func FetchPage(url string) (p *Page) {
+	return pages.Get(url)
+}
+
+// StorePage will save the page to the pagemap, if the page index does
+// not exist it will be created for the page.  If the page already
+// exists it will be overwritten with the new page.
+func StorePage(p *Page) {
+	pages[p.URL] = p
+	SavePages()
+}
 
 // String will represent the Page
 // ====================================================================
@@ -50,53 +108,8 @@ func (p *Page) String() string {
 	return str
 }
 
-func GetPagemap() Pagemap {
-	if pages == nil {
-		pages = make(Pagemap)
-
-		if _, err := storage.FetchObject("pages", pages); err != nil {
-			log.Debugf("Empty pages %v, creating ...", err)
-			// TODO ~ make sure the error is NOT found
-
-			_, err := storage.StoreObject("pages", pages)
-			if err != nil {
-				log.Errorf("Store: failed to create pages: %v ", err)
-				return pages
-			}
-		}
-	}
-	return pages
-}
-
-func savePagemap() error {
-	if _, err := storage.StoreObject("pages", pages); err != nil {
-		log.Errorf("failed to save page map %v", err)
-		return err
-	}
-	return nil
-}
-
-// GetPage will sanitize the url, either find or create the
-// corresponding page structure.  If the URL is deep, we also
-// find the corresponding site structure.
-func PageFromURL(ustr string) (pi *Page) {
-	var ex bool
-	if pi, ex = pages[ustr]; !ex {
-		pi = &Page{
-			URL:        ustr,
-			Links:      make(map[string]*Page),
-			Ignored:    make(map[string]int),
-			CrawlState: CrawlReady,
-		}
-		if pages == nil {
-			pages = make(map[string]*Page)
-		}
-		pages[ustr] = pi
-	}
-	return pi
-}
-
 func (pm Pagemap) Get(url string) (p *Page) {
+	url = removeTrailingSlash(url)
 	if p, e := pm[url]; e {
 		return p
 	}
@@ -112,4 +125,47 @@ func (pm Pagemap) Exists(url string) bool {
 
 func (pm Pagemap) Set(url string, p *Page) {
 	pm[url] = p
+}
+
+// ReadPages from the underlying storage
+func ReadPages() (pm Pagemap) {
+	var (
+		buf []byte
+		err error
+	)
+	st := GetStore()
+	IfNilFatal(st)
+
+	path := st.PathFromName("pages.json")
+	if buf, err = ioutil.ReadFile(path); err != nil {
+		log.Warnf("read index %s failed %v", path, err)
+		return nil
+	}
+
+	switch st.ContentType {
+	case "application/json":
+		if err = json.Unmarshal(buf, &pm); err != nil {
+			IfErrorFatal(err, "unmarshal json pages get failed "+path)
+		}
+	default:
+		panic("did not expect this")
+	}
+	return pm
+}
+
+// SavePages to underlying storage
+func SavePages() {
+	st := UseStore(app.Storedir)
+	IfNilFatal(st)
+
+	err := st.Put("pages.json", pages)
+	IfErrorFatal(err)
+}
+
+// DeletePage removes the page with matching url from storage
+func DeletePage(url string) {
+	if _, ex := pages[url]; ex {
+		delete(pages, url)
+	}
+	SavePages()
 }

@@ -1,22 +1,32 @@
 package moni
 
 import (
+	"context"
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
+	"os/signal"
 	"path/filepath"
 
-	"github.com/rustyeddy/store"
+	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
 
+// All global variables
 var (
-	app *App
-)
+	app    *App
+	server *http.Server
+	router *mux.Router
+	store  *Store
+	acl    *AccessList
+	sites  Sitemap
+	pages  Pagemap
 
-func init() {
-	app = NewApp(&DefaultConfig)
-}
+	//urlQ   *URLQ
+	//crawlQ *CrawlQ
+	//saveQ  *SaveQ
+)
 
 // ====================================================================
 //                           App
@@ -34,43 +44,59 @@ type App struct {
 	Tmpl  string // base or frame template
 	Frag  string // request.URL.Fragment
 
+	// This is only real configuration
+	Configuration
+
 	// Tmplates to handle html and text formatting
 	AppTemplates
-
 	*log.Entry
 }
 
 // NewApp will produce a new App
-func NewApp(cfg *Configuration) (app *App) {
-	app = &App{
-		Name:  "ClowOpsApp",
-		Title: "Clowd ~ Operations",
-		Tmpl:  "index.html",
-	}
-	app.Title = app.Name
-	SetConfig(cfg)
+func GetApp(cfg *Configuration) (app *App) {
+	if app == nil {
+		app = &App{
+			Name:  "ClowOpsApp",
+			Title: "Clowd ~ Operations",
+			Tmpl:  "index.html",
+		}
+		app.Title = app.Name
+		app.Configuration = *cfg
 
-	// Setup the logger
-	app.Entry = log.WithFields(log.Fields{
-		"app":  app.Title,
-		"tmpl": app.Tmpl,
-	})
+		// Setup the logger
+		app.Entry = log.WithFields(log.Fields{
+			"app":  app.Title,
+			"tmpl": app.Tmpl,
+		})
+	}
+	// TODO: setup router with subrouting
+	// code here xxx
 	return app
 }
 
-// NewApp will produce a new App
-func NewTestApp(config *Configuration) (app *App) {
-	app = &App{
-		Name:  "ClowOpsApp",
-		Title: "Clowd ~ Operations",
-		Tmpl:  "index.html",
-	}
-	app.Title = app.Name
+func (app *App) Init() *App {
+	// Some global could make them the apps
+
+	store = GetStore()
+	acl = initACL()
+	sites = initSites()
+	pages = initPages()
+
+	// urlQ = NewURLQ()
+	// crawlQ = NewCrawlQ()
+	// saveQ = NewSaveQ()
+
+	// Create the server ~ And register the app
+	server, router = GetServer(app.Addrport)
+	app.Register(router)
 	return app
 }
 
-func (app *App) Start() {
-	StartServer()
+func (app *App) StartService() {
+	//go urlQ.Watch()
+	//go crawlQ.Watch()
+	//go saveQ.Watch()
+	server.ListenAndServe()
 }
 
 // ====================================================================
@@ -86,10 +112,9 @@ type AppTemplates struct {
 }
 
 // Acculmulate the data needed for the template
-type Appdata struct {
-	*Sitemap
+type AppData struct {
+	Sites []*Site
 	*Configuration
-	*store.Store
 }
 
 // Builder constructs (and sends) the response back to the
@@ -97,8 +122,6 @@ type Appdata struct {
 // assembles them and off they go
 func (app *App) PrepareTemplates(tmpldir string) {
 	pattern := filepath.Join(tmpldir, "*.html")
-
-	fmt.Printf("Reading templates dir %s from %s\n", tmpldir, pattern)
 	app.Template = template.Must(template.ParseGlob(pattern))
 }
 
@@ -119,16 +142,38 @@ func (app *App) Assemble(w http.ResponseWriter, tmplname string) {
 	// in two parts.  1. A semi-generic frame is created with designated areas
 	// can be overwritten with application specific information.
 	if app.Template == nil {
-		app.PrepareTemplates(config.Tmpldir)
+		app.PrepareTemplates(app.Tmpldir)
 	}
-
-	d := &Appdata{
-		Sitemap:       &sites,
-		Store:         storage,
-		Configuration: config,
+	d := &AppData{
+		Configuration: &app.Configuration,
 	}
-
 	if err := app.ExecuteTemplate(w, "index.html", d); err != nil {
 		app.Fatalln(err)
 	}
+}
+
+func (app *App) Run() {
+	// Wait for the server (and/or) client to end
+	// ====================================================================
+	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
+	// SIGKILL, SIGQUIT or SIGTERM (Ctrl+/) will not be caught.
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+
+	// Block until we receive our signal.
+	<-c
+
+	// Create a deadline to wait for.
+	ctx, cancel := context.WithTimeout(context.Background(), app.Wait)
+	defer cancel()
+	// Doesn't block if no connections, but will otherwise wait
+	// until the timeout deadline.
+	app.Shutdown(ctx)
+
+	// Optionally, you could run srv.Shutdown in a goroutine and block on
+	// <-ctx.Done() if your application should wait for other services
+	// to finalize based on context cancellation.
+	log.Println("shutting down")
+
+	os.Exit(0)
 }

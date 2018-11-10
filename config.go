@@ -1,19 +1,15 @@
 package moni
 
 import (
-	"errors"
 	"io"
+	"os"
 	"time"
 
 	log "github.com/sirupsen/logrus"
 )
 
-var (
-	config *Configuration
-)
-
 type ConfigLogger struct {
-	LevelString  string
+	LogLevel     string
 	FormatString string
 	Logfile      string
 
@@ -22,77 +18,92 @@ type ConfigLogger struct {
 	Out io.Writer
 }
 
+// Configuration sports the major configurable items
+// of our moni application
 type Configuration struct {
 	Addrport string
 	Basedir  string
-	Client   bool
 
 	ConfigLogger
-
 	ConfigFile string
-	Cli        bool
-	Daemon     bool
-	Debug      bool
-	Depth      int
-
-	NoServe bool
 
 	Profile bool
-	Pubdir  string
+	Debug   bool
+	Depth   int
 
-	Storedir string
+	Pubdir   string
 	Tmpldir  string
-	Wait     time.Duration
+	Storedir string
 
+	Wait time.Duration
 	*Logerr
 }
 
-type Command struct {
-	Command string
-	Args    []string
-}
-
-var (
-	DefaultConfig = Configuration{
+// DefaultConfig sets some reasonable defaults before any
+// configs can be read or any input from the external env
+func DefaultConfig() Configuration {
+	return Configuration{
 		Addrport: ":8888",
-		Daemon:   false,
 		Depth:    3,
-		Profile:  false,
 		Pubdir:   "docs",
-		NoServe:  false,
-		Storedir: "/srv/moni", // or "./.moni"
+		Storedir: "/srv/moni",
 		Tmpldir:  "tmpl",
 	}
-)
+}
 
-// SetConfig sets and reconfigures the application
-func SetConfig(cfg *Configuration) {
-	// Set the global config
-	config = cfg
+// SetLogger adjusts logger configs after a Configuration change, such as
+// immediately after parsing flags
+func (c *Configuration) SetLogger() {
+	if app.Logfile != "stdout" && app.Logfile != "stderr" {
+		if wr, err := os.Open(app.Logfile); err != nil {
+			log.Fatalln("Failed to open logfile ", app.Logfile)
+		} else {
+			log.SetOutput(wr)
+		}
+	}
 
-	if config.Logerr == nil {
-		config.Logerr = NewLogerr("config")
+	if l, err := log.ParseLevel(app.LogLevel); err != nil {
+		log.Fatalln("failed to parse level ", app.Level)
+	} else {
+		log.SetLevel(l)
+	}
+
+	switch app.FormatString {
+	case "text":
+		log.SetFormatter(&log.TextFormatter{})
+	case "json":
+		log.SetFormatter(&log.JSONFormatter{})
+	default:
+		log.Fatalln("can not use formatter ", app.FormatString)
 	}
 }
 
-// StoreObject will write the configuration out to our Storage as
-// configurations.  Hence, we will use a label name and not a
-// filename, although the label name can look like a filename..  That
-// is a label can be "config.json" but it can NOT have any leading
-// path '/' characters
-func (c *Configuration) StoreConfig() {
-	_, err := storage.StoreObject("config", c)
-	if err != nil {
-		log.Errorln("Failed writing configuration", c.ConfigFile, err)
-	}
+func (c *Configuration) DebugLogger() {
+	log.SetFormatter(&log.TextFormatter{
+		DisableColors:    true,
+		DisableTimestamp: true,
+		DisableSorting:   true,
+	})
+	log.SetOutput(os.Stdout)
+	log.SetLevel(log.DebugLevel)
 }
 
-// ReadFile fetches our configuration object from our storage
-// container, if needed, the object will be converted from JSON to a
-// Go object before being returned.
-func (c *Configuration) FetchConfig() error {
-	if _, err := storage.FetchObject("config", c); err != nil {
-		return errors.New("failed to read config from store")
-	}
-	return nil
+func GetDebugLogger() (l *log.Logger) {
+	l = log.New()
+	l.SetFormatter(&log.TextFormatter{
+		DisableColors:    false,
+		DisableTimestamp: true,
+		DisableSorting:   true,
+	})
+	l.SetOutput(os.Stdout)
+	l.SetLevel(log.DebugLevel)
+	return l
+}
+
+func ProdLogger() (l *log.Logger) {
+	l = log.New()
+	l.SetFormatter(&log.JSONFormatter{})
+	l.SetOutput(os.Stdout)
+	l.SetLevel(log.WarnLevel)
+	return l
 }

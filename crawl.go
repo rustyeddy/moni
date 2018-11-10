@@ -1,7 +1,6 @@
 package moni
 
 import (
-	"fmt"
 	"net/url"
 	"strings"
 	"time"
@@ -9,19 +8,6 @@ import (
 	"github.com/gocolly/colly"
 	log "github.com/sirupsen/logrus"
 )
-
-// Crawler represents the crawling
-type CrawlDispatcher struct {
-	UrlQ   chan string // public used externally to submit urls
-	crawlQ chan *Page
-	saveQ  chan *Page
-	errQ   chan error
-
-	*AccessList
-	qsize int
-
-	*log.Entry
-}
 
 // CrawlJob is created periodically to manage a crawl request
 type CrawlJob struct {
@@ -32,90 +18,50 @@ type CrawlJob struct {
 	time.Time
 }
 
-var (
-	CrawlDepth int = 2
-	Crawler    *CrawlDispatcher
-)
-
-func init() {
-	Crawler = NewDispatcher()
-}
-
-// NewCrawler will handle scheduling all call requests
-func NewDispatcher() (crawler *CrawlDispatcher) {
-	cr := &CrawlDispatcher{
-		AccessList: NewACL(),
-		qsize:      2,
-	}
-	cr.UrlQ = make(chan string, cr.qsize)
-	cr.crawlQ = make(chan *Page, cr.qsize)
-	cr.saveQ = make(chan *Page, cr.qsize)
-	cr.errQ = make(chan error, cr.qsize)
-
-	flds := log.Fields{
-		"Name": "Dispatcher",
-	}
-	cr.Entry = log.WithFields(flds)
-	Crawler = cr
-	return Crawler
-}
-
-func (cr *CrawlDispatcher) WatchChannels() {
-	for {
-		log.Infoln("URLQ Channel Watcher waiting for URL ... ")
-		ts := time.Now()
-
-		select {
-		case url := <-cr.UrlQ:
-			log.Infof("urlChan recieved %s ~ %v ", url, time.Since(ts))
-			if pg := processURL(url); pg != nil {
-				cr.crawlQ <- pg
-			} else {
-				cr.errQ <- fmt.Errorf("url %s has errored ", url)
-			}
-
-		case page := <-cr.crawlQ:
-
-			cr.Crawl(page)
-
-		case page := <-cr.saveQ:
-			storage.StoreObject(page.URL, page)
-
-		case err := <-cr.errQ:
-			log.Error(err)
-		}
-	}
-}
-
 // Crawl will visit the given URL, and depending on configuration
 // options potentially walk internal links.
-func (cr *CrawlDispatcher) Crawl(pg *Page) {
+//
+// Order of the callbacks http://go-colly.org/docs/introduction/start/
+func Crawl(pg *Page) {
 
-	// Create the collector and go get shit! (preserve?)
+	log.Infof("Crawl ~ with %s ", pg.URL)
+
+	// create the collector and go get shit! (preserve?)
 	c := colly.NewCollector(
 		colly.MaxDepth(4),
+		colly.DisallowedDomains("namecheap.com", "www.namecheap.com", "wordpress.org", "www.wordpress.org", "developer.wordpress.org"),
+		//colly.Async(true),
 	)
+	// Limit parallelism to 2
+	// c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 2})
 
 	c.OnRequest(func(r *colly.Request) {
 		ustr := r.URL.String()
-
-		cr.UrlQ <- ustr
+		log.Infoln("OnRequest ", ustr)
 	})
 
 	// OnHTML will be called when we encounter a page reference
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		if link := e.Request.AbsoluteURL(e.Attr("href")); link != "" {
+			log.Infoln("\tOnHTML link ", link)
 			// Just send the link to the URL Q for processing
-			cr.UrlQ <- link
+			if page := GetPage(link); page != nil {
+				if !page.CrawlReady {
+					log.Infoln("\t  skip not crawl ready")
+					return
+				}
+				pg.Links[link]++
+			}
+			//urlQ.Send(link)
 		}
 	})
 
 	c.OnResponse(func(r *colly.Response) {
 		link := r.Request.URL.String()
-		log.Debugln("  response from", link, "status", r.StatusCode)
+		log.Infoln("  response from", link, "status", r.StatusCode)
 		pg.StatusCode = r.StatusCode
 		pg.Finish = time.Now()
-		pg.CrawlState = CrawlResponseRecieved
+		pg.CrawlReady = false
 		pages[link] = pg
 	})
 
@@ -124,50 +70,44 @@ func (cr *CrawlDispatcher) Crawl(pg *Page) {
 		pg.Err = err
 		pg.StatusCode = r.StatusCode
 		pg.Finish = time.Now()
-		pg.CrawlState = CrawlErrored
+		pg.CrawlReady = false
 		link := r.Request.URL.String()
 		pages[link] = pg
 	})
 
+	log.Infof("Visiting %s ready %v", pg.URL, pg.CrawlReady)
 	pg.Start = time.Now()
 	c.Visit(pg.URL)
+	pg.Finish = time.Now()
 
-	log.Infoln("Crawl Finished ", pg.URL)
+	log.Infof("Crawl Finished %s %v \n", pg.URL, time.Since(pg.Start))
 }
 
 // CrawlOrNot will determine if the provided url is allowed to be crawled,
 // and if enough time has passed before the url can be scanned again
-func (cr *CrawlDispatcher) CrawlOrNot(urlstr string) (pi *Page) {
-	cr.Infoln("crawl or not ", urlstr)
-	if !cr.IsAllowed(urlstr) {
-		cr.Infof("  not allowed %s add reason ..", urlstr)
+func CrawlOrNot(urlstr string) (pi *Page) {
+	log.Infoln("crawl or not ", urlstr)
+	if !acl.IsAllowed(urlstr) {
+		log.Infof("  not allowed %s add reason ..", urlstr)
 		return nil
 	}
 
-	if pi = PageFromURL(urlstr); pi == nil {
-		cr.Errorf("page not found url %s", urlstr)
+	if pi = NewPage(urlstr); pi == nil {
+		log.Errorf("page not found url %s", urlstr)
 		return nil
 	}
 
 	if pi.CrawlState != CrawlReady {
-		cr.Infof("  %s not ready to crawl ~ crawl bit off ", urlstr)
+		log.Infof("  %s not ready to crawl ~ crawl bit off ", urlstr)
 		return nil
 	}
 	return pi
 }
 
-// Cache the page if there is an error we just won't have a
-// cached page and will need to refetch.  Can get ugly if
-// the page is fetched a lot.
-func storePageCrawl(pg *Page) {
-	name := NameFromURL(pg.URL)
-	storage.StoreObject(name, pg)
-}
-
 func NameFromURL(urlstr string) (name string) {
 	u, err := url.Parse(urlstr)
 	if err != nil {
-		log.Errorln(err)
+		log.Errorln("NameFromURL ", err)
 		return
 	}
 
@@ -176,23 +116,18 @@ func NameFromURL(urlstr string) (name string) {
 	return name
 }
 
-// GetCrawls
-func GetCrawls() []string {
-	pat := "crawl-"
-	patlen := len(pat)
+// FindCrawls will match a given pattern against keys in the store returning
+// a list of matching crawls if there are any
+func FindCrawls(pattern string) (crawls []string) {
+	st := GetStore()
+	crawls = st.Glob("crawl-*.json")
+	return crawls
+}
 
-	crawls, _ := storage.FilterNames(func(name string) string {
-		if len(name) < patlen {
-			return ""
-		}
-		if name[0:patlen] == pat {
-			return name
-		}
-		return ""
-	})
-	if crawls == nil {
-		crawls = []string{}
-	}
+// GetCrawls
+func GetCrawls() (crawls []string) {
+	st := GetStore()
+	st.Get("crawls", crawls)
 	return crawls
 }
 
