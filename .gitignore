@@ -12,3 +12,5 @@ node_modules
 moni.debug
 moni/moni
 main
+.code-workspace
+.vscode
