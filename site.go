@@ -37,22 +37,19 @@ func (s *Site) Crawl() {
 	c.OnHTML("a", doHyperlink)
 	c.OnRequest(doRequest)
 
-	fmt.Println("visiting", s.BaseURL)
+	fmt.Println("Visiting: ", s.BaseURL)
 	c.Visit(s.BaseURL)
-	
-	storage.Save("config.json", config)
 }
 
 func doHyperlink(e *colly.HTMLElement) {
 	thing := e.Attr("href")
 	page, err := processPage(thing)
 	err_panic(err)
-		
 	if page != nil {
 		e.Request.Visit(thing)
 	}
 }
 
 func doRequest(r *colly.Request) {
-	fmt.Println("Visiting", r.URL)
+	fmt.Println("Request ", r.URL)
 }

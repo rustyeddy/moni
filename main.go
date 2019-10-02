@@ -15,6 +15,7 @@ import (
 // Configuration manages all variables and parameters for a given run of moni.
 type Configuration struct {
 	ConfigFile string
+	Changed bool
 }
 
 var (
@@ -45,6 +46,11 @@ func main() {
 		site.Crawl()
 	}
 	fmt.Println("The end...")
+
+	// Save the configuration if it has changed
+	if config.Changed {
+		storage.Save("config.json", config)		
+	}
 }
 
 func err_panic(err error) {
