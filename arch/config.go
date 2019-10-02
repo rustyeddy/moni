@@ -8,6 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// ConfigLogger controlls how the logger is configured.
 type ConfigLogger struct {
 	LogLevel     string
 	FormatString string
@@ -78,6 +79,7 @@ func (c *Configuration) SetLogger() {
 	}
 }
 
+// DebugLogger returns a logger ready for debugging
 func (c *Configuration) DebugLogger() {
 	log.SetFormatter(&log.TextFormatter{
 		DisableColors:    true,
@@ -88,6 +90,13 @@ func (c *Configuration) DebugLogger() {
 	log.SetLevel(log.DebugLevel)
 }
 
+// Write the contents of the configuration file.
+func (c *Configuration) Write(bufer []byte) (err error) {
+	panic("TODO")
+	return err
+}
+
+// GetDebugLogger returns a logger ready for debugging
 func GetDebugLogger() (l *log.Logger) {
 	l = log.New()
 	l.SetFormatter(&log.TextFormatter{
@@ -100,6 +109,7 @@ func GetDebugLogger() (l *log.Logger) {
 	return l
 }
 
+// ProdLogger is a production logger
 func ProdLogger() (l *log.Logger) {
 	l = log.New()
 	l.SetFormatter(&log.JSONFormatter{})

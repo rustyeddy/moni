@@ -11,3 +11,4 @@ var/tstore
 node_modules
 moni.debug
 moni/moni
+main

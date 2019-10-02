@@ -2,7 +2,7 @@ mapimg = ~/Desktop/home.png
 
 dotfile = etc/home.gv
 
-all:build
+all: build
 	make -C moni build
 
 go.mod:
