@@ -7,7 +7,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 
 	"github.com/gocolly/colly"
 	"github.com/rustyeddy/store"
@@ -19,15 +18,20 @@ type Configuration struct {
 }
 
 var (
-	storage *store.Store
+	storage *store.FileStore
 	config  Configuration
 
 	pages []string
 )
 
 func init() {
+	var err error
+
 	flag.StringVar(&config.ConfigFile, "config", "moni.json", "Moni config file")
-	storage, err := store.UseFileStore(".")
+	storage, err = store.UseFileStore(".")
+	if err != nil {
+		panic(err)
+	}
 }
 
 func main() {
@@ -37,9 +41,11 @@ func main() {
 	// Find and visit all links
 	c.OnHTML("a", func(e *colly.HTMLElement) {
 		thing := e.Attr("href")
-		pages = append(pages, thing)
-		fmt.Println(pages)
-		os.Exit(0)
+
+		page = filterPage(page)
+		if page == nil {
+			continue
+		}
 		e.Request.Visit(thing)
 	})
 
@@ -49,4 +55,8 @@ func main() {
 
 	c.Visit("http://go-colly.org/")
 	storage.Save("config.json", config)
+}
+
+func filterPage(page string) (page *Page) {
+
 }
