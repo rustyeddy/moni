@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/gocolly/colly"
 	"github.com/rustyeddy/store"
 )
 
@@ -36,40 +35,16 @@ func init() {
 func main() {
 	flag.Parse()
 
-	sites := flag.Args()
-	if sites == nil || len(sites) == 0 {
+	urls := flag.Args()
+	if urls == nil || len(urls) == 0 {
 		log.Fatal("Expected some sites, got none")
 	}
 
-	for _, s := range sites {
-		Crawl(s)
+	for _, u := range urls {
+		site := NewSite(u)
+		site.Crawl()
 	}
 	fmt.Println("The end...")
-}
-
-// Crawl the given URL
-func Crawl(baseurl string) {
-	c := colly.NewCollector()
-
-	// Find and visit all links
-	c.OnHTML("a", func(e *colly.HTMLElement) {
-		thing := e.Attr("href")
-
-		page, err := processPage(thing)
-		err_panic(err)
-		
-		if page != nil {
-			e.Request.Visit(thing)
-		}
-	})
-
-	c.OnRequest(func(r *colly.Request) {
-		fmt.Println("Visiting", r.URL)
-	})
-
-	fmt.Println("visiting", baseurl)
-	c.Visit(baseurl)
-	storage.Save("config.json", config)
 }
 
 func err_panic(err error) {

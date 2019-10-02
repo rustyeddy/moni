@@ -6,13 +6,6 @@ import (
 	"time"
 )
 
-// Site is the structure that maintains all pages for this
-// root site
-type Site struct {
-	BaseURL string
-	Pages   map[string]*Page
-}
-
 // Page represents a single web page with associate statistics
 type Page struct {
 	*url.URL
