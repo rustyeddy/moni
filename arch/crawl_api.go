@@ -14,7 +14,9 @@ import (
 func registerCrawlers(r *mux.Router) {
 	r.HandleFunc("/crawl", CrawlListHandler) // Display "recent" crawl jobs
 	r.HandleFunc("/crawl/", CrawlListHandler)
-	r.HandleFunc("/crawl/{url}", CrawlUrlHandler).Methods("PUT", "POST", "GET", "DELETE") // Display a specific crawl job
+
+	// Display a specific crawl job
+	r.HandleFunc("/crawl/{url}", CrawlUrlHandler).Methods("PUT", "POST", "GET", "DELETE")
 
 }
 

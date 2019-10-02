@@ -124,7 +124,7 @@ func FindCrawls(pattern string) (crawls []string) {
 	return crawls
 }
 
-// GetCrawls
+// GetCrawls will get all the crawls
 func GetCrawls() (crawls []string) {
 	st := GetStore()
 	st.Get("crawls", crawls)
