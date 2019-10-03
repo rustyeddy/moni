@@ -86,10 +86,10 @@ func Crawl(urlstr string) {
 func doHyperlink(e *colly.HTMLElement) {
 	urlstr := e.Attr("href")
 	fmt.Println("url: ", urlstr)
-	//if processPage(urlstr) {
-	fmt.Println("\turl to be processed: ", urlstr)
-	e.Request.Visit(urlstr)
-	//}
+	if processPage(urlstr) {
+		fmt.Println("\turl to be processed: ", urlstr)
+		e.Request.Visit(urlstr)
+	}
 }
 
 func doRequest(r *colly.Request) {
