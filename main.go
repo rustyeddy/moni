@@ -78,25 +78,20 @@ func processPage(urlstr string) bool {
 	u, err := url.Parse(urlstr)
 	errPanic(err)
 
-	if u.Hostname() == "" {
+	host := u.Hostname()
+	if host == "" {
 		// we will accept relative urls because the are belong to
 		// the website being searched.
-		return ok
-
+		return true
 	} else {
-		if config.Verbose {
-			fmt.Printf("Hostname %s\n", u.Hostname())
-		}
+		fmt.Printf("Hostname %s\n", host)
 	}
 
-	if ok, ex = acl[urlstr]; ex == false {
-		return false
+	if ok, ex = acl[host]; ex {
+		return ok
 	}
 
-	if _, exists := pages[urlstr]; exists {
-		return false
-	}
-	return ok
+	return false
 }
 
 // Crawl the given URL
@@ -112,10 +107,12 @@ func Crawl(urlstr string) {
 func doHyperlink(e *colly.HTMLElement) {
 	urlstr := e.Attr("href")
 
-	fmt.Println("url: ", urlstr)
+	fmt.Print("url: ", urlstr)
 	if processPage(urlstr) {
-		fmt.Println("\turl to be processed: ", urlstr)
+		fmt.Println(" ok ...")
 		e.Request.Visit(urlstr)
+	} else {
+		fmt.Println(" blocked ...")
 	}
 }
 
