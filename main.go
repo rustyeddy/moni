@@ -99,12 +99,15 @@ func Crawl(urlstr string) {
 	c := colly.NewCollector()
 
 	// Setup all the collbacks
-	c.OnHTML("a", doHyperlink)
+	c.OnHTML("a", doHTML)
 	c.OnRequest(doRequest)
+	c.OnResponse(doResponse)
+	c.OnScraped(doScraped)
+
 	c.Visit(urlstr)
 }
 
-func doHyperlink(e *colly.HTMLElement) {
+func doHTML(e *colly.HTMLElement) {
 	urlstr := e.Attr("href")
 
 	fmt.Print("url: ", urlstr)
@@ -118,4 +121,12 @@ func doHyperlink(e *colly.HTMLElement) {
 
 func doRequest(r *colly.Request) {
 	fmt.Println("Request ", r.URL)
+}
+
+func doResponse(r *colly.Response) {
+	fmt.Println("Response ", r.Request.URL)
+}
+
+func doScraped(r *colly.Response) {
+	fmt.Println("Scraped ", r.Request.URL)
 }
