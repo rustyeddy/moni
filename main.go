@@ -8,21 +8,25 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"github.com/gocolly/colly"	
+	"net/url"
+
+	"github.com/gocolly/colly"
 	"github.com/rustyeddy/store"
 )
 
 // Configuration manages all variables and parameters for a given run of moni.
 type Configuration struct {
 	ConfigFile string
-	Changed bool
+	Changed    bool
+	Verbose    bool
 }
 
 var (
 	storage *store.FileStore
 	config  Configuration
-	pages	map[string]*Page
-	acl		map[string]bool
+	baseURL string
+	pages   map[string]*Page
+	acl     map[string]bool
 )
 
 func init() {
@@ -34,6 +38,7 @@ func init() {
 		panic(err)
 	}
 	pages = make(map[string]*Page)
+	acl = make(map[string]bool)
 }
 
 func main() {
@@ -44,19 +49,24 @@ func main() {
 		log.Fatal("Expected some sites, got none")
 	}
 
-	for _, u := range urls {
-		Crawl(u)
+	for _, baseURL = range urls {
+		// Place the command line url in the acl allowed list
+		if config.Verbose {
+			fmt.Print("Add website ", baseURL, " to ACL")
+		}
+		acl[baseURL] = true
+		Crawl(baseURL)
 	}
-	fmt.Println("The end...")
 
 	// Save the configuration if it has changed
 	if config.Changed {
 		fmt.Println("Configuration has changed, writing config file")
-		storage.Save("config.json", config)		
+		storage.Save("config.json", config)
 	}
+	fmt.Println("The end...")
 }
 
-func panic_err(err error) {
+func errPanic(err error) {
 	if err != nil {
 		panic(err)
 	}
@@ -64,11 +74,27 @@ func panic_err(err error) {
 
 func processPage(urlstr string) bool {
 	var ok, ex bool
-	
-	if _, exists := pages[urlstr]; exists == false {
-		if ok, ex = acl[urlstr]; ex == false {
-			return false
+
+	u, err := url.Parse(urlstr)
+	errPanic(err)
+
+	if u.Hostname() == "" {
+		// we will accept relative urls because the are belong to
+		// the website being searched.
+		return ok
+
+	} else {
+		if config.Verbose {
+			fmt.Printf("Hostname %s\n", u.Hostname())
 		}
+	}
+
+	if ok, ex = acl[urlstr]; ex == false {
+		return false
+	}
+
+	if _, exists := pages[urlstr]; exists {
+		return false
 	}
 	return ok
 }
@@ -85,6 +111,7 @@ func Crawl(urlstr string) {
 
 func doHyperlink(e *colly.HTMLElement) {
 	urlstr := e.Attr("href")
+
 	fmt.Println("url: ", urlstr)
 	if processPage(urlstr) {
 		fmt.Println("\turl to be processed: ", urlstr)

@@ -6,12 +6,12 @@ import (
 	"time"
 )
 
-type AllPages map[string]*Page
+type allPages map[string]*Page
 
 // Page represents a single web page with associate statistics
 type Page struct {
 	*url.URL
-	
+
 	Start  time.Time
 	Finish time.Time
 
@@ -22,7 +22,7 @@ type Page struct {
 func NewPage(urlstr string) (p *Page) {
 	var u *url.URL
 	var err error
-	
+
 	if u, err = url.Parse(urlstr); err != nil {
 		panic(err)
 	}
