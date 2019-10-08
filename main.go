@@ -49,13 +49,20 @@ func main() {
 		log.Fatal("Expected some sites, got none")
 	}
 
+	// walk the command line arguments treating them as URLs
 	for _, baseURL = range urls {
 		// Place the command line url in the acl allowed list
 		if config.Verbose {
 			fmt.Print("Add website ", baseURL, " to ACL")
 		}
-		acl[baseURL] = true
-		Crawl(baseURL)
+
+		u, err := url.Parse(baseURL)
+		errPanic(err)
+
+		acl[u.Hostname()] = true
+
+		// This will become sending a message
+		Crawl(u)
 	}
 
 	// Save the configuration if it has changed
@@ -95,7 +102,7 @@ func processPage(urlstr string) bool {
 }
 
 // Crawl the given URL
-func Crawl(urlstr string) {
+func Crawl(u *url.URL) {
 	c := colly.NewCollector()
 
 	// Setup all the collbacks
@@ -104,13 +111,14 @@ func Crawl(urlstr string) {
 	c.OnResponse(doResponse)
 	c.OnScraped(doScraped)
 
-	c.Visit(urlstr)
+	c.Visit(u.String())
 }
 
 func doHTML(e *colly.HTMLElement) {
 	urlstr := e.Attr("href")
+	u, _ := url.Parse(urlstr)
 
-	fmt.Print("url: ", urlstr)
+	fmt.Printf("url: %+v\n", u)
 	if processPage(urlstr) {
 		fmt.Println(" ok ...")
 		e.Request.Visit(urlstr)
@@ -119,14 +127,20 @@ func doHTML(e *colly.HTMLElement) {
 	}
 }
 
+// Called before the request is sent
 func doRequest(r *colly.Request) {
 	fmt.Println("Request ", r.URL)
 }
 
+// Called after the response is
 func doResponse(r *colly.Response) {
 	fmt.Println("Response ", r.Request.URL)
 }
 
 func doScraped(r *colly.Response) {
 	fmt.Println("Scraped ", r.Request.URL)
+}
+
+func doError(_ *colly.Response, err error) {
+	fmt.Println("Error", err)
 }
