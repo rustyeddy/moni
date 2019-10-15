@@ -1,16 +1,41 @@
-gofiles = main.go page.go
+mapimg = ~/Desktop/home.png
 
-moni: $(gofiles)
-	go build -v -o moni $(gofiles)
+dotfile = etc/home.gv
 
-build: $(gofiles)
-	go -v build $(gofiles)
+all: build
+	make -C moni build
 
-run: $(gofiles)
-	go -v run $(gofiles)
+go.mod:
+	mod init github.com/rustyeddy/moni
+
+build: 
+	go build 
+
+buildv: 
+	go build -v
+
+run:
+	make -C moni run *.go
 
 test:
-	go test -v *.go
+	go test
+
+testv:
+	go test -v
+
+ttv:
+	go test -v -trace=test.out
+
+serve:
+	go run *.go -http
 
 install:
-	go install -o moni $(gofiles)
+	go install
+
+mapimg:
+	dot -Tpng -o $(mapimg) $(dotfile)
+
+clean:
+	go clean
+	rm -rf *~
+	rm -rf moni/*~
