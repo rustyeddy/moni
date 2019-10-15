@@ -44,6 +44,8 @@ github.com/rustyeddy/logrus v1.0.5 h1:qa8nPiLeoc+kUrlWwpxvIEflov3o63prZYYV39/c93
 github.com/rustyeddy/logrus v1.0.5/go.mod h1:+UEuPMYfzlUcgchFiMyinR2YfoEELYwX+Df+qtn4BoI=
 github.com/rustyeddy/store v0.0.0-20181018202852-21207579ae80 h1:uVJcfkgqDX2s/PcQRNTumWI67kE11paCASozq+K7BJI=
 github.com/rustyeddy/store v0.0.0-20181018202852-21207579ae80/go.mod h1:n4dbTqpqNBSeO+pd7RHHwDNy91Y0FmFNcs0aX1MONXg=
+github.com/rustyeddy/store v0.0.0-20191002045413-f3ab9ac71300 h1:jgBomzt2SFqmXQc84qGkA9tEmJqJ5UnbGecKDgg0ByM=
+github.com/rustyeddy/store v0.0.0-20191002045413-f3ab9ac71300/go.mod h1:G5ZQ21d7HPwfKe8ZepqitaFUmD5bhQD/rRp+Cgr9RSI=
 github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca h1:NugYot0LIVPxTvN8n+Kvkn6TrbMyxQiuvKdEwFdR9vI=
 github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca/go.mod h1:uugorj2VCxiV1x+LzaIdVa9b4S4qGAcH6cbhh4qVxOU=
 github.com/sirupsen/logrus v1.1.1 h1:VzGj7lhU7KEB9e9gMpAV/v5XT2NVSvLJhJLCWbnkgXg=

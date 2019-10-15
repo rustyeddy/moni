@@ -5,7 +5,6 @@ import (
 )
 
 var (
-	app *moni.App
 	cfg moni.Configuration
 )
 
@@ -35,7 +34,7 @@ func init() {
 	flag.BoolVar(&cfg.Profile, "prof", true, "Profile our http server (daemon)")
 }
 
-func main() {
+func main3() {
 	// Flags are mostly set in the moni.config.go package
 	flag.Parse()
 

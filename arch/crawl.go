@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gocolly/colly"
+	"github.com/rustyeddy/store"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -119,14 +120,14 @@ func NameFromURL(urlstr string) (name string) {
 // FindCrawls will match a given pattern against keys in the store returning
 // a list of matching crawls if there are any
 func FindCrawls(pattern string) (crawls []string) {
-	st := GetStore()
+	st := store.UseFileStore("./etc")
 	crawls = st.Glob("crawl-*.json")
 	return crawls
 }
 
 // GetCrawls will get all the crawls
 func GetCrawls() (crawls []string) {
-	st := GetStore()
+	st := store.UseFileStore("./etc")
 	st.Get("crawls", crawls)
 	return crawls
 }

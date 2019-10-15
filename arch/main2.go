@@ -14,19 +14,10 @@ import (
 	"github.com/rustyeddy/store"
 )
 
-// Configuration manages all variables and parameters for a given run of moni.
-type Configuration struct {
-	ConfigFile string
-	Changed    bool
-	Verbose    bool
-}
-
 var (
 	storage *store.FileStore
 	config  Configuration
 	baseURL string
-	pages   map[string]*Page
-	acl     map[string]bool
 )
 
 func init() {
@@ -38,7 +29,6 @@ func init() {
 		panic(err)
 	}
 	pages = make(map[string]*Page)
-	acl = make(map[string]bool)
 }
 
 func main() {
@@ -52,9 +42,7 @@ func main() {
 	// walk the command line arguments treating them as URLs
 	for _, baseURL = range urls {
 		// Place the command line url in the acl allowed list
-		if config.Verbose {
-			fmt.Print("Add website ", baseURL, " to ACL")
-		}
+		fmt.Print("Add website ", baseURL, " to ACL")
 
 		u, err := url.Parse(baseURL)
 		errPanic(err)
@@ -102,7 +90,7 @@ func processPage(urlstr string) bool {
 }
 
 // Crawl the given URL
-func Crawl(u *url.URL) {
+func CrawlShort(u *url.URL) {
 	c := colly.NewCollector()
 
 	// Setup all the collbacks

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
+	"github.com/rustyeddy/store"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -106,22 +107,24 @@ func ReadACL() *AccessList {
 		a   AccessList
 		err error
 	)
-	st := GetStore()
+
+	storedir := "./etc"
+	st, err := store.UseFileStore(storedir)
 	IfNilFatal(st)
 
-	path := st.PathFromName("acl.json")
+	// Err and Panic
+	IfErrorFatal(err, "Failed to open store at ")
+
+	path := "./etc/acl.json"
 	if buf, err = ioutil.ReadFile(path); err != nil {
 		log.Errorf("read index %s failed %v", path, err)
 		return nil
 	}
 
-	switch st.ContentType {
-	case "application/json":
-		if err = json.Unmarshal(buf, &a); err != nil {
-			IfErrorFatal(err, "get failed marshaling json "+path)
-		}
-	default:
-		panic("did not expect this")
+	// assume a content type of JSON (use the .ext)
+	if err = json.Unmarshal(buf, &a); err != nil {
+		IfErrorFatal(err, "get failed marshaling json "+path)
+		return nil
 	}
 
 	/*
@@ -141,7 +144,7 @@ func ReadACL() *AccessList {
 
 // SaveACL stores the acl in our store
 func SaveACL() {
-	st := GetStore()
+	st, _ := store.UseFileStore("./etc")
 	IfNilFatal(st)
 
 	err := st.Put("acl.json", acl)
