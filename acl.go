@@ -15,11 +15,10 @@ type AccessList struct {
 	Rejected    map[string]int
 	Unsupported map[string]int
 
-	*log.Entry `json:"-"`
+	*log.Entry `json:"-"` // JSON to ignore this
 }
 
-// ACL returns the accessList.  If the accessList does not exist
-// it will be created prior to return
+// ACL returns a brand new accessList with all default values.
 func NewACL() AccessList {
 	acl := AccessList{
 		Allowed:     make(map[string]int),
@@ -98,7 +97,7 @@ func (acl *AccessList) IsAllowed(urlstr string) (allow bool) {
 	return false
 }
 
-// ReadACL will attempt to read the acl file (/srv/moni/acl.json)
+// ReadACL will attempt to read the acl file (/etc/moni/acl.json)
 // by default.  If it fails, it will complain then allow you to
 // carry on.
 func ReadACL() *AccessList {

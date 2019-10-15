@@ -1,4 +1,4 @@
-package main
+package moni
 
 /*
  * Moni is my website monitoring tool

@@ -1,9 +1,7 @@
-package main
+package moni
 
 import (
 	"flag"
-
-	"github.com/rustyeddy/moni"
 )
 
 var (
