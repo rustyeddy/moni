@@ -8,11 +8,6 @@ import (
 	"github.com/gocolly/colly"
 )
 
-type pageInfo struct {
-	StatusCode int
-	Links      map[string]int
-}
-
 func handler(w http.ResponseWriter, r *http.Request) {
 	URL := r.URL.Query().Get("url")
 	if URL == "" {
