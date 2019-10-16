@@ -2,11 +2,22 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/gocolly/colly"
+	log "github.com/sirupsen/logrus"
 )
+
+type Configuration struct {
+}
+
+var (
+	config Configuration
+)
+
+func init() {
+	log.SetFormatter(&log.JSONFormatter{})
+}
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	URL := r.URL.Query().Get("url")
@@ -18,7 +29,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	c := colly.NewCollector()
 
-	p := &pageInfo{Links: make(map[string]int)}
+	//p := &pageInfo{Links: make(map[string]int)}
+	p := NewPage(URL)
 
 	// count links
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
