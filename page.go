@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/url"
+	"time"
 )
 
 var (
@@ -14,6 +15,9 @@ type Page struct {
 	*url.URL
 	StatusCode int
 	Links      map[string]int
+
+	reqtime  time.Time
+	resptime time.Time
 }
 
 // NewPage returns a new page structure
