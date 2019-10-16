@@ -1,7 +1,15 @@
 package main
 
-import "net/url"
+import (
+	"fmt"
+	"net/url"
+)
 
+var (
+	pages map[string]*Page
+)
+
+// Page represents a single web page
 type Page struct {
 	*url.URL
 	StatusCode int
@@ -9,9 +17,7 @@ type Page struct {
 }
 
 // NewPage returns a new page structure
-func NewPage(urlstr string) (p *Page) {
-	u, err := url.Parse(urlstr)
-	ErrPanic(err)
+func newPage(u *url.URL) (p *Page) {
 
 	p = &Page{
 		URL:        u,
@@ -21,8 +27,36 @@ func NewPage(urlstr string) (p *Page) {
 	return p
 }
 
-func ErrPanic(err error) {
+// GetPage will return the page if it exists, or create otherwise.
+func GetPage(urlstr string) (p *Page) {
+	var ex bool
+
+	u, err := normURL(urlstr)
+	errPanic(err)
+
+	if p, ex = pages[u.String()]; ex {
+		return p
+	}
+	p = newPage(u)
+	return p
+}
+
+// normURL is responsible for normalizaing the URL
+func normURL(urlstr string) (u *url.URL, err error) {
+	u, err = url.Parse(urlstr)
+	return u, err
+}
+
+// errPanic something went wrong, panic.
+func errPanic(err error) {
 	if err != nil {
 		panic(err)
+	}
+}
+
+// nilPanic does so when it's parameter is such.
+func nilPanic(val interface{}) {
+	if val == nil {
+		fmt.Printf("val is nil")
 	}
 }
