@@ -7,11 +7,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"net/url"
 
 	"github.com/gocolly/colly"
 	"github.com/rustyeddy/store"
+	log "github.com/sirupsen/logrus"
 )
 
 // Configuration manages all variables and parameters for a given run of moni.
@@ -34,9 +34,8 @@ func init() {
 
 	flag.StringVar(&config.ConfigFile, "config", "moni.json", "Moni config file")
 	storage, err = store.UseFileStore(".")
-	if err != nil {
-		panic(err)
-	}
+	errPanic(err)
+
 	pages = make(map[string]*Page)
 	acl = make(map[string]bool)
 }
@@ -48,12 +47,17 @@ func main() {
 	if urls == nil || len(urls) == 0 {
 		log.Fatal("Expected some sites, got none")
 	}
+	processURLs(urls)
+}
+
+func processURLs(urls []string) {
 
 	// walk the command line arguments treating them as URLs
 	for _, baseURL = range urls {
+
 		// Place the command line url in the acl allowed list
 		if config.Verbose {
-			fmt.Print("Add website ", baseURL, " to ACL")
+			log.Infof("Add website %s to ACL\n", baseURL)
 		}
 
 		u, err := url.Parse(baseURL)
@@ -62,21 +66,10 @@ func main() {
 		acl[u.Hostname()] = true
 
 		// This will become sending a message
-		Crawl(u)
+		Walk(u)
 	}
-
-	// Save the configuration if it has changed
-	if config.Changed {
-		fmt.Println("Configuration has changed, writing config file")
-		storage.Save("config.json", config)
-	}
+	storage.Save("config2.json", config)
 	fmt.Println("The end...")
-}
-
-func errPanic(err error) {
-	if err != nil {
-		panic(err)
-	}
 }
 
 func processPage(urlstr string) bool {
@@ -91,7 +84,7 @@ func processPage(urlstr string) bool {
 		// the website being searched.
 		return true
 	} else {
-		fmt.Printf("Hostname %s\n", host)
+		fmt.Printf("Hostname %s ", host)
 	}
 
 	if ok, ex = acl[host]; ex {
@@ -102,7 +95,7 @@ func processPage(urlstr string) bool {
 }
 
 // Crawl the given URL
-func Crawl(u *url.URL) {
+func Walk(u *url.URL) {
 	c := colly.NewCollector()
 
 	// Setup all the collbacks
@@ -117,8 +110,11 @@ func Crawl(u *url.URL) {
 func doHTML(e *colly.HTMLElement) {
 	urlstr := e.Attr("href")
 	u, _ := url.Parse(urlstr)
+	if u == nil && u == "" {
+		return
+	}
 
-	fmt.Printf("url: %+v\n", u)
+	fmt.Printf("url: %+v ", u)
 	if processPage(urlstr) {
 		fmt.Println(" ok ...")
 		e.Request.Visit(urlstr)
@@ -129,12 +125,12 @@ func doHTML(e *colly.HTMLElement) {
 
 // Called before the request is sent
 func doRequest(r *colly.Request) {
-	fmt.Println("Request ", r.URL)
+	fmt.Print("Request ", r.URL)
 }
 
 // Called after the response is
 func doResponse(r *colly.Response) {
-	fmt.Println("Response ", r.Request.URL)
+	fmt.Print("Response ", r.Request.URL)
 }
 
 func doScraped(r *colly.Response) {
@@ -143,4 +139,10 @@ func doScraped(r *colly.Response) {
 
 func doError(_ *colly.Response, err error) {
 	fmt.Println("Error", err)
+}
+
+func errPanic(err error) {
+	if err != nil {
+		panic(err)
+	}
 }

@@ -14,3 +14,5 @@ test:
 
 install:
 	go install -o moni $(gofiles)
+
+.PHONY: run build
