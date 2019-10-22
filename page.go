@@ -1,14 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"net/url"
 	"time"
 
 	log "github.com/sirupsen/logrus"
-)
-
-var (
-	pages map[string]*Page
 )
 
 // Page represents a single web page
@@ -32,7 +29,6 @@ func newPage(u *url.URL) (p *Page) {
 	return p
 }
 
-<<<<<<< HEAD
 // NewPage returns a page structure that will hold all our cool stuff
 func NewPage(u *url.URL) (p *Page) {
 	p = &Page{
@@ -40,7 +36,8 @@ func NewPage(u *url.URL) (p *Page) {
 	}
 	log.Infof("New Page: %+v\n", u)
 	return p
-=======
+}
+
 // GetPage will return the page if it exists, or create otherwise.
 func GetPage(urlstr string) (p *Page) {
 	var ex bool
@@ -48,7 +45,7 @@ func GetPage(urlstr string) (p *Page) {
 	u, err := normURL(urlstr)
 	errPanic(err)
 
-	if p, ex = pages[u.String()]; ex {
+	if p, ex = pages[*u]; ex {
 		return p
 	}
 	p = newPage(u)
@@ -73,5 +70,4 @@ func nilPanic(val interface{}) {
 	if val == nil {
 		fmt.Printf("val is nil")
 	}
->>>>>>> 2c23252715255f8758af33fe7b8b054f831f6d7d
 }

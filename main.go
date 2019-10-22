@@ -1,9 +1,9 @@
 package main
 
 import (
-<<<<<<< HEAD
 	"flag"
 	"fmt"
+	"net/http"
 	"net/url"
 
 	"github.com/gocolly/colly"
@@ -13,31 +13,35 @@ import (
 
 // Configuration manages all variables and parameters for a given run of moni.
 type Configuration struct {
+	Addrport   string
 	ConfigFile string
 	Changed    bool
+	Daemon     bool
 	Verbose    bool
 }
-=======
-	"net/http"
->>>>>>> 2c23252715255f8758af33fe7b8b054f831f6d7d
 
-	log "github.com/sirupsen/logrus"
+var (
+	config Configuration
+
+	acl     map[string]bool
+	pages   map[url.URL]*Page
+	storage *store.FileStore
 )
 
 func init() {
-<<<<<<< HEAD
-	var err error
-
+	flag.StringVar(&config.Addrport, "addr", "0.0.0.0:1212", "Address and port configuration")
 	flag.StringVar(&config.ConfigFile, "config", "moni.json", "Moni config file")
 
-	storage, err = store.UseFileStore(".")
-	errPanic(err)
+	//storage, err := store.UseFileStore(".")
+	//errPanic(err)
 
-	pages = make(map[string]*Page)
+	pages = make(map[url.URL]*Page)
 	acl = make(map[string]bool)
 
 	// TODO read the acls from a file
 	acl["localhost"] = false
+
+	log.SetFormatter(&log.JSONFormatter{})
 }
 
 func main() {
@@ -47,13 +51,24 @@ func main() {
 	if urls == nil || len(urls) == 0 {
 		log.Fatal("Expected some sites, got none")
 	}
+
+	// Run as a server
+	if config.Daemon {
+		var err error
+
+		log.Println("listening on", config.Addrport)
+		err = http.ListenAndServe(config.Addrport, nil)
+		log.Fatal(err)
+	}
+
+	// Run on command line
 	processURLs(urls)
+
 }
 
 func processURLs(urls []string) {
-
 	// walk the command line arguments treating them as URLs
-	for _, baseURL = range urls {
+	for _, baseURL := range urls {
 
 		// Place the command line url in the acl allowed list
 		if config.Verbose {
@@ -123,7 +138,7 @@ func doHTML(e *colly.HTMLElement) {
 
 // Called before the request is sent
 func doRequest(r *colly.Request) {
-	pages[r.URL.String()] = NewPage(r.URL)
+	pages[*r.URL] = NewPage(r.URL)
 	fmt.Println("Request ", r.URL)
 }
 
@@ -133,25 +148,5 @@ func doResponse(r *colly.Response) {
 }
 
 func doScraped(r *colly.Response) {
-	fmt.Println("Scraped ", r.Request.URL)
-}
-=======
-	log.SetFormatter(&log.JSONFormatter{})
-}
-
-func main() {
-	// example usage: curl -s 'http://127.0.0.1:7171/?url=http://go-colly.org/'
-	addr := ":7171"
-
-	http.HandleFunc("/", handler)
->>>>>>> 2c23252715255f8758af33fe7b8b054f831f6d7d
-
-	log.Println("listening on", addr)
-	log.Fatal(http.ListenAndServe(addr, nil))
-}
-
-func errPanic(err error) {
-	if err != nil {
-		panic(err)
-	}
+	fmt.Printf("Scrap complete")
 }
