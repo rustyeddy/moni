@@ -8,6 +8,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var acl *AccessList
+
 func registerACLHandler(r *mux.Router) {
 	r.HandleFunc("/acl", ACLListHandler)
 	r.HandleFunc("/acl/", ACLListHandler).Methods("GET", "DELETE")

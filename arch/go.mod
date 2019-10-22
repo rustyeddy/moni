@@ -19,7 +19,7 @@ require (
 	github.com/mgutz/logxi v0.0.0-20161027140823-aebf8a7d67ab
 	github.com/mongodb/mongo-go-driver v0.0.17
 	github.com/rustyeddy/logrus v1.0.5
-	github.com/rustyeddy/store v0.0.0-20181018202852-21207579ae80
+	github.com/rustyeddy/store v0.0.0-20191002045413-f3ab9ac71300
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect
 	github.com/sirupsen/logrus v1.1.1
 	github.com/temoto/robotstxt v0.0.0-20180810133444-97ee4a9ee6ea // indirect

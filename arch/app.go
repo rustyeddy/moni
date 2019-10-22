@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 
 	"github.com/gorilla/mux"
+	"github.com/rustyeddy/store"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -18,14 +19,8 @@ var (
 	app    *App
 	server *http.Server
 	router *mux.Router
-	store  *Store
-	acl    *AccessList
 	sites  Sitemap
 	pages  Pagemap
-
-	//urlQ   *URLQ
-	//crawlQ *CrawlQ
-	//saveQ  *SaveQ
 )
 
 // ====================================================================
@@ -37,6 +32,7 @@ var (
 // displayed, it also maintains configurations and managers the server
 // and the scheduler.
 type App struct {
+	AddrPort string
 
 	// Basic meta stuff for App web page and content
 	Title string // name of the page (url title)
@@ -77,7 +73,9 @@ func GetApp(cfg *Configuration) (app *App) {
 func (app *App) Init() *App {
 	// Some global could make them the apps
 
-	store = GetStore()
+	st, err := store.UseFileStore("./etc")
+	IfErrorFatal(err)
+
 	acl = initACL()
 	sites = initSites()
 	pages = initPages()
@@ -87,7 +85,7 @@ func (app *App) Init() *App {
 	// saveQ = NewSaveQ()
 
 	// Create the server ~ And register the app
-	server, router = GetServer(app.Addrport)
+	server, router = GetServer(app.AddrPort)
 	app.Register(router)
 	return app
 }

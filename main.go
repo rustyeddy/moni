@@ -1,10 +1,7 @@
 package main
 
-/*
- * Moni is my website monitoring tool
- */
-
 import (
+<<<<<<< HEAD
 	"flag"
 	"fmt"
 	"net/url"
@@ -20,16 +17,15 @@ type Configuration struct {
 	Changed    bool
 	Verbose    bool
 }
+=======
+	"net/http"
+>>>>>>> 2c23252715255f8758af33fe7b8b054f831f6d7d
 
-var (
-	storage *store.FileStore
-	config  Configuration
-	baseURL string
-	pages   map[string]*Page
-	acl     map[string]bool
+	log "github.com/sirupsen/logrus"
 )
 
 func init() {
+<<<<<<< HEAD
 	var err error
 
 	flag.StringVar(&config.ConfigFile, "config", "moni.json", "Moni config file")
@@ -139,9 +135,19 @@ func doResponse(r *colly.Response) {
 func doScraped(r *colly.Response) {
 	fmt.Println("Scraped ", r.Request.URL)
 }
+=======
+	log.SetFormatter(&log.JSONFormatter{})
+}
 
-func doError(_ *colly.Response, err error) {
-	fmt.Println("Error", err)
+func main() {
+	// example usage: curl -s 'http://127.0.0.1:7171/?url=http://go-colly.org/'
+	addr := ":7171"
+
+	http.HandleFunc("/", handler)
+>>>>>>> 2c23252715255f8758af33fe7b8b054f831f6d7d
+
+	log.Println("listening on", addr)
+	log.Fatal(http.ListenAndServe(addr, nil))
 }
 
 func errPanic(err error) {

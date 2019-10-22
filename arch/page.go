@@ -104,7 +104,8 @@ func StorePage(p *Page) {
 // String will represent the Page
 // ====================================================================
 func (p *Page) String() string {
-	str := fmt.Sprintf("%s: lastcrawled: %s,  duration: %v links: %d ignored: %d\n", p.URL, p.LastCrawled, p.Finish, len(p.Links), len(p.Ignored))
+	str := fmt.Sprintf("%s: lastcrawled: %s,  duration: %v links: %d ignored: %d\n",
+		p.URL, p.LastCrawled, p.Finish, len(p.Links), len(p.Ignored))
 	return str
 }
 

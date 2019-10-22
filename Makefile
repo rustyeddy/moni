@@ -1,10 +1,9 @@
-gofiles = main.go page.go
+prog = moni
 
-moni: $(gofiles)
-	go build -v -o moni $(gofiles)
+gofiles = main.go page.go walker.go
 
-build: $(gofiles)
-	go -v build $(gofiles)
+build: moni
+	go build -o ${prog} 
 
 run: $(gofiles)
 	go -v run $(gofiles)
