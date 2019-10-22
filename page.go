@@ -1,9 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"net/url"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type allPages map[string]*Page
@@ -19,16 +20,10 @@ type Page struct {
 }
 
 // NewPage returns a page structure that will hold all our cool stuff
-func NewPage(urlstr string) (p *Page) {
-	var u *url.URL
-	var err error
-
-	if u, err = url.Parse(urlstr); err != nil {
-		panic(err)
-	}
+func NewPage(u *url.URL) (p *Page) {
 	p = &Page{
 		URL: u,
 	}
-	fmt.Printf("URL: %+v\n", u)
+	log.Infof("New Page: %+v\n", u)
 	return p
 }

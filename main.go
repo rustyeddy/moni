@@ -33,11 +33,15 @@ func init() {
 	var err error
 
 	flag.StringVar(&config.ConfigFile, "config", "moni.json", "Moni config file")
+
 	storage, err = store.UseFileStore(".")
 	errPanic(err)
 
 	pages = make(map[string]*Page)
 	acl = make(map[string]bool)
+
+	// TODO read the acls from a file
+	acl["localhost"] = false
 }
 
 func main() {
@@ -63,6 +67,7 @@ func processURLs(urls []string) {
 		u, err := url.Parse(baseURL)
 		errPanic(err)
 
+		// This is a little risky
 		acl[u.Hostname()] = true
 
 		// This will become sending a message
@@ -83,14 +88,11 @@ func processPage(urlstr string) bool {
 		// we will accept relative urls because the are belong to
 		// the website being searched.
 		return true
-	} else {
-		fmt.Printf("Hostname %s ", host)
 	}
-
+	fmt.Printf("Hostname %s ", host)
 	if ok, ex = acl[host]; ex {
 		return ok
 	}
-
 	return false
 }
 
@@ -110,13 +112,13 @@ func Walk(u *url.URL) {
 func doHTML(e *colly.HTMLElement) {
 	urlstr := e.Attr("href")
 	u, _ := url.Parse(urlstr)
-	if u == nil && u == "" {
+	if u == nil {
 		return
 	}
 
 	fmt.Printf("url: %+v ", u)
 	if processPage(urlstr) {
-		fmt.Println(" ok ...")
+		fmt.Println("ok ...")
 		e.Request.Visit(urlstr)
 	} else {
 		fmt.Println(" blocked ...")
@@ -125,12 +127,13 @@ func doHTML(e *colly.HTMLElement) {
 
 // Called before the request is sent
 func doRequest(r *colly.Request) {
-	fmt.Print("Request ", r.URL)
+	pages[r.URL.String()] = NewPage(r.URL)
+	fmt.Println("Request ", r.URL)
 }
 
 // Called after the response is
 func doResponse(r *colly.Response) {
-	fmt.Print("Response ", r.Request.URL)
+	fmt.Println("Response ", r.Request.URL)
 }
 
 func doScraped(r *colly.Response) {
