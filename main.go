@@ -53,7 +53,7 @@ func main() {
 	}
 
 	// Run as a server
-	if config.Daemon {
+	if !config.Daemon {
 		var err error
 
 		log.Println("listening on", config.Addrport)
