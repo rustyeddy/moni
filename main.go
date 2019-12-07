@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 
 	"github.com/gocolly/colly"
 	"github.com/rustyeddy/store"
@@ -17,6 +18,7 @@ type Configuration struct {
 	ConfigFile string
 	Changed    bool
 	Daemon     bool
+	LogFile    string
 	Verbose    bool
 }
 
@@ -32,6 +34,7 @@ var (
 func init() {
 	flag.StringVar(&config.Addrport, "addr", "0.0.0.0:1212", "Address and port configuration")
 	flag.StringVar(&config.ConfigFile, "config", "moni.json", "Moni config file")
+	flag.StringVar(&config.LogFile, "logfile", "crawl-log.json", "Crawl logfile")
 
 	//storage, err := store.UseFileStore(".")
 	//errPanic(err)
@@ -47,6 +50,8 @@ func init() {
 
 func main() {
 	flag.Parse()
+
+	setupLogging()
 
 	if storage, err = store.UseFileStore("."); err != nil || storage == nil {
 		errFatal(err, "failed to useFileStore ")
@@ -67,6 +72,14 @@ func main() {
 	}
 }
 
+func setupLogging() {
+	if config.LogFile != "" {
+		f, err := os.OpenFile(config.LogFile, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+		errFatal(err, "Failed to open "+config.LogFile)
+		log.SetOutput(f)
+	}
+}
+
 func processURLs(urls []string) {
 	// walk the command line arguments treating them as URLs
 	for _, baseURL := range urls {
@@ -78,6 +91,10 @@ func processURLs(urls []string) {
 
 		u, err := url.Parse(baseURL)
 		errPanic(err)
+
+		if u.Scheme == "" {
+			u.Scheme = "http"
+		}
 
 		// This is a little risky
 		acl[u.Hostname()] = true
@@ -97,11 +114,10 @@ func processPage(urlstr string) bool {
 
 	host := u.Hostname()
 	if host == "" {
-		// we will accept relative urls because the are belong to
+		// We will accept relative urls because they belong to
 		// the website being searched.
 		return true
 	}
-	fmt.Printf("Hostname %s ", host)
 	if ok, ex = acl[host]; ex {
 		return ok
 	}
@@ -130,7 +146,6 @@ func doHTML(e *colly.HTMLElement) {
 
 	fmt.Printf("url: %+v ", u)
 	if processPage(urlstr) {
-		fmt.Println("ok ...")
 		e.Request.Visit(urlstr)
 	} else {
 		fmt.Println(" blocked ...")

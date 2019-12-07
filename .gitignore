@@ -16,3 +16,4 @@ main
 .vscode
 moni
 crawl
+*.json

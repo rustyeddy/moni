@@ -3,5 +3,6 @@
     "ConfigFile": "moni.json",
     "Changed": false,
     "Daemon": false,
+    "LogFile": "crawl-log.json",
     "Verbose": false
   }
