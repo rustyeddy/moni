@@ -1,5 +1,7 @@
 {
+    "Addrport": "0.0.0.0:1212",
     "ConfigFile": "moni.json",
     "Changed": false,
+    "Daemon": false,
     "Verbose": false
   }

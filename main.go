@@ -23,6 +23,7 @@ type Configuration struct {
 var (
 	config Configuration
 
+	err     error
 	acl     map[string]bool
 	pages   map[url.URL]*Page
 	storage *store.FileStore
@@ -34,7 +35,6 @@ func init() {
 
 	//storage, err := store.UseFileStore(".")
 	//errPanic(err)
-
 	pages = make(map[url.URL]*Page)
 	acl = make(map[string]bool)
 
@@ -42,17 +42,22 @@ func init() {
 	acl["localhost"] = false
 
 	log.SetFormatter(&log.JSONFormatter{})
+
 }
 
 func main() {
 	flag.Parse()
 
-	urls := flag.Args()
-	if urls == nil || len(urls) == 0 {
-		log.Fatal("Expected some sites, got none")
+	if storage, err = store.UseFileStore("."); err != nil || storage == nil {
+		errFatal(err, "failed to useFileStore ")
 	}
 
-	// Run as a server
+	// Process URLs on the command line if we have them
+	if flag.Args() != nil {
+		processURLs(flag.Args())
+	}
+
+	// Now run as a daemon if requested
 	if !config.Daemon {
 		var err error
 
@@ -60,10 +65,6 @@ func main() {
 		err = http.ListenAndServe(config.Addrport, nil)
 		log.Fatal(err)
 	}
-
-	// Run on command line
-	processURLs(urls)
-
 }
 
 func processURLs(urls []string) {

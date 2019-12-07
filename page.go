@@ -71,3 +71,17 @@ func nilPanic(val interface{}) {
 		fmt.Printf("val is nil")
 	}
 }
+
+// errPanic something went wrong, panic.
+func errFatal(err error, str string) {
+	if err != nil {
+		log.Fatalln(err, str)
+	}
+}
+
+// nilPanic does so when it's parameter is such.
+func nilFatal(val interface{}, str string) {
+	if val == nil {
+		log.Fatalln(str)
+	}
+}

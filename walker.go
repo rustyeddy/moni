@@ -34,6 +34,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		log.Println("response received", r.StatusCode)
 		p.StatusCode = r.StatusCode
 	})
+
 	c.OnError(func(r *colly.Response, err error) {
 		log.Println("error:", r.StatusCode, err)
 		p.StatusCode = r.StatusCode

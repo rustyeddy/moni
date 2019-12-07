@@ -1,8 +1,8 @@
-prog = moni
+prog = crawl
 
 gofiles = main.go page.go walker.go
 
-build: moni
+build: $(prog )
 	go build -o ${prog} 
 
 run: $(gofiles)
