@@ -42,21 +42,18 @@ func init() {
 
 	// TODO read the acls from a file
 	acl["localhost"] = false
+	acl["google.com"] = false
+	acl["github.com"] = false
+	acl["rustyeddy.com"] = true
 
 	log.SetFormatter(&log.JSONFormatter{})
-
 }
 
 func main() {
 	flag.Parse()
-
 	setupLogging()
 	setupStorage()
-
-	// Process URLs on the command line if we have them
-	if flag.Args() != nil {
-		scrubURLs(flag.Args())
-	}
+	scrubURLs(flag.Args())
 }
 
 func setupLogging() {
@@ -99,4 +96,12 @@ func nilFatal(val interface{}, str string) {
 	if val == nil {
 		log.Fatalln(str)
 	}
+}
+
+func GetHostname(ustr string) (host string) {
+	var u *url.URL
+	if u, err = url.Parse(ustr); err != nil {
+		return ""
+	}
+	return u.Hostname()
 }

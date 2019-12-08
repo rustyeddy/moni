@@ -35,7 +35,9 @@ func GetPage(urlstr string) (p *Page) {
 	var ex bool
 
 	u, err := url.Parse(urlstr)
-	errPanic(err)
+	if err != nil {
+		return nil
+	}
 
 	if p, ex = pages[*u]; ex {
 		return p
@@ -53,8 +55,6 @@ func (p *Page) Walk() {
 		refurl := e.Attr("href")
 		link := e.Request.AbsoluteURL(refurl)
 		p.Links[link]++
-		//p.Links[refurl]++
-		fmt.Println("link: ", link)
 	})
 
 	c.OnRequest(func(r *colly.Request) {
@@ -71,7 +71,7 @@ func (p *Page) Walk() {
 		for ustr, _ := range p.Links {
 			fmt.Printf("\t~> %s\n", ustr)
 			if config.Recurse {
-				c.Visit(ustr)
+				scrubURL(ustr)
 			}
 		}
 	})

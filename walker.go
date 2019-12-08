@@ -21,6 +21,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func scrubURLs(urls []string) {
 	// walk the command line arguments treating them as URLs
+	if urls == nil {
+		return
+	}
+
 	for _, baseURL := range urls {
 		var page *Page
 
@@ -44,7 +48,9 @@ func scrubURL(urlstr string) (u *url.URL) {
 		u.Scheme = "http"
 	}
 
-	u, err = url.Parse(u.String())
+	if u, err = url.Parse(u.String()); err != nil {
+		return nil
+	}
 
 	// if this hostname exists in the acl set as false,
 	// we will just return
