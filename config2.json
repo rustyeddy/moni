@@ -1,9 +1,0 @@
-{
-    "Addrport": "0.0.0.0:1212",
-    "ConfigFile": "moni.json",
-    "Changed": false,
-    "Daemon": false,
-    "LogFile": "crawl-log.json",
-    "Recurse": true,
-    "Verbose": false
-  }
