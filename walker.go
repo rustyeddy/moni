@@ -1,53 +1,58 @@
 package main
 
 import (
-	"encoding/json"
+	"fmt"
 	"net/http"
+	"net/url"
 
-	"github.com/gocolly/colly"
 	log "github.com/sirupsen/logrus"
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	URL := r.URL.Query().Get("url")
-	if URL == "" {
+	urlstr := r.URL.Query().Get("url")
+	if urlstr == "" {
 		log.Println("missing URL argument")
 		return
 	}
-	log.Println("visiting", URL)
 
-	c := colly.NewCollector()
+	log.Println("handler: ", urlstr)
+	scrubURLs([]string{urlstr})
+}
 
-	//p := &pageInfo{Links: make(map[string]int)}
-	p := GetPage(URL)
+func scrubURLs(urls []string) {
+	// walk the command line arguments treating them as URLs
+	for _, baseURL := range urls {
+		var page *Page
 
-	// count links
-	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
-		link := e.Request.AbsoluteURL(e.Attr("href"))
-		if link != "" {
-			p.Links[link]++
+		if url := scrubURL(baseURL); url != nil {
+			if page = GetPage(url.String()); page != nil {
+				page.Walk()
+			}
 		}
-	})
-
-	// extract status code
-	c.OnResponse(func(r *colly.Response) {
-		log.Println("response received", r.StatusCode)
-		p.StatusCode = r.StatusCode
-	})
-
-	c.OnError(func(r *colly.Response, err error) {
-		log.Println("error:", r.StatusCode, err)
-		p.StatusCode = r.StatusCode
-	})
-
-	c.Visit(URL)
-
-	// dump results
-	b, err := json.Marshal(p)
-	if err != nil {
-		log.Println("failed to serialize response:", err)
-		return
 	}
-	w.Header().Add("Content-Type", "application/json")
-	w.Write(b)
+	storage.Save("config2.json", config)
+	storage.Save("pages.json", pages)
+	fmt.Println("The end...")
+}
+
+func scrubURL(urlstr string) (u *url.URL) {
+	var err error
+
+	u, err = url.Parse(urlstr)
+	errPanic(err)
+	if u.Scheme == "" {
+		u.Scheme = "http"
+	}
+
+	u, err = url.Parse(u.String())
+
+	// if this hostname exists in the acl set as false,
+	// we will just return
+	if f, ex := acl[u.Hostname()]; ex && f == false {
+		return nil
+	}
+
+	// This is a little risky
+	acl[u.Hostname()] = true
+	return u
 }

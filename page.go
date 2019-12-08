@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/gocolly/colly"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -14,27 +15,18 @@ type Page struct {
 	StatusCode int
 	Links      map[string]int
 
-	reqtime  time.Time
-	resptime time.Time
-}
-
-// NewPage returns a new page structure
-func newPage(u *url.URL) (p *Page) {
-
-	p = &Page{
-		URL:        u,
-		StatusCode: 0,
-		Links:      make(map[string]int),
-	}
-	return p
+	ReqTime  time.Time
+	RespTime time.Time
 }
 
 // NewPage returns a page structure that will hold all our cool stuff
 func NewPage(u *url.URL) (p *Page) {
 	p = &Page{
-		URL: u,
+		URL:   u,
+		Links: make(map[string]int),
 	}
 	log.Infof("New Page: %+v\n", u)
+	pages[*u] = p
 	return p
 }
 
@@ -42,46 +34,47 @@ func NewPage(u *url.URL) (p *Page) {
 func GetPage(urlstr string) (p *Page) {
 	var ex bool
 
-	u, err := normURL(urlstr)
+	u, err := url.Parse(urlstr)
 	errPanic(err)
 
 	if p, ex = pages[*u]; ex {
 		return p
 	}
-	p = newPage(u)
+	p = NewPage(u)
 	return p
 }
 
-// normURL is responsible for normalizaing the URL
-func normURL(urlstr string) (u *url.URL, err error) {
-	u, err = url.Parse(urlstr)
-	return u, err
-}
+// Crawl the given URL
+func (p *Page) Walk() {
+	c := colly.NewCollector()
 
-// errPanic something went wrong, panic.
-func errPanic(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
+	// Setup all the collbacks
+	c.OnHTML("a", func(e *colly.HTMLElement) {
+		refurl := e.Attr("href")
+		link := e.Request.AbsoluteURL(refurl)
+		p.Links[link]++
+		//p.Links[refurl]++
+		fmt.Println("link: ", link)
+	})
 
-// nilPanic does so when it's parameter is such.
-func nilPanic(val interface{}) {
-	if val == nil {
-		fmt.Printf("val is nil")
-	}
-}
+	c.OnRequest(func(r *colly.Request) {
+		pages[*r.URL] = NewPage(r.URL)
+		fmt.Println("Request ", r.URL)
+	})
 
-// errPanic something went wrong, panic.
-func errFatal(err error, str string) {
-	if err != nil {
-		log.Fatalln(err, str)
-	}
-}
+	c.OnResponse(func(r *colly.Response) {
+		fmt.Println("Response ", r.Request.URL)
+	})
 
-// nilPanic does so when it's parameter is such.
-func nilFatal(val interface{}, str string) {
-	if val == nil {
-		log.Fatalln(str)
-	}
+	c.OnScraped(func(r *colly.Response) {
+		fmt.Printf("page and links: %s\n", p.URL.String())
+		for ustr, _ := range p.Links {
+			fmt.Printf("\t~> %s\n", ustr)
+			if config.Recurse {
+				c.Visit(ustr)
+			}
+		}
+	})
+
+	c.Visit(p.URL.String())
 }

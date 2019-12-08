@@ -3,11 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"net/http"
 	"net/url"
 	"os"
 
-	"github.com/gocolly/colly"
 	"github.com/rustyeddy/store"
 	log "github.com/sirupsen/logrus"
 )
@@ -19,12 +17,12 @@ type Configuration struct {
 	Changed    bool
 	Daemon     bool
 	LogFile    string
+	Recurse    bool
 	Verbose    bool
 }
 
 var (
-	config Configuration
-
+	config  Configuration
 	err     error
 	acl     map[string]bool
 	pages   map[url.URL]*Page
@@ -35,6 +33,7 @@ func init() {
 	flag.StringVar(&config.Addrport, "addr", "0.0.0.0:1212", "Address and port configuration")
 	flag.StringVar(&config.ConfigFile, "config", "moni.json", "Moni config file")
 	flag.StringVar(&config.LogFile, "logfile", "crawl-log.json", "Crawl logfile")
+	flag.BoolVar(&config.Recurse, "recurse", true, "Recurse local")
 
 	//storage, err := store.UseFileStore(".")
 	//errPanic(err)
@@ -52,23 +51,11 @@ func main() {
 	flag.Parse()
 
 	setupLogging()
-
-	if storage, err = store.UseFileStore("."); err != nil || storage == nil {
-		errFatal(err, "failed to useFileStore ")
-	}
+	setupStorage()
 
 	// Process URLs on the command line if we have them
 	if flag.Args() != nil {
-		processURLs(flag.Args())
-	}
-
-	// Now run as a daemon if requested
-	if !config.Daemon {
-		var err error
-
-		log.Println("listening on", config.Addrport)
-		err = http.ListenAndServe(config.Addrport, nil)
-		log.Fatal(err)
+		scrubURLs(flag.Args())
 	}
 }
 
@@ -80,89 +67,36 @@ func setupLogging() {
 	}
 }
 
-func processURLs(urls []string) {
-	// walk the command line arguments treating them as URLs
-	for _, baseURL := range urls {
-
-		// Place the command line url in the acl allowed list
-		if config.Verbose {
-			log.Infof("Add website %s to ACL\n", baseURL)
-		}
-
-		u, err := url.Parse(baseURL)
-		errPanic(err)
-
-		if u.Scheme == "" {
-			u.Scheme = "http"
-		}
-
-		// This is a little risky
-		acl[u.Hostname()] = true
-
-		// This will become sending a message
-		Walk(u)
-	}
-	storage.Save("config2.json", config)
-	fmt.Println("The end...")
-}
-
-func processPage(urlstr string) bool {
-	var ok, ex bool
-
-	u, err := url.Parse(urlstr)
-	errPanic(err)
-
-	host := u.Hostname()
-	if host == "" {
-		// We will accept relative urls because they belong to
-		// the website being searched.
-		return true
-	}
-	if ok, ex = acl[host]; ex {
-		return ok
-	}
-	return false
-}
-
-// Crawl the given URL
-func Walk(u *url.URL) {
-	c := colly.NewCollector()
-
-	// Setup all the collbacks
-	c.OnHTML("a", doHTML)
-	c.OnRequest(doRequest)
-	c.OnResponse(doResponse)
-	c.OnScraped(doScraped)
-
-	c.Visit(u.String())
-}
-
-func doHTML(e *colly.HTMLElement) {
-	urlstr := e.Attr("href")
-	u, _ := url.Parse(urlstr)
-	if u == nil {
-		return
-	}
-
-	fmt.Printf("url: %+v ", u)
-	if processPage(urlstr) {
-		e.Request.Visit(urlstr)
-	} else {
-		fmt.Println(" blocked ...")
+func setupStorage() {
+	if storage, err = store.UseFileStore("."); err != nil || storage == nil {
+		errFatal(err, "failed to useFileStore ")
 	}
 }
 
-// Called before the request is sent
-func doRequest(r *colly.Request) {
-	pages[*r.URL] = NewPage(r.URL)
-	fmt.Println("Request ", r.URL)
+// errPanic something went wrong, panic.
+func errPanic(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
 
-// Called after the response is
-func doResponse(r *colly.Response) {
-	fmt.Println("Response ", r.Request.URL)
+// nilPanic does so when it's parameter is such.
+func nilPanic(val interface{}) {
+	if val == nil {
+		fmt.Printf("val is nil")
+	}
 }
 
-func doScraped(r *colly.Response) {
-	fmt.Printf("Scrap complete")
+// errPanic something went wrong, panic.
+func errFatal(err error, str string) {
+	if err != nil {
+		log.Fatalln(err, str)
+	}
+}
+
+// nilPanic does so when it's parameter is such.
+func nilFatal(val interface{}, str string) {
+	if val == nil {
+		log.Fatalln(str)
+	}
 }
