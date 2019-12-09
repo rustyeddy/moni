@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/url"
 	"time"
 
@@ -11,7 +10,7 @@ import (
 
 // Page represents a single web page
 type Page struct {
-	*url.URL
+	url.URL
 	StatusCode int
 	Links      map[string]int
 
@@ -20,26 +19,20 @@ type Page struct {
 }
 
 // NewPage returns a page structure that will hold all our cool stuff
-func NewPage(u *url.URL) (p *Page) {
+func NewPage(u url.URL) (p *Page) {
 	p = &Page{
 		URL:   u,
 		Links: make(map[string]int),
 	}
 	log.Infof("New Page: %+v\n", u)
-	pages[*u] = p
+	pages[u] = p
 	return p
 }
 
 // GetPage will return the page if it exists, or create otherwise.
-func GetPage(urlstr string) (p *Page) {
+func GetPage(u url.URL) (p *Page) {
 	var ex bool
-
-	u, err := url.Parse(urlstr)
-	if err != nil {
-		return nil
-	}
-
-	if p, ex = pages[*u]; ex {
+	if p, ex = pages[u]; ex {
 		return p
 	}
 	p = NewPage(u)
@@ -50,6 +43,8 @@ func GetPage(urlstr string) (p *Page) {
 func (p *Page) Walk() {
 	c := colly.NewCollector()
 
+	log.Infof("Walking page %s", p.URL.String())
+
 	// Setup all the collbacks
 	c.OnHTML("a", func(e *colly.HTMLElement) {
 		refurl := e.Attr("href")
@@ -58,23 +53,25 @@ func (p *Page) Walk() {
 	})
 
 	c.OnRequest(func(r *colly.Request) {
-		pages[*r.URL] = NewPage(r.URL)
-		fmt.Println("Request ", r.URL)
+		pages[*r.URL] = NewPage(*r.URL)
+		log.Infoln("Request ", r.URL)
 	})
 
 	c.OnResponse(func(r *colly.Response) {
-		fmt.Println("Response ", r.Request.URL)
+		p.RespTime = time.Now()
+		log.Infoln("Response ", r.Request.URL)
 	})
 
 	c.OnScraped(func(r *colly.Response) {
-		fmt.Printf("page and links: %s\n", p.URL.String())
+		log.Infof("\tLinks: %s\n", p.URL.String())
 		for ustr, _ := range p.Links {
-			fmt.Printf("\t~> %s\n", ustr)
+			log.Infof("\t~> %s\n", ustr)
 			if config.Recurse {
-				scrubURL(ustr)
+				log.Infof("\tsending %s to urlChan\n", ustr)
+				urlChan <- ustr
 			}
 		}
 	})
-
+	p.ReqTime = time.Now()
 	c.Visit(p.URL.String())
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 
@@ -15,35 +14,39 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("handler: ", urlstr)
-	scrubURLs([]string{urlstr})
+	log.Println("handler: sending urlstr to urlChan", urlstr)
+	urlChan <- urlstr
 }
 
-func scrubURLs(urls []string) {
-	// walk the command line arguments treating them as URLs
-	if urls == nil {
-		return
-	}
+// Scrubber spins listening to the urlChan acceptring URLs that
+// need to be scrubbed.
+func Scrubber(c chan string, p chan *Page, d chan bool) {
+	var page *Page
+	log.Infoln("Starting the Scrubber ..")
 
-	for _, baseURL := range urls {
-		var page *Page
-
-		if url := scrubURL(baseURL); url != nil {
-			if page = GetPage(url.String()); page != nil {
-				page.Walk()
+	for {
+		log.Infoln("\turlChan waiting for an URL")
+		select {
+		case urlstr := <-c:
+			log.Infof("\tgot urlstring %s\n", urlstr)
+			if u := scrubURL(urlstr); u != nil {
+				if page = GetPage(*u); page != nil {
+					log.Infof("got page: %+v - let's walk...\n", page)
+					p <- page
+				}
 			}
 		}
 	}
-	storage.Save("config2.json", config)
-	storage.Save("pages.json", pages)
-	fmt.Println("The end...")
 }
 
 func scrubURL(urlstr string) (u *url.URL) {
 	var err error
 
+	log.Infoln("scrubURL with ", urlstr)
+
 	u, err = url.Parse(urlstr)
 	errPanic(err)
+
 	if u.Scheme == "" {
 		u.Scheme = "http"
 	}
@@ -54,11 +57,20 @@ func scrubURL(urlstr string) (u *url.URL) {
 
 	// if this hostname exists in the acl set as false,
 	// we will just return
-	if f, ex := acl[u.Hostname()]; ex && f == false {
+	if f, ex := acl[u.Host]; ex && f == false {
 		return nil
 	}
-
-	// This is a little risky
-	acl[u.Hostname()] = true
 	return u
+}
+
+func Pager(p chan *Page, d chan bool) {
+	log.Infoln("Start pager...")
+	for {
+		log.Infoln("\twaiting for incoming page ... ")
+		select {
+		case page := <-p:
+			log.Infof("\tgot page [go] page walk: %s", page.URL.String())
+			go page.Walk()
+		}
+	}
 }
