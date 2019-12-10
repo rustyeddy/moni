@@ -17,3 +17,4 @@ main
 moni
 crawl
 *.json
+*.log

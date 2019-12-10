@@ -20,7 +20,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 // Scrubber spins listening to the urlChan acceptring URLs that
 // need to be scrubbed.
-func Scrubber(c chan string, p chan *Page, d chan bool) {
+func Scrubber(c chan string, d chan bool) {
 	var page *Page
 	log.Infoln("Starting the Scrubber ..")
 
@@ -32,10 +32,12 @@ func Scrubber(c chan string, p chan *Page, d chan bool) {
 			if u := scrubURL(urlstr); u != nil {
 				if page = GetPage(*u); page != nil {
 					log.Infof("got page: %+v - let's walk...\n", page)
-					p <- page
+					page.Walk()
 				}
 			}
-		}
+		
+		case <-time.After(1 * time.Second):
+					
 	}
 }
 
@@ -61,16 +63,4 @@ func scrubURL(urlstr string) (u *url.URL) {
 		return nil
 	}
 	return u
-}
-
-func Pager(p chan *Page, d chan bool) {
-	log.Infoln("Start pager...")
-	for {
-		log.Infoln("\twaiting for incoming page ... ")
-		select {
-		case page := <-p:
-			log.Infof("\tgot page [go] page walk: %s", page.URL.String())
-			go page.Walk()
-		}
-	}
 }

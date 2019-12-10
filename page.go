@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/gocolly/colly"
@@ -41,9 +43,11 @@ func GetPage(u url.URL) (p *Page) {
 
 // Crawl the given URL
 func (p *Page) Walk() {
+	var urls []string
+
 	c := colly.NewCollector()
 
-	log.Infof("Walking page %s", p.URL.String())
+	log.Infof("Visiting page %s", p.URL.String())
 
 	// Setup all the collbacks
 	c.OnHTML("a", func(e *colly.HTMLElement) {
@@ -63,15 +67,25 @@ func (p *Page) Walk() {
 	})
 
 	c.OnScraped(func(r *colly.Response) {
-		log.Infof("\tLinks: %s\n", p.URL.String())
+		fmt.Fprintf(os.Stdout, "\tLinks: %s\n", p.URL.String())
 		for ustr, _ := range p.Links {
-			log.Infof("\t~> %s\n", ustr)
+			fmt.Fprintf(os.Stdout, "\t~> %s\n", ustr)
 			if config.Recurse {
-				log.Infof("\tsending %s to urlChan\n", ustr)
-				urlChan <- ustr
+				urls = append(urls, ustr)
+				// log.Infof("\tsending %s to urlChan\n", ustr)
+				// urlChan <- ustr
 			}
 		}
 	})
+
 	p.ReqTime = time.Now()
 	c.Visit(p.URL.String())
+	p.RespTime = time.Now()
+
+	var links []string
+	for n, _ := range p.Links {
+		links = append(links, n)
+	}
+
+	fmt.Fprintf(os.Stdout, "  response elapsed %v\n", p.RespTime.Sub(p.ReqTime))
 }
