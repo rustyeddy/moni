@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"net/url"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -35,9 +36,10 @@ func Scrubber(c chan string, d chan bool) {
 					page.Walk()
 				}
 			}
-		
-		case <-time.After(1 * time.Second):
-					
+
+		case <-time.After(2 * time.Second):
+			d <- true
+		}
 	}
 }
 
