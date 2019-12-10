@@ -2,13 +2,14 @@ package main
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 )
 
 // spaHandler implements the http.Handler interface, so we can use it
@@ -25,6 +26,9 @@ type spaHandler struct {
 // file located at the index path on the SPA handler will be served. This
 // is suitable behavior for serving an SPA (single page application).
 func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+	log.Infoln("HTML Server called")
+
 	// get the absolute path to prevent directory traversal
 	path, err := filepath.Abs(r.URL.Path)
 	if err != nil {
@@ -61,6 +65,25 @@ func doRouter(dir string) {
 		// an example API handler
 		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 	})
+	router.HandleFunc("/api/crawl", func(w http.ResponseWriter, r *http.Request) {
+		// an example API handler
+		if err := r.ParseForm(); err != nil {
+			fmt.Fprintf(w, "ParseForm() err: %v", err)
+			return
+		}
+
+		if err = r.ParseForm(); err != nil {
+			fmt.Fprintf(w, "Parsing incoming form failed %v", err)
+			return
+		}
+
+		urlstr := r.FormValue("url")
+		fmt.Printf("urlstr %+v\n", r.Form)
+		vars := make(map[string]string)
+		vars["url"] = urlstr
+
+		json.NewEncoder(w).Encode(vars)
+	})
 
 	spa := spaHandler{staticPath: dir, indexPath: "index.html"}
 	router.PathPrefix("/").Handler(spa)
@@ -68,9 +91,14 @@ func doRouter(dir string) {
 	srv := &http.Server{
 		Handler: router,
 		Addr:    "0.0.0.0:8000",
+
 		// Good practice: enforce timeouts for servers you create!
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
 	log.Fatal(srv.ListenAndServe())
+}
+
+func setupRoutes(dir string) {
+
 }

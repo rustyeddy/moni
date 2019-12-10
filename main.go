@@ -28,7 +28,6 @@ var (
 	acl     map[string]bool
 	pages   map[url.URL]*Page
 	storage *store.FileStore
-
 	urlChan chan string
 )
 
