@@ -19,6 +19,7 @@ type Configuration struct {
 	Verbose    bool
 	LogFile    string
 	LogFormat  string
+	Pubdir     string
 }
 
 var (
@@ -36,6 +37,7 @@ func init() {
 	flag.StringVar(&config.ConfigFile, "config", "crawl.json", "Moni config file")
 	flag.StringVar(&config.LogFile, "logfile", "crawl.log", "Crawl logfile")
 	flag.StringVar(&config.LogFormat, "format", "", "format to print [json]")
+	flag.StringVar(&config.Pubdir, "pub", "pub", "the published dir")
 	flag.BoolVar(&config.Recurse, "recurse", true, "Recurse local")
 
 	//storage, err := store.UseFileStore(".")
@@ -59,7 +61,9 @@ func main() {
 	doneChan := make(chan bool)
 	urlChan = make(chan string)
 	go Scrubber(urlChan, doneChan)
+	go doRouter(config.Pubdir)
 
+	// Process whatever was passed to us
 	processURLs(flag.Args())
 
 	<-doneChan
