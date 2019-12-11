@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"net/http"
 	"net/url"
 	"os"
 
@@ -20,12 +19,6 @@ type Walker struct {
 func (w *Walker) Write(b []byte) (n int, err error) {
 	fmt.Fprintf(os.Stdout, "%v\n", b)
 	return len(b), nil
-}
-
-func handler(w http.ResponseWriter, r *http.Request) {
-	u := r.URL.Query().Get("url")
-	processURL(u, w)
-	log.Println("handler: sending urlstr to urlChan", u)
 }
 
 func processURLs(urls []string, w io.Writer) {

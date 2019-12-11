@@ -65,7 +65,19 @@ func doRouter(dir string) {
 		// an example API handler
 		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 	})
-	router.HandleFunc("/api/crawl", func(w http.ResponseWriter, r *http.Request) {
+
+	router.HandleFunc("/api/crawl/{url}", func(w http.ResponseWriter, r *http.Request) {
+		// an example API handler
+		vars := mux.Vars(r)
+		if url := vars["url"]; url != "" {
+			processURL(url, w)
+		} else {
+			fmt.Fprintln(w, "Bad Form ~> ParseForm()")
+			return
+		}
+	})
+
+	router.HandleFunc("/form/crawl", func(w http.ResponseWriter, r *http.Request) {
 		// an example API handler
 		if err := r.ParseForm(); err != nil {
 			fmt.Fprintf(w, "Bad Form ~> ParseForm() err: %v", err)
@@ -93,8 +105,4 @@ func doRouter(dir string) {
 		ReadTimeout:  15 * time.Second,
 	}
 	log.Fatal(srv.ListenAndServe())
-}
-
-func setupRoutes(dir string) {
-
 }
