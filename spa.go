@@ -77,22 +77,6 @@ func doRouter(dir string) {
 		}
 	})
 
-	router.HandleFunc("/form/crawl", func(w http.ResponseWriter, r *http.Request) {
-		// an example API handler
-		if err := r.ParseForm(); err != nil {
-			fmt.Fprintf(w, "Bad Form ~> ParseForm() err: %v", err)
-			return
-		}
-
-		urlstr := r.FormValue("url")
-		log.Infof("urlstr %+v", r.Form)
-
-		vars := make(map[string]string)
-		vars["url"] = urlstr
-
-		json.NewEncoder(w).Encode(vars)
-	})
-
 	spa := spaHandler{staticPath: dir, indexPath: "index.html"}
 	router.PathPrefix("/").Handler(spa)
 

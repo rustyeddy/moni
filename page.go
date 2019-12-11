@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/url"
 	"time"
 
@@ -9,13 +10,13 @@ import (
 
 // Page represents a single web page
 type Page struct {
-	url.URL
-	StatusCode int
-	Links      map[string][]string
+	url.URL    `json:"url"`
+	StatusCode int                 `json:"statusCode"`
+	Links      map[string][]string `json:"links"`
 
-	ReqTime  time.Time
-	RespTime time.Time
-	Elapsed  time.Duration
+	ReqTime  time.Time     `json:"request"`
+	RespTime time.Time     `json:"response"`
+	Elapsed  time.Duration `json:"elapsed"`
 }
 
 // NewPage returns a page structure that will hold all our cool stuff
@@ -37,4 +38,12 @@ func GetPage(u url.URL) (p *Page) {
 	}
 	p = NewPage(u)
 	return p
+}
+
+func (p *Page) Print() {
+	fmt.Printf("%s\n", p.URL.String())
+	for l, _ := range p.Links {
+		fmt.Printf("\t%s\n", l)
+	}
+	fmt.Printf("  elapsed time %v\n", p.Elapsed)
 }

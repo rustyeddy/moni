@@ -22,19 +22,15 @@ type Walker struct {
 func (w *Walker) Walk() {
 	var urls []string
 
-	// make the page more convinient
-	p := w.Page
-
-	nilPanic(w)
 	c := colly.NewCollector()
 
-	log.Infof("Visiting page %s", p.URL.String())
+	log.Infof("Visiting page %+v", w)
 
 	// Setup all the collbacks
 	c.OnHTML("a", func(e *colly.HTMLElement) {
 		refurl := e.Attr("href")
 		link := e.Request.AbsoluteURL(refurl)
-		p.Links[link] = append(p.Links[link], e.Text)
+		w.Page.Links[link] = append(w.Page.Links[link], e.Text)
 	})
 
 	c.OnRequest(func(r *colly.Request) {
@@ -43,15 +39,15 @@ func (w *Walker) Walk() {
 	})
 
 	c.OnResponse(func(r *colly.Response) {
-		p.RespTime = time.Now()
+		w.Page.RespTime = time.Now()
 		log.Infoln("Response ", r.Request.URL)
 	})
 
 	c.OnScraped(func(r *colly.Response) {
 
 		// The page scrape has completed
-		log.Debugf("\tLinks: %s", p.URL.String())
-		for ustr, _ := range p.Links {
+		log.Debugf("\tLinks: %s", w.Page.URL.String())
+		for ustr, _ := range w.Page.Links {
 			log.Debugf("\t~> %s", ustr)
 			if config.Recurse {
 				urls = append(urls, ustr)
@@ -60,34 +56,18 @@ func (w *Walker) Walk() {
 	})
 
 	// Start the walk
-	p.ReqTime = time.Now()
-	c.Visit(p.String())
+	w.Page.ReqTime = time.Now()
+	c.Visit(w.Page.String())
 
 	// Walk is complete
-	p.RespTime = time.Now()
-	p.Elapsed = p.RespTime.Sub(p.ReqTime)
+	w.Page.RespTime = time.Now()
+	w.Page.Elapsed = w.Page.RespTime.Sub(w.Page.ReqTime)
 
-	links := []string{}
-	for l, _ := range p.Links {
-		links = append(links, l)
+	if w.w != nil {
+		json.NewEncoder(w.w).Encode(w.Page)
+	} else {
+		w.Page.Print()
 	}
-
-	resp := struct {
-		Status     string        `json:"status"`
-		ReturnCode int           `json:"returnCode"`
-		URL        string        `json:"url"`
-		Links      []string      `json:"links"`
-		Elapsed    time.Duration `json:"elapsed"`
-	}{
-		Status:     "",
-		ReturnCode: 200,
-		URL:        p.URL.String(),
-		Links:      links,
-		Elapsed:    p.Elapsed,
-	}
-
-	//fmt.Fprintf(w, "Responding From WALK %+v\n", resp)
-	json.NewEncoder(w.w).Encode(resp)
 }
 
 func processURLs(urls []string, w http.ResponseWriter) {
@@ -103,11 +83,10 @@ func processURL(ustr string, w http.ResponseWriter) {
 		if page := GetPage(*u); page != nil {
 			log.Infof("got page: %+v - let's walk...\n", page)
 			walker := Walker{
-
 				w:    w,
+				URL:  u,
 				Page: page,
 			}
-			walker.URL = u
 			walker.Walk()
 		}
 	}
