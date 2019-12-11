@@ -69,6 +69,7 @@ func doRouter(dir string) {
 	router.HandleFunc("/api/crawl/{url}", func(w http.ResponseWriter, r *http.Request) {
 		// an example API handler
 		vars := mux.Vars(r)
+		fmt.Printf("vars; %+v\n", vars)
 		if url := vars["url"]; url != "" {
 			processURL(url, w)
 		} else {
