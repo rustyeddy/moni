@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -28,7 +27,7 @@ func errPanic(err error) {
 // nilPanic does so when it's parameter is such.
 func nilPanic(val interface{}) {
 	if val == nil {
-		fmt.Printf("val is nil")
+		log.Warn("val is nil")
 	}
 }
 

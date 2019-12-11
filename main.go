@@ -2,8 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	"io"
 	"net/url"
 
 	"github.com/rustyeddy/store"
@@ -64,7 +62,7 @@ func main() {
 	setupLogging()
 	setupStorage()
 
-	// Start the scrubber, router and the writer
+	// Start the scrubber, router
 	go doRouter(config.Pubdir)
 	go Scrubber(urlChan, doneChan)
 
@@ -72,26 +70,4 @@ func main() {
 	processURLs(flag.Args(), nil)
 	<-doneChan
 	log.Infoln("The end, good bye ... ")
-}
-
-func processURLs(urls []string, w io.Writer) {
-	for _, ustr := range urls {
-		processURL(ustr, w)
-	}
-}
-
-func processURL(ustr string, w io.Writer) {
-	fmt.Printf("Walking %s\n", ustr)
-	wr := Walker{
-		URLstr: ustr,
-		Page:   nil,
-		Writer: w,
-	}
-	urlChan <- wr
-}
-
-func setupStorage() {
-	if storage, err = store.UseFileStore("."); err != nil || storage == nil {
-		errFatal(err, "failed to useFileStore ")
-	}
 }

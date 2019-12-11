@@ -68,17 +68,13 @@ func doRouter(dir string) {
 	router.HandleFunc("/api/crawl", func(w http.ResponseWriter, r *http.Request) {
 		// an example API handler
 		if err := r.ParseForm(); err != nil {
-			fmt.Fprintf(w, "ParseForm() err: %v", err)
-			return
-		}
-
-		if err = r.ParseForm(); err != nil {
-			fmt.Fprintf(w, "Parsing incoming form failed %v", err)
+			fmt.Fprintf(w, "Bad Form ~> ParseForm() err: %v", err)
 			return
 		}
 
 		urlstr := r.FormValue("url")
-		fmt.Printf("urlstr %+v\n", r.Form)
+		log.Infof("urlstr %+v\n", r.Form)
+
 		vars := make(map[string]string)
 		vars["url"] = urlstr
 

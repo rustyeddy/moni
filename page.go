@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"io"
 	"net/url"
 	"os"
@@ -19,6 +19,7 @@ type Page struct {
 
 	ReqTime  time.Time
 	RespTime time.Time
+	Elapsed  time.Duration
 }
 
 // NewPage returns a page structure that will hold all our cool stuff
@@ -68,24 +69,42 @@ func (p *Page) Walk(w io.Writer) {
 	})
 
 	c.OnScraped(func(r *colly.Response) {
-		fmt.Fprintf(os.Stdout, "\tLinks: %s\n", p.URL.String())
+		log.Debugf("\tLinks: %s", p.URL.String())
 		for ustr, _ := range p.Links {
-			fmt.Fprintf(os.Stdout, "\t~> %s\n", ustr)
+			log.Debugf("\t~> %s", ustr)
 			if config.Recurse {
 				urls = append(urls, ustr)
-				// log.Infof("\tsending %s to urlChan\n", ustr)
-				// urlChan <- ustr
 			}
 		}
 	})
 
 	p.ReqTime = time.Now()
-	c.Visit(p.URL.String())
+	c.Visit(p.String())
 	p.RespTime = time.Now()
+	p.Elapsed = p.RespTime.Sub(p.ReqTime)
 
-	var links []string
-	for n, _ := range p.Links {
-		links = append(links, n)
+	if w == nil {
+		w = os.Stdout
 	}
-	fmt.Fprintf(os.Stdout, "  response elapsed %v\n", p.RespTime.Sub(p.ReqTime))
+
+	links := []string{}
+	for l, _ := range p.Links {
+		links = append(links, l)
+	}
+
+	resp := struct {
+		Status     string        `json:"status"`
+		ReturnCode int           `json:"returnCode"`
+		URL        string        `json:"url"`
+		Links      []string      `json:"links"`
+		Elapsed    time.Duration `json:"elapsed"`
+	}{
+		Status:     "",
+		ReturnCode: 200,
+		URL:        p.URL.String(),
+		Links:      links,
+		Elapsed:    p.Elapsed,
+	}
+
+	json.NewEncoder(w).Encode(resp)
 }

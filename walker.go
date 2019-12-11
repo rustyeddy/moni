@@ -28,6 +28,22 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	log.Println("handler: sending urlstr to urlChan", u)
 }
 
+func processURLs(urls []string, w io.Writer) {
+	for _, ustr := range urls {
+		processURL(ustr, w)
+	}
+}
+
+func processURL(ustr string, w io.Writer) {
+	log.Infof("Walking %s\n", ustr)
+	wr := Walker{
+		URLstr: ustr,
+		Page:   nil,
+		Writer: w,
+	}
+	urlChan <- wr
+}
+
 // Scrubber spins listening to the urlChan acceptring URLs that
 // need to be scrubbed.
 func Scrubber(c chan Walker, d chan bool) {
@@ -42,7 +58,7 @@ func Scrubber(c chan Walker, d chan bool) {
 			if u := scrubURL(walker.URLstr); u != nil {
 				if page = GetPage(*u); page != nil {
 					log.Infof("got page: %+v - let's walk...\n", page)
-					go page.Walk(walker.Writer)
+					page.Walk(walker.Writer)
 				}
 			}
 
