@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -43,7 +42,7 @@ func Scrubber(c chan Walker, d chan bool) {
 			if u := scrubURL(walker.URLstr); u != nil {
 				if page = GetPage(*u); page != nil {
 					log.Infof("got page: %+v - let's walk...\n", page)
-					page.Walk(walker.Writer)
+					go page.Walk(walker.Writer)
 				}
 			}
 
@@ -76,15 +75,4 @@ func scrubURL(urlstr string) (u *url.URL) {
 		return nil
 	}
 	return u
-}
-
-func ResponseWriter(wr chan *Walker) {
-	log.Infoln("Entering the response writer")
-	for {
-		select {
-		case resp := <-wr:
-			log.Infof("resp chan recieved message: %+v", resp)
-			json.NewEncoder(resp.Writer).Encode(resp)
-		}
-	}
 }
