@@ -1,63 +1,114 @@
 package main
 
 import (
-	"fmt"
-	"io"
+	"encoding/json"
+	"net/http"
 	"net/url"
-	"os"
+	"time"
 
+	"github.com/gocolly/colly"
 	log "github.com/sirupsen/logrus"
 )
 
 // Walk response manage the walk of this particular host
 type Walker struct {
-	URLstr string `json:"url"`
-	*Page  `json:"page"`
-	io.Writer
+	*url.URL `json:"url"`
+	*Page    `json:"page"`
+	Status   int
+	w        http.ResponseWriter `json:"-"`
 }
 
-func (w *Walker) Write(b []byte) (n int, err error) {
-	fmt.Fprintf(os.Stdout, "%v\n", b)
-	return len(b), nil
+// Walk the given page, setting the links and responding to request
+func (w *Walker) Walk() {
+	var urls []string
+
+	// make the page more convinient
+	p := w.Page
+
+	nilPanic(w)
+	c := colly.NewCollector()
+
+	log.Infof("Visiting page %s", p.URL.String())
+
+	// Setup all the collbacks
+	c.OnHTML("a", func(e *colly.HTMLElement) {
+		refurl := e.Attr("href")
+		link := e.Request.AbsoluteURL(refurl)
+		p.Links[link] = append(p.Links[link], e.Text)
+	})
+
+	c.OnRequest(func(r *colly.Request) {
+		pages[*r.URL] = NewPage(*r.URL)
+		log.Infoln("Request ", r.URL)
+	})
+
+	c.OnResponse(func(r *colly.Response) {
+		p.RespTime = time.Now()
+		log.Infoln("Response ", r.Request.URL)
+	})
+
+	c.OnScraped(func(r *colly.Response) {
+
+		// The page scrape has completed
+		log.Debugf("\tLinks: %s", p.URL.String())
+		for ustr, _ := range p.Links {
+			log.Debugf("\t~> %s", ustr)
+			if config.Recurse {
+				urls = append(urls, ustr)
+			}
+		}
+	})
+
+	// Start the walk
+	p.ReqTime = time.Now()
+	c.Visit(p.String())
+
+	// Walk is complete
+	p.RespTime = time.Now()
+	p.Elapsed = p.RespTime.Sub(p.ReqTime)
+
+	links := []string{}
+	for l, _ := range p.Links {
+		links = append(links, l)
+	}
+
+	resp := struct {
+		Status     string        `json:"status"`
+		ReturnCode int           `json:"returnCode"`
+		URL        string        `json:"url"`
+		Links      []string      `json:"links"`
+		Elapsed    time.Duration `json:"elapsed"`
+	}{
+		Status:     "",
+		ReturnCode: 200,
+		URL:        p.URL.String(),
+		Links:      links,
+		Elapsed:    p.Elapsed,
+	}
+
+	//fmt.Fprintf(w, "Responding From WALK %+v\n", resp)
+	json.NewEncoder(w.w).Encode(resp)
 }
 
-func processURLs(urls []string, w io.Writer) {
+func processURLs(urls []string, w http.ResponseWriter) {
 	for _, ustr := range urls {
 		processURL(ustr, w)
 	}
 }
 
-func processURL(ustr string, w io.Writer) {
+func processURL(ustr string, w http.ResponseWriter) {
 	log.Infof("Walking %s\n", ustr)
-	wr := Walker{
-		URLstr: ustr,
-		Page:   nil,
-		Writer: w,
-	}
-	urlChan <- wr
-}
 
-// Scrubber spins listening to the urlChan acceptring URLs that
-// need to be scrubbed.
-func Scrubber(c chan Walker, d chan bool) {
-	var page *Page
-	log.Infoln("Starting the Scrubber ..")
+	if u := scrubURL(ustr); u != nil {
+		if page := GetPage(*u); page != nil {
+			log.Infof("got page: %+v - let's walk...\n", page)
+			walker := Walker{
 
-	for {
-		log.Infoln("\turlChan waiting for an URL")
-		select {
-		case walker := <-c:
-			log.Infof("\tgot urlstring %s\n", walker.URLstr)
-			if u := scrubURL(walker.URLstr); u != nil {
-				if page = GetPage(*u); page != nil {
-					log.Infof("got page: %+v - let's walk...\n", page)
-					page.Walk(walker.Writer)
-				}
+				w:    w,
+				Page: page,
 			}
-
-			// Add this if we want to timeout from an interactive run
-			// case <-time.After(2 * time.Second):
-			// 	d <- true
+			walker.URL = u
+			walker.Walk()
 		}
 	}
 }

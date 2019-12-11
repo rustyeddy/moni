@@ -28,8 +28,6 @@ var (
 	pages   map[url.URL]*Page
 	storage *store.FileStore
 
-	urlChan  chan Walker
-	respChan chan Walker
 	doneChan chan bool
 )
 
@@ -46,9 +44,7 @@ func init() {
 	//errPanic(err)
 	pages = make(map[url.URL]*Page)
 	acl = make(map[string]bool)
-	urlChan = make(chan Walker)
 	doneChan = make(chan bool)
-	respChan = make(chan Walker)
 
 	// TODO read the acls from a file
 	acl["localhost"] = false
@@ -64,10 +60,11 @@ func main() {
 
 	// Start the scrubber, router
 	go doRouter(config.Pubdir)
-	go Scrubber(urlChan, doneChan)
 
-	// Process whatever was passed to us
+	// Process urls will filter bad, redundant and blocked URLs
+	// the urls that do not get blocked are then walked.
 	processURLs(flag.Args(), nil)
+
 	<-doneChan
 	log.Infoln("The end, good bye ... ")
 }
