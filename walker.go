@@ -44,7 +44,6 @@ func (w *Walker) Walk() {
 	})
 
 	c.OnScraped(func(r *colly.Response) {
-
 		// The page scrape has completed
 		log.Debugf("\tLinks: %s", w.Page.URL.String())
 		for ustr, _ := range w.Page.Links {
