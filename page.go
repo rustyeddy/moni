@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"time"
@@ -42,7 +43,7 @@ func GetPage(u url.URL) (p *Page) {
 }
 
 // Crawl the given URL
-func (p *Page) Walk() {
+func (p *Page) Walk(w io.Writer) {
 	var urls []string
 
 	c := colly.NewCollector()
@@ -86,6 +87,5 @@ func (p *Page) Walk() {
 	for n, _ := range p.Links {
 		links = append(links, n)
 	}
-
 	fmt.Fprintf(os.Stdout, "  response elapsed %v\n", p.RespTime.Sub(p.ReqTime))
 }

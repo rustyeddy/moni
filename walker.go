@@ -1,41 +1,53 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+	"os"
 
 	log "github.com/sirupsen/logrus"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	urlstr := r.URL.Query().Get("url")
-	if urlstr == "" {
-		log.Println("missing URL argument")
-		return
-	}
+// Walk response manage the walk of this particular host
+type Walker struct {
+	URLstr string `json:"url"`
+	*Page  `json:"page"`
+	io.Writer
+}
 
-	log.Println("handler: sending urlstr to urlChan", urlstr)
-	urlChan <- urlstr
+func (w *Walker) Write(b []byte) (n int, err error) {
+	fmt.Fprintf(os.Stdout, "%v\n", b)
+	return len(b), nil
+}
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	u := r.URL.Query().Get("url")
+	processURL(u, w)
+	log.Println("handler: sending urlstr to urlChan", u)
 }
 
 // Scrubber spins listening to the urlChan acceptring URLs that
 // need to be scrubbed.
-func Scrubber(c chan string, d chan bool) {
+func Scrubber(c chan Walker, d chan bool) {
 	var page *Page
 	log.Infoln("Starting the Scrubber ..")
 
 	for {
 		log.Infoln("\turlChan waiting for an URL")
 		select {
-		case urlstr := <-c:
-			log.Infof("\tgot urlstring %s\n", urlstr)
-			if u := scrubURL(urlstr); u != nil {
+		case walker := <-c:
+			log.Infof("\tgot urlstring %s\n", walker.URLstr)
+			if u := scrubURL(walker.URLstr); u != nil {
 				if page = GetPage(*u); page != nil {
 					log.Infof("got page: %+v - let's walk...\n", page)
-					page.Walk()
+					page.Walk(walker.Writer)
 				}
 			}
 
+			// Add this if we want to timeout from an interactive run
 			// case <-time.After(2 * time.Second):
 			// 	d <- true
 		}
@@ -64,4 +76,15 @@ func scrubURL(urlstr string) (u *url.URL) {
 		return nil
 	}
 	return u
+}
+
+func ResponseWriter(wr chan *Walker) {
+	log.Infoln("Entering the response writer")
+	for {
+		select {
+		case resp := <-wr:
+			log.Infof("resp chan recieved message: %+v", resp)
+			json.NewEncoder(resp.Writer).Encode(resp)
+		}
+	}
 }

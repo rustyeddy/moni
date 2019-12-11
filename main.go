@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"net/url"
 
 	"github.com/rustyeddy/store"
@@ -28,7 +29,10 @@ var (
 	acl     map[string]bool
 	pages   map[url.URL]*Page
 	storage *store.FileStore
-	urlChan chan string
+
+	urlChan  chan Walker
+	respChan chan Walker
+	doneChan chan bool
 )
 
 func init() {
@@ -38,12 +42,15 @@ func init() {
 	flag.StringVar(&config.LogFormat, "format", "", "format to print [json]")
 	flag.StringVar(&config.Pubdir, "pub", "pub", "the published dir")
 	flag.BoolVar(&config.Recurse, "recurse", true, "Recurse local")
+	flag.BoolVar(&config.Daemon, "daemon", false, "format to print [json]")
 
 	//storage, err := store.UseFileStore(".")
 	//errPanic(err)
 	pages = make(map[url.URL]*Page)
 	acl = make(map[string]bool)
-	urlChan = make(chan string)
+	urlChan = make(chan Walker)
+	doneChan = make(chan bool)
+	respChan = make(chan Walker)
 
 	// TODO read the acls from a file
 	acl["localhost"] = false
@@ -57,23 +64,30 @@ func main() {
 	setupLogging()
 	setupStorage()
 
-	doneChan := make(chan bool)
-	urlChan = make(chan string)
-	go Scrubber(urlChan, doneChan)
+	// Start the scrubber, router and the writer
 	go doRouter(config.Pubdir)
+	go Scrubber(urlChan, doneChan)
 
 	// Process whatever was passed to us
-	processURLs(flag.Args())
-
+	processURLs(flag.Args(), nil)
 	<-doneChan
 	log.Infoln("The end, good bye ... ")
 }
 
-func processURLs(urls []string) {
+func processURLs(urls []string, w io.Writer) {
 	for _, ustr := range urls {
-		fmt.Printf("Walking %s\n", ustr)
-		urlChan <- ustr
+		processURL(ustr, w)
 	}
+}
+
+func processURL(ustr string, w io.Writer) {
+	fmt.Printf("Walking %s\n", ustr)
+	wr := Walker{
+		URLstr: ustr,
+		Page:   nil,
+		Writer: w,
+	}
+	urlChan <- wr
 }
 
 func setupStorage() {
