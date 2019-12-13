@@ -13,36 +13,36 @@
     </head>
 
     <body>
+	<div class="container">
+	    <form id="walk" method="post" class="m-4" action="/">
+		<div class="form-group row">
+		    <div class="col-sm-10">
+			<input type="url" name="url" class="form-control m-2" id="URL" placeholder="example.com">
+			<button type="submit" value="submit" class="btn btn-primary btn-lg btn-block m-2">Walk That URL</button>
+ 		    </div>
+		</div>
+	    </form>
+	</div>
+
 	<div id="app" class="container">
-	    <div class="row">
-		<div class="col"><h2>{{ title }}</h2></div>
-	    </div>
-
-	    <div class="row"> 
+	    {{ messageNow }}
+	    <div class="row mb-4">
+		<div class="col"></div>
 		<div class="col">
-		    {{ message }}
+		    <h2>{{ title }}</h2>
+		    <h4>{{ url }}</h4>
+		    <h6>{{ elapsed }}</h6>
+		    <div>
+			<li v-for="link in links">
+			    {{ link }}
+			</li>
+		    </div>
 		</div>
+		<div class="col"></div>
 	    </div>
-	    
-	    <div class="row"> 
-		<div class="col">
-		    {{ messageNow }}
-		</div>
-	    </div>
-
 	</div>
 
 	<!-- 
-	     <div class="container">
-	     <form id="walk" method="post" class="m-4" action="/page.html">
-	     <div class="form-group row">
-	     <div class="col-sm-10">
-	     <input type="url" name="url" class="form-control m-2" id="URL" placeholder="example.com">
-	     <button type="submit" value="submit" class="btn btn-primary btn-lg btn-block m-2">Walk That URL</button>
- 	     </div>
-	     </div>
-	     </form>
-	     </div>
 	-->
 
 	<!-- jQuery first, then Popper.js, then Bootstrap JS -->

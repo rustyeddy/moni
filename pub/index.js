@@ -1,8 +1,11 @@
 var vm = new Vue({
     el: '#app',
     data: {
+	title: "Page",
 	message: "Hello",
-	title: "HelloPage"
+	links: [],
+	url: "",
+	elapsed: "",
     },
     computed: {
 	messageNow: function(val) {
@@ -10,6 +13,9 @@ var vm = new Vue({
 		url: 'rustyeddy.com'
 	    }).then((response) => {
 		vm.message = (response.data);
+		vm.url = (response.data.URL);
+		vm.elasped = response.data.Elapsed;
+		vm.links = response.data.Links;
 	    }, (error) => {
 		console.log(error);
 	    });
