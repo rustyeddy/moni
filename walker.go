@@ -62,8 +62,22 @@ func (w *Walker) Walk() {
 	w.Page.RespTime = time.Now()
 	w.Page.Elapsed = w.Page.RespTime.Sub(w.Page.ReqTime)
 
+	links := []string{}
+	for l, _ := range w.Page.Links {
+		links = append(links, l)
+	}
+
 	if w.w != nil {
-		json.NewEncoder(w.w).Encode(w.Page)
+		pg := struct {
+			URL     string
+			Links   []string
+			Elapsed time.Duration
+		}{
+			URL:     w.Page.URL.String(),
+			Links:   links,
+			Elapsed: w.Page.Elapsed,
+		}
+		json.NewEncoder(w.w).Encode(pg)
 	} else {
 		w.Page.Print()
 	}

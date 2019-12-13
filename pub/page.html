@@ -7,51 +7,23 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
 	<!-- Bootstrap CSS -->
+
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+	<script src="index.js"></script>
 
 	<title>Rusty App</title>
     </head>
 
     <body>
-	<div id="app" class="container">
-	    <div class="row">
-		<div class="col"><h2>{{ title }}</h2></div>
-	    </div>
+	<div id="app">{{ messageNow }}</div>
 
-	    <div class="row"> 
-		<div class="col">
-		    {{ message }}
-		</div>
-	    </div>
-	    
-	    <div class="row"> 
-		<div class="col">
-		    {{ messageNow }}
-		</div>
-	    </div>
-
-	</div>
-
-	<!-- 
-	     <div class="container">
-	     <form id="walk" method="post" class="m-4" action="/page.html">
-	     <div class="form-group row">
-	     <div class="col-sm-10">
-	     <input type="url" name="url" class="form-control m-2" id="URL" placeholder="example.com">
-	     <button type="submit" value="submit" class="btn btn-primary btn-lg btn-block m-2">Walk That URL</button>
- 	     </div>
-	     </div>
-	     </form>
-	     </div>
-	-->
-
+	<!-- Optional JavaScript -->
 	<!-- jQuery first, then Popper.js, then Bootstrap JS -->
 	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-	<script src="index.js"></script>
     </body>
 
 </html>

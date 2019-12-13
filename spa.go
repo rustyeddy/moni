@@ -21,6 +21,46 @@ type spaHandler struct {
 	indexPath  string
 }
 
+func doRouter(dir string, d chan bool) {
+	router := mux.NewRouter()
+
+	router.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
+		// an example API handler
+		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+	})
+
+	router.HandleFunc("/api/crawl/{url}", func(w http.ResponseWriter, r *http.Request) {
+		// an example API handler
+		vars := mux.Vars(r)
+		if url := vars["url"]; url != "" {
+			processURL(url, w)
+		} else {
+			fmt.Fprintln(w, "Bad Form ~> ParseForm()")
+			return
+		}
+	})
+
+	router.HandleFunc("/form/crawl", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		u := vars["url"]
+		fmt.Printf("form/crawl %+v\n", r)
+		fmt.Fprintf(w, "URL: %v\n", u)
+	})
+
+	spa := spaHandler{staticPath: dir, indexPath: "index.html"}
+	router.PathPrefix("/").Handler(spa)
+
+	srv := &http.Server{
+		Handler: router,
+		Addr:    "0.0.0.0:8000",
+
+		// Good practice: enforce timeouts for servers you create!
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
+	err = srv.ListenAndServe()
+}
+
 // ServeHTTP inspects the URL path to locate a file within the static dir
 // on the SPA handler. If a file is found, it will be served. If not, the
 // file located at the index path on the SPA handler will be served. This
@@ -59,37 +99,4 @@ func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// otherwise, use http.FileServer to serve the static dir
 	http.FileServer(http.Dir(h.staticPath)).ServeHTTP(w, r)
-}
-
-func doRouter(dir string) {
-	router := mux.NewRouter()
-
-	router.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
-		// an example API handler
-		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
-	})
-
-	router.HandleFunc("/api/crawl/{url}", func(w http.ResponseWriter, r *http.Request) {
-		// an example API handler
-		vars := mux.Vars(r)
-		if url := vars["url"]; url != "" {
-			processURL(url, w)
-		} else {
-			fmt.Fprintln(w, "Bad Form ~> ParseForm()")
-			return
-		}
-	})
-
-	spa := spaHandler{staticPath: dir, indexPath: "index.html"}
-	router.PathPrefix("/").Handler(spa)
-
-	srv := &http.Server{
-		Handler: router,
-		Addr:    "0.0.0.0:8000",
-
-		// Good practice: enforce timeouts for servers you create!
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
-	}
-	log.Fatal(srv.ListenAndServe())
 }

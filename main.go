@@ -59,11 +59,13 @@ func main() {
 	setupStorage()
 
 	// Start the scrubber, router
-	go doRouter(config.Pubdir)
+	go doRouter(config.Pubdir, doneChan)
 
 	// Process urls will filter bad, redundant and blocked URLs
 	// the urls that do not get blocked are then walked.
-	processURLs(flag.Args(), nil)
+	if urls := flag.Args(); urls != nil && len(urls) > 0 {
+		processURLs(urls, nil)
+	}
 
 	<-doneChan
 	log.Infoln("The end, good bye ... ")
