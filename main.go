@@ -26,6 +26,7 @@ var (
 	err     error
 	acl     map[string]bool
 	pages   map[url.URL]*Page
+	sites   []string
 	storage *store.FileStore
 
 	doneChan chan bool

@@ -14,14 +14,16 @@
 
     <body>
 	<div class="container">
+
 	    <form id="walk" method="post" class="m-4" action="/">
 		<div class="form-group row">
 		    <div class="col-sm-10">
-			<input type="url" name="url" class="form-control m-2" id="URL" placeholder="example.com">
+			<input type="text" class="form-control m-2" placeholder="example.com">
 			<button type="submit" value="submit" class="btn btn-primary btn-lg btn-block m-2">Walk That URL</button>
  		    </div>
 		</div>
 	    </form>
+
 	</div>
 
 	<div id="app" class="container">
@@ -29,13 +31,14 @@
 	    <div class="row mb-4">
 		<div class="col"></div>
 		<div class="col">
-		    <h2>{{ title }}</h2>
-		    <h4>{{ url }}</h4>
-		    <h6>{{ elapsed }}</h6>
+		    <h4>{{ page.url }}</h4>
+		    <h6>{{ page.elapsed }}</h6>
 		    <div>
-			<li v-for="link in links">
-			    {{ link }}
-			</li>
+			<ul class="link-group">
+			    <li class="link-group-item" v-for="link in links">
+				<a clas="link-group-link" :href="link">{{ link }}</a>
+			    </li>
+			</ul>
 		    </div>
 		</div>
 		<div class="col"></div>

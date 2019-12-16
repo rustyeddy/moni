@@ -31,20 +31,21 @@ func doRouter(dir string, d chan bool) {
 
 	router.HandleFunc("/api/crawl/{url}", func(w http.ResponseWriter, r *http.Request) {
 		// an example API handler
+		var url string
+
 		vars := mux.Vars(r)
-		if url := vars["url"]; url != "" {
-			processURL(url, w)
-		} else {
+		if url = vars["url"]; url == "" {
 			fmt.Fprintln(w, "Bad Form ~> ParseForm()")
 			return
 		}
+
+		log.Infoln("Handling /api/crawl/", url)
+		processURL(url, w)
 	})
 
-	router.HandleFunc("/form/crawl", func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		u := vars["url"]
-		fmt.Printf("form/crawl %+v\n", r)
-		fmt.Fprintf(w, "URL: %v\n", u)
+	router.HandleFunc("/api/sites", func(w http.ResponseWriter, r *http.Request) {
+		sites := GetSites()
+		fmt.Fprint(w, sites)
 	})
 
 	spa := spaHandler{staticPath: dir, indexPath: "index.html"}

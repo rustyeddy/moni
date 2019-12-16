@@ -3,23 +3,25 @@ var vm = new Vue({
     data: {
 	title: "Page",
 	message: "Hello",
-	links: [],
-	url: "",
-	elapsed: "",
+	page: {
+	    url: "",
+	    links: [],
+	    elapsed: "",
+	}
+	sites: [],
+	domains: []
     },
-    computed: {
-	messageNow: function(val) {
-	    axios.post('/api/crawl/rustyeddy.com', {
-		url: 'rustyeddy.com'
-	    }).then((response) => {
-		vm.message = (response.data);
-		vm.url = (response.data.URL);
-		vm.elasped = response.data.Elapsed;
-		vm.links = response.data.Links;
-	    }, (error) => {
-		console.log(error);
-	    });
-	},
+    mounted() {
+	axios.post('/api/crawl/', {
+	    url: vm.url
+	}).then((response) => {
+	    vm.message = (response.data);
+	    vm.page.url = (response.data.URL);
+	    vm.page.elasped = response.data.Elapsed;
+	    vm.page.links = response.data.Links;
+	}, (error) => {
+	    console.log(error);
+	});
     }
 })
 
