@@ -60,15 +60,18 @@ func main() {
 	setupLogging()
 	setupStorage()
 
-	// Start the scrubber, router
-	go doRouter(config.Pubdir, doneChan)
-
 	// Process urls will filter bad, redundant and blocked URLs
 	// the urls that do not get blocked are then walked.
 	if urls := flag.Args(); urls != nil && len(urls) > 0 {
 		processURLs(urls, nil)
 	}
 
-	<-doneChan
+	if config.Daemon {
+		// Start the scrubber, router
+		go doRouter(config.Pubdir, doneChan)
+		go watchSites(doneChan)
+		<-doneChan
+	}
+
 	log.Infoln("The end, good bye ... ")
 }
