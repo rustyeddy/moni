@@ -8,6 +8,7 @@ import (
 
 type Site struct {
 	*url.URL
+	Pages map[string]*Page
 }
 
 func GetSites() []string {
@@ -18,4 +19,14 @@ func GetSites() []string {
 		}
 	}
 	return sites
+}
+
+// SaveSites saves the sites structure.
+func SaveSites() (err error) {
+	if sites != nil && len(sites) > 0 {
+		if err = storage.Save("sites.json", &sites); err != nil {
+			log.Errorf("Storage Save failed for sites.json %v", err)
+		}
+	}
+	return err
 }

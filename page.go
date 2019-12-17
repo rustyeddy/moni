@@ -10,13 +10,13 @@ import (
 
 // Page represents a single web page
 type Page struct {
-	url.URL    `json:"url"`
-	StatusCode int                 `json:"statusCode"`
-	Links      map[string][]string `json:"links"`
+	url.URL `json:"url"`
+	Links   map[string][]string `json:"links"`
 
-	ReqTime  time.Time     `json:"request"`
-	RespTime time.Time     `json:"response"`
-	Elapsed  time.Duration `json:"elapsed"`
+	ReqTime    time.Time     `json:"request"`
+	RespTime   time.Time     `json:"response"`
+	Elapsed    time.Duration `json:"elapsed"`
+	StatusCode int           `json:"statusCode"`
 }
 
 // NewPage returns a page structure that will hold all our cool stuff

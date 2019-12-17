@@ -48,6 +48,21 @@ func doRouter(dir string, d chan bool) {
 		fmt.Fprint(w, sites)
 	})
 
+	router.HandleFunc("/api/site/{url}", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, sites)
+		// an example API handler
+		var url string
+
+		vars := mux.Vars(r)
+		if url = vars["url"]; url == "" {
+			fmt.Fprintln(w, "Bad Form ~> ParseForm()")
+			return
+		}
+
+		log.Infoln("Handling /api/crawl/", url)
+		processURL(url, w)
+	})
+
 	spa := spaHandler{staticPath: dir, indexPath: "index.html"}
 	router.PathPrefix("/").Handler(spa)
 
