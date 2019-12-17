@@ -1,10 +1,46 @@
 # Crawl the Website Babby Sitter
 
 Crawl is a light weight website babby sitter.  It constantly monitors
-your website(s) for both reliability and performance.
+your website(s) for both reliability and performance. Crawl is
+written go (very small and fast) as a single executable with no
+required external dependencies (just copy the program and use it.)
 
-Crawl is written go (very small and fast with single executable) using
-the [colly](http://gocolly.io) web scraping package.
+Crawl uses the excellent _Go package_[colly](http://gocolly.io) to do
+most of the hard work.
+
+## How to Use
+
+Crawl is both a _daemon_ and an _angel_ (JK :) and a _command line
+tool_.  When run as a command line tool crawl can be used to diagnose
+website troubles in real time.
+
+When run as a _daemon_ or _background service_ crawl monitors the
+availability and performance of the list of websites.
+
+## Command Line
+
+```bash
+% ./crawl rustyeddy.com
+http://rustyeddy.com
+	https://rustyeddy.com/projects
+	https://rustyeddy.com/contact
+	https://rustyeddy.com/projects/crawl
+	https://rustyeddy.com/
+	https://rustyeddy.com/interview
+	https://rustyeddy.com/notes
+	https://rustyeddy.com/resume
+  elapsed time 341.752345ms
+```
+
+## Service
+
+As a daemon Crawl provides the following REST API
+
+- POST /crawl/_{url}_	= Add the URL to the watch list
+- GET  /crawl/_{url}_   = Get current watch details
+- GET  /sites           = Get list of sites on watch list
+- GET  /site/_{url}_    = Get information about specific site
+- GET  /api/healthcheck
 
 ## Crawling Websites
 
