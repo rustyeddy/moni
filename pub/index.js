@@ -20,13 +20,8 @@ Vue.component('site', {
 });
 
 Vue.component('alert', {
-    props: ['level', 'message'],
-    template: '<div class="alert {{ level }}" role="alert">{{ message }}</div>',
-    data() {
-	return {
-	    message: "Hello, World!"
-	}
-    }
+    props: ['level'],
+    template: '<div class="alert" :class="level" role="alert"><slot></slot></div>'
 });
 
 new Vue({
