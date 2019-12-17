@@ -18,6 +18,7 @@
  export default {
      el: '#page',
      data: {
+	 status: "",
 	 url: "",
 	 elapsed: "",
 	 links: []
@@ -35,6 +36,7 @@
 	     console.log(error);
 	 });
 	 */
+	 status = "mounted";
 	 console.log("page has been mounted");
      }
  };

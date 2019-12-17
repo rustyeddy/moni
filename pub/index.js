@@ -26,5 +26,8 @@ Vue.component('alert', {
 
 new Vue({
     el: '#app',
+    data: {
+	title: "The Title"
+    }
 });
 
