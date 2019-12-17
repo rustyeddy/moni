@@ -9,44 +9,21 @@
 	<!-- Bootstrap CSS -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
-	<title>Rusty App</title>
+	<title>Moni</title>
     </head>
 
     <body>
-	<div class="container">
-	    
-
-
-	</div>
-
 	<div id="app" class="container">
-	    {{ messageNow }}
-	    <div class="row mb-4">
-		<div class="col"></div>
+
+	    <div class="row">
 		<div class="col">
-		    <h4>{{ page.url }}</h4>
-		    <h6>{{ page.elapsed }}</h6>
-		    <div>
-			<ul class="link-group">
-			    <li class="link-group-item" v-for="link in links">
-				<a clas="link-group-link" :href="link">{{ link }}</a>
-			    </li>
-			</ul>
-		    </div>
+
+		    <alert level="success" message="This is the official Site List"></alert>
+
+		    <site-list></site-list>
 		</div>
-		<div class="col"></div>
 	    </div>
 	</div>
-	
-	<!-- make this a modal -->
-	<form id="walk" method="post" class="m-4" action="/">
-	    <div class="form-group row">
-		<div class="col-sm-10">
-		    <input type="text" class="form-control m-2" placeholder="example.com">
-		    <button type="submit" value="submit" class="btn btn-primary btn-lg btn-block m-2">Walk That URL</button>
- 		</div>
-	    </div>
-	</form>
 
 	<!-- jQuery first, then Popper.js, then Bootstrap JS -->
 	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
