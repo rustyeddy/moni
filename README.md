@@ -36,11 +36,11 @@ http://rustyeddy.com
 
 As a daemon Crawl provides the following REST API
 
-- POST /crawl/_{url}_	= Add the URL to the watch list
-- GET  /crawl/_{url}_   = Get current watch details
-- GET  /sites           = Get list of sites on watch list
-- GET  /site/_{url}_    = Get information about specific site
-- GET  /api/healthcheck
+- POST /api/crawl/_{url}_	= Add the URL to the watch list
+- GET  /api/crawl/_{url}_   = Get current watch details
+- GET  /api/sites           = Get list of sites on watch list
+- GET  /api/site/_{url}_    = Get information about specific site
+- GET  /api/healthcheck		= Are we alive?
 
 ## Crawling Websites
 
