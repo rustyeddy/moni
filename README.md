@@ -102,4 +102,7 @@ flagged as a _broken link_.
 We do not collect any content from the Reachability test and hence we
 do not have any additional links to crawl.
 
+## Software Details
 
+In support of our Crawl capability this software has a _REST API
+service_ and a periodic website walking service.

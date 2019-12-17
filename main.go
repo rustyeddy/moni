@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"net/url"
+	"sync"
 
 	"github.com/rustyeddy/store"
 	log "github.com/sirupsen/logrus"
@@ -67,10 +68,16 @@ func main() {
 	}
 
 	if config.Daemon {
+		var wg sync.WaitGroup
+		wg.Add(2)
+
 		// Start the scrubber, router
-		go doRouter(config.Pubdir, doneChan)
-		go watchSites(doneChan)
-		<-doneChan
+		go doRouter(config.Pubdir, &wg)
+
+		sites := GetSites()
+		go watchSites(sites, &wg)
+
+		wg.Wait()
 	}
 
 	log.Infoln("The end, good bye ... ")

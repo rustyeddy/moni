@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -21,8 +22,9 @@ type spaHandler struct {
 	indexPath  string
 }
 
-func doRouter(dir string, d chan bool) {
+func doRouter(dir string, wg *sync.WaitGroup) {
 	router := mux.NewRouter()
+	defer wg.Done()
 
 	router.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
 		// an example API handler
