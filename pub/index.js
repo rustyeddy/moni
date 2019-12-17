@@ -1,5 +1,5 @@
 var vm = new Vue({
-    el: '#app',
+    el: '#page',
     data: {
 	title: "Page",
 	message: "Hello",
