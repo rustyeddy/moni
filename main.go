@@ -26,7 +26,7 @@ var (
 	err     error
 	acl     map[string]bool
 	pages   map[url.URL]*Page
-	sites   map[url.URL]*Site
+	sites   []string
 	storage *store.FileStore
 
 	doneChan chan bool
@@ -46,7 +46,7 @@ func init() {
 	acl = make(map[string]bool)
 	doneChan = make(chan bool)
 	pages = make(map[url.URL]*Page)
-	sites = make(map[url.URL]*Site)
+	sites = nil
 
 	// TODO read the acls from a file
 	acl["localhost"] = false
