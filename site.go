@@ -30,3 +30,8 @@ func SaveSites() (err error) {
 	}
 	return err
 }
+
+func AddSite(url string) []string {
+	sites = append(sites, url)
+	return sites
+}

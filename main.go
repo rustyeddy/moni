@@ -74,9 +74,7 @@ func main() {
 
 		// Start the scrubber, router
 		go doRouter(config.Pubdir, &wg)
-
-		sites := GetSites()
-		go watchSites(sites, &wg)
+		go watchSites(&wg)
 
 		wg.Wait()
 	}

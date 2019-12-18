@@ -31,28 +31,17 @@ func doRouter(dir string, wg *sync.WaitGroup) {
 		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 	})
 
-	router.HandleFunc("/api/crawl/{url}", func(w http.ResponseWriter, r *http.Request) {
-		// an example API handler
-		var url string
-
-		vars := mux.Vars(r)
-		if url = vars["url"]; url == "" {
-			fmt.Fprintln(w, "Bad Form ~> ParseForm()")
-			return
-		}
-
-		log.Infoln("Handling /api/crawl/", url)
-		processURL(url, w)
-	})
-
 	router.HandleFunc("/api/sites", func(w http.ResponseWriter, r *http.Request) {
-		sites := GetSites()
-		fmt.Fprint(w, sites)
+		sites = GetSites()
+
+		jbuf, err := json.Marshal(sites)
+		if err != nil {
+			return err
+		}
+		fmt.Fprint(w, jbuf)
 	})
 
 	router.HandleFunc("/api/site/{url}", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, sites)
-		// an example API handler
 		var url string
 
 		vars := mux.Vars(r)
@@ -62,6 +51,12 @@ func doRouter(dir string, wg *sync.WaitGroup) {
 		}
 
 		log.Infoln("Handling /api/crawl/", url)
+
+		// Add to sites list for future watching
+		AddSite(url)
+
+		// Process the site since it is new, it will return with
+		// json.NewEncoder(w.w).Encode(pg)
 		processURL(url, w)
 	})
 
