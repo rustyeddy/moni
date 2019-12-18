@@ -35,7 +35,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&config.Addrport, "addr", "0.0.0.0:1212", "Address and port configuration")
+	flag.StringVar(&config.Addrport, "addr", "0.0.0.0:2222", "Address and port configuration")
 	flag.StringVar(&config.ConfigFile, "config", "crawl.json", "Moni config file")
 	flag.StringVar(&config.LogFile, "logfile", "crawl.log", "Crawl logfile")
 	flag.StringVar(&config.LogFormat, "format", "", "format to print [json]")

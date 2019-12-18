@@ -23,82 +23,6 @@ type spaHandler struct {
 	indexPath  string
 }
 
-func doRouter(dir string, wg *sync.WaitGroup) {
-	router := mux.NewRouter()
-	defer wg.Done()
-
-	router.HandleFunc("/api/config", func(w http.ResponseWriter, r *http.Request) {
-		// an example API handler
-		json.NewEncoder(w).Encode(config)
-	})
-
-	router.HandleFunc("/api/config/{key}/{val}", func(w http.ResponseWriter, r *http.Request) {
-		var err error
-		vars := mux.Vars(r)
-		key := vars["key"]
-		val := vars["val"]
-		if r.Method != "POST" && r.Method != "PUT" {
-			fmt.Fprintln(w, "Request has bad method %s Bad Form", r.Method)
-			return
-		}
-
-		switch key {
-		case "wait":
-			if config.Wait, err = strconv.Atoi(val); err != nil {
-				log.Errorf("failed to set configuration %v", err)
-				fmt.Fprintln(w, "Error Bad Form ~> ParseForm()")
-				return
-			}
-		}
-		json.NewEncoder(w).Encode(config)
-	})
-
-	router.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
-		// an example API handler
-		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
-	})
-
-	router.HandleFunc("/api/sites", func(w http.ResponseWriter, r *http.Request) {
-		sitelist = GetSites()
-		json.NewEncoder(w).Encode(sitelist)
-	})
-
-	router.HandleFunc("/api/site/{url}", func(w http.ResponseWriter, r *http.Request) {
-		var url string
-
-		vars := mux.Vars(r)
-		if url = vars["url"]; url == "" {
-			fmt.Fprintln(w, "Bad Form ~> ParseForm()")
-			return
-		}
-
-		log.Infof("Adding %s to sitelist and walking", url)
-		AddSite(url)
-
-		// Process the site since it is new, it will return with
-		// json.NewEncoder(w.w).Encode(pg)
-		processURL(url, w)
-	})
-
-	router.HandleFunc("/api/pages", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("PAGES: %+v\n", pages)
-		json.NewEncoder(w).Encode(pages)
-	})
-
-	spa := spaHandler{staticPath: dir, indexPath: "index.html"}
-	router.PathPrefix("/").Handler(spa)
-
-	srv := &http.Server{
-		Handler: router,
-		Addr:    "0.0.0.0:2000",
-
-		// Good practice: enforce timeouts for servers you create!
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
-	}
-	err = srv.ListenAndServe()
-}
-
 // ServeHTTP inspects the URL path to locate a file within the static dir
 // on the SPA handler. If a file is found, it will be served. If not, the
 // file located at the index path on the SPA handler will be served. This
@@ -137,4 +61,91 @@ func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// otherwise, use http.FileServer to serve the static dir
 	http.FileServer(http.Dir(h.staticPath)).ServeHTTP(w, r)
+}
+
+func doRouter(dir string, wg *sync.WaitGroup) {
+	router := mux.NewRouter()
+	defer wg.Done()
+
+	router.HandleFunc("/api/config", getConfig)
+	router.HandleFunc("/api/config/{key}/{val}", setConfig)
+	router.HandleFunc("/api/health", getHealth)
+	router.HandleFunc("/api/sites", getSites)
+	router.HandleFunc("/api/site/{url}", getSite)
+	router.HandleFunc("/api/pages", getPages)
+
+	spa := spaHandler{staticPath: dir, indexPath: "index.html"}
+	router.PathPrefix("/").Handler(spa)
+
+	srv := &http.Server{
+		Handler: router,
+		Addr:    config.Addrport,
+
+		// Good practice: enforce timeouts for servers you create!
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
+	err = srv.ListenAndServe()
+}
+
+func getHealth(w http.ResponseWriter, r *http.Request) {
+	// an example API handler
+	json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+}
+
+func getConfig(w http.ResponseWriter, r *http.Request) {
+	// an example API handler
+	json.NewEncoder(w).Encode(config)
+}
+
+func setConfig(w http.ResponseWriter, r *http.Request) {
+	var err error
+	vars := mux.Vars(r)
+	key := vars["key"]
+	val := vars["val"]
+	if r.Method != "POST" && r.Method != "PUT" {
+		fmt.Fprintln(w, "Request has bad method %s Bad Form", r.Method)
+		return
+	}
+
+	switch key {
+	case "wait":
+		if config.Wait, err = strconv.Atoi(val); err != nil {
+			log.Errorf("failed to set configuration %v", err)
+			fmt.Fprintln(w, "Error Bad Form ~> ParseForm()")
+			return
+		}
+	}
+	json.NewEncoder(w).Encode(config)
+}
+
+func getSites(w http.ResponseWriter, r *http.Request) {
+	sr := struct {
+		Sites []string
+	}{
+		GetSites(),
+	}
+	json.NewEncoder(w).Encode(sr)
+}
+
+func getSite(w http.ResponseWriter, r *http.Request) {
+	var url string
+
+	vars := mux.Vars(r)
+	if url = vars["url"]; url == "" {
+		fmt.Fprintln(w, "Bad Form ~> ParseForm()")
+		return
+	}
+
+	log.Infof("Adding %s to sitelist and walking", url)
+	AddSite(url)
+
+	// Process the site since it is new, it will return with
+	// json.NewEncoder(w.w).Encode(pg)
+	processURL(url, w)
+}
+
+func getPages(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("PAGES: %+v\n", pages)
+	json.NewEncoder(w).Encode(&pages)
 }

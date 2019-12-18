@@ -3,7 +3,7 @@ prog = moni
 gofiles = main.go page.go walker.go
 
 build: $(prog )
-	go build -o ${prog} 
+	go build
 
 run: $(gofiles)
 	go -v run $(gofiles)

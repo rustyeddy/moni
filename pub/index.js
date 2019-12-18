@@ -1,22 +1,28 @@
 Vue.component('site-list', {
     template: `
-	<div class="list-group">
-		<site v-for="site in sites">{{ site.site }}</site>
-	</div>
+	<ul class="list-group">
+		<site v-for="site in sites">{{ site }}</site>
+	</ul>
 	`,
     data() {
+	axios.get('/api/sites')
+	    .then((response) => {
+		this.sites = response.data.Sites;
+	    }, (error) => {
+		console.log(error);
+	    });
+
 	return {
 	    sites: [
-		{ site: "oclowvision.com", up: false },
 		{ site: "rustyeddy.com", up: false },
 		{ site: "sierrahydrographics.com", up: false },		
 	    ]
 	}
-    }
+    },
 })
 
 Vue.component('site', {
-    template: '<li class="list-item"><slot></slot></li>',
+    template: '<li class="list-group-item"><a href="<slot></slot>"><slot></slot></a></li>',
 });
 
 Vue.component('alert', {

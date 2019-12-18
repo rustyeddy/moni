@@ -25,7 +25,7 @@
      },
      mounted() {
 	 /*
-	 axios.post('/api/crawl/', {
+	 axios.post('/api/site/', {
 	     vm.url: "rustyeddy.com"
 	 }).then((response) => {
 	     vm.message = (response.data);
