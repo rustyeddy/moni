@@ -106,3 +106,6 @@ do not have any additional links to crawl.
 
 In support of our Crawl capability this software has a _REST API
 service_ and a periodic website walking service.
+
+Both services run a Go routines, both run forever in there own little
+space. The program is synchronized using a _wait group_.

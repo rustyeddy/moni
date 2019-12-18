@@ -101,7 +101,11 @@ func processURL(ustr string, w http.ResponseWriter) {
 				Page: page,
 			}
 			walker.Walk()
+		} else {
+			log.Warnf("\tprocessURL: page rejected %v", *u)
 		}
+	} else {
+		log.Warnf("\tprocessURL: URL failed %s\n", ustr)
 	}
 }
 
