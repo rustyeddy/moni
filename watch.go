@@ -22,7 +22,9 @@ func watchSites(wg *sync.WaitGroup) {
 			// http.ResponseWriter
 			processURL(s, nil)
 		}
-		log.Infoln()
-		time.Sleep(time.Duration(config.Wait) * time.Minute)
+
+		stime := time.Duration(config.Wait) * time.Minute
+		log.Infof("sleeping %s", stime)
+		time.Sleep(stime)
 	}
 }

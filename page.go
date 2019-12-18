@@ -12,8 +12,8 @@ type Page struct {
 	url.URL    `json:"url"`
 	Links      map[string][]string `json:"links"`
 	StatusCode int                 `json:"statusCode"`
-	TimeStamp
-	TimeStamps []TimeStamp
+	TimeStamp  `json:"timestamp"`
+	TimeStamps []TimeStamp `json:"timestamps"`
 }
 
 // NewPage returns a page structure that will hold all our cool stuff
@@ -41,11 +41,20 @@ func (p *Page) String() string {
 	return p.URL.String()
 }
 
-func (p *Page) Print() {
-	fmt.Printf("%40s: resp: %v links: %d\n", p.URL.String(), p.Elapsed, len(p.Links))
+func (p *Page) PageString() (s string) {
+	s = fmt.Sprintf("%-40s: links: %-4d resp: %-10v ", p.URL.String(), len(p.Links), p.Elapsed)
+	if tslen := len(p.TimeStamps); tslen > 0 {
+		if tslen > 4 {
+			tslen -= 4
+		}
+		s += fmt.Sprintf("\tlast elasped: %v", p.TimeStamps[tslen:])
+	}
+	s += "\n"
+
 	if config.Verbose {
 		for l, _ := range p.Links {
-			fmt.Printf("\t%s\n", l)
+			s += fmt.Sprintf("\t%s\n", l)
 		}
 	}
+	return s
 }

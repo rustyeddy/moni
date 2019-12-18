@@ -80,6 +80,11 @@ func doRouter(dir string, wg *sync.WaitGroup) {
 		processURL(url, w)
 	})
 
+	router.HandleFunc("/api/pages", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("PAGES: %+v\n", pages)
+		json.NewEncoder(w).Encode(pages)
+	})
+
 	spa := spaHandler{staticPath: dir, indexPath: "index.html"}
 	router.PathPrefix("/").Handler(spa)
 
