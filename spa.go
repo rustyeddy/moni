@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"time"
 
@@ -26,19 +27,40 @@ func doRouter(dir string, wg *sync.WaitGroup) {
 	router := mux.NewRouter()
 	defer wg.Done()
 
+	router.HandleFunc("/api/config", func(w http.ResponseWriter, r *http.Request) {
+		// an example API handler
+		json.NewEncoder(w).Encode(config)
+	})
+
+	router.HandleFunc("/api/config/{key}/{val}", func(w http.ResponseWriter, r *http.Request) {
+		var err error
+		vars := mux.Vars(r)
+		key := vars["key"]
+		val := vars["val"]
+		if r.Method != "POST" && r.Method != "PUT" {
+			fmt.Fprintln(w, "Request has bad method %s Bad Form", r.Method)
+			return
+		}
+
+		switch key {
+		case "wait":
+			if config.Wait, err = strconv.Atoi(val); err != nil {
+				log.Errorf("failed to set configuration %v", err)
+				fmt.Fprintln(w, "Error Bad Form ~> ParseForm()")
+				return
+			}
+		}
+		json.NewEncoder(w).Encode(config)
+	})
+
 	router.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
 		// an example API handler
 		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 	})
 
 	router.HandleFunc("/api/sites", func(w http.ResponseWriter, r *http.Request) {
-		sites = GetSites()
-
-		jbuf, err := json.Marshal(sites)
-		if err != nil {
-			return err
-		}
-		fmt.Fprint(w, jbuf)
+		sitelist = GetSites()
+		json.NewEncoder(w).Encode(sitelist)
 	})
 
 	router.HandleFunc("/api/site/{url}", func(w http.ResponseWriter, r *http.Request) {
@@ -50,9 +72,7 @@ func doRouter(dir string, wg *sync.WaitGroup) {
 			return
 		}
 
-		log.Infoln("Handling /api/crawl/", url)
-
-		// Add to sites list for future watching
+		log.Infof("Adding %s to sitelist and walking", url)
 		AddSite(url)
 
 		// Process the site since it is new, it will return with

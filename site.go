@@ -12,19 +12,19 @@ type Site struct {
 }
 
 func GetSites() []string {
-	if sites == nil || len(sites) < 1 {
-		sites = make([]string, 1)
-		if err := storage.ReadObject("sites.json", &sites); err != nil {
+	if sitelist == nil || len(sitelist) < 1 {
+		sitelist = make([]string, 1)
+		if err := storage.ReadObject("sites.json", &sitelist); err != nil {
 			log.Errorf("Storage failed to read sites.json: %v", err)
 		}
 	}
-	return sites
+	return sitelist
 }
 
 // SaveSites saves the sites structure.
 func SaveSites() (err error) {
-	if sites != nil && len(sites) > 0 {
-		if err = storage.Save("sites.json", &sites); err != nil {
+	if sitelist != nil && len(sitelist) > 0 {
+		if err = storage.Save("sites.json", &sitelist); err != nil {
 			log.Errorf("Storage Save failed for sites.json %v", err)
 		}
 	}
@@ -32,6 +32,9 @@ func SaveSites() (err error) {
 }
 
 func AddSite(url string) []string {
-	sites = append(sites, url)
-	return sites
+
+	// first make sure we are not added the same website twice
+	// XXX: this will.
+	sitelist = append(sitelist, url)
+	return sitelist
 }

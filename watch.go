@@ -11,10 +11,10 @@ import (
 func watchSites(wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	sites = GetSites()
-	log.Infof("Starting watchSites: %v", sites)
+	sitelist = GetSites()
+	log.Infof("Starting watchSites: %v", sitelist)
 	for {
-		for _, s := range sites {
+		for _, s := range sitelist {
 
 			// TODO: This function will print to std output, it we
 			// should be passing an io.Writer rather than nil.  We are
@@ -23,6 +23,6 @@ func watchSites(wg *sync.WaitGroup) {
 			processURL(s, nil)
 		}
 		log.Infoln()
-		time.Sleep(5 * time.Minute)
+		time.Sleep(time.Duration(config.Wait) * time.Minute)
 	}
 }

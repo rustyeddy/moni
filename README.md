@@ -32,15 +32,33 @@ http://rustyeddy.com
   elapsed time 341.752345ms
 ```
 
+Or watch a group of websites with a quick and easy single line output:
+
+```bash
+                  http://rustyeddy.com: resp: 659.999µs links: 7
+                  http://oclowvision.com: resp: 986.158µs links: 10
+        http://orangecountylowvision.com: resp: 888.039µs links: 10
+          http://sierrahydrographics.com: resp: 1.644021ms links: 16
+               http://gardenpassages.com: resp: 1.136244ms links: 22
+                   http://skillcraft.com: resp: 1.519748ms links: 14
+                   http://mobilerobot.io: resp: 1.042628ms links: 7
+```
+
+This is handy if you manage a lot of websites.
+
 ## Service
 
 As a daemon Crawl provides the following REST API
 
-- POST /api/crawl/_{url}_	= Add the URL to the watch list
-- GET  /api/crawl/_{url}_   = Get current watch details
-- GET  /api/sites           = Get list of sites on watch list
-- GET  /api/site/_{url}_    = Get information about specific site
-- GET  /api/healthcheck		= Are we alive?
+- GET  /api/healthcheck			= Are we alive?
+
+- GET  /api/config				= Working Configuration file
+- PUT  /api/config/wait/_{T}_	= Set wait time to T minutes
+
+- GET  /api/sites				= Get list of sites on watch list
+- GET  /api/site/_{url}_		= Get information about specific site
+- POST /api/site/_{url}_		= Add the URL to the watch list
+
 
 ## Crawling Websites
 

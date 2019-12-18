@@ -15,20 +15,21 @@ type Configuration struct {
 	ConfigFile string
 	Changed    bool
 	Daemon     bool
-	Recurse    bool
-	Verbose    bool
 	LogFile    string
 	LogFormat  string
 	Pubdir     string
+	Recurse    bool
+	Verbose    bool
+	Wait       int
 }
 
 var (
-	config  Configuration
-	err     error
-	acl     map[string]bool
-	pages   map[url.URL]*Page
-	sites   []string
-	storage *store.FileStore
+	config   Configuration
+	err      error
+	acl      map[string]bool
+	pages    map[url.URL]*Page
+	sitelist []string
+	storage  *store.FileStore
 
 	doneChan chan bool
 )
@@ -42,13 +43,14 @@ func init() {
 	flag.BoolVar(&config.Recurse, "recurse", true, "Recurse local")
 	flag.BoolVar(&config.Daemon, "daemon", false, "format to print [json]")
 	flag.BoolVar(&config.Verbose, "verbose", false, "turn on or off verbosity")
+	flag.IntVar(&config.Wait, "wait", 5, "wait in minutes between check")
 
 	//storage, err := store.UseFileStore(".")
 	//errPanic(err)
 	acl = make(map[string]bool)
 	doneChan = make(chan bool)
 	pages = make(map[url.URL]*Page)
-	sites = nil
+	sitelist = nil
 
 	// TODO read the acls from a file
 	acl["localhost"] = false
