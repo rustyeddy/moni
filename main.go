@@ -41,6 +41,7 @@ func init() {
 	flag.StringVar(&config.Pubdir, "pub", "pub", "the published dir")
 	flag.BoolVar(&config.Recurse, "recurse", true, "Recurse local")
 	flag.BoolVar(&config.Daemon, "daemon", false, "format to print [json]")
+	flag.BoolVar(&config.Verbose, "verbose", false, "turn on or off verbosity")
 
 	//storage, err := store.UseFileStore(".")
 	//errPanic(err)

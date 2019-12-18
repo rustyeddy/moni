@@ -16,6 +16,7 @@ func watchSites(sites []string, wg *sync.WaitGroup) {
 		for _, s := range sites {
 			processURL(s, nil)
 		}
+		log.Infoln()
 		time.Sleep(5 * time.Minute)
 	}
 

@@ -3,20 +3,17 @@ package main
 import (
 	"fmt"
 	"net/url"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 )
 
 // Page represents a single web page
 type Page struct {
-	url.URL `json:"url"`
-	Links   map[string][]string `json:"links"`
-
-	ReqTime    time.Time     `json:"request"`
-	RespTime   time.Time     `json:"response"`
-	Elapsed    time.Duration `json:"elapsed"`
-	StatusCode int           `json:"statusCode"`
+	url.URL    `json:"url"`
+	Links      map[string][]string `json:"links"`
+	StatusCode int                 `json:"statusCode"`
+	TimeStamp
+	TimeStamps []TimeStamp
 }
 
 // NewPage returns a page structure that will hold all our cool stuff
@@ -40,10 +37,15 @@ func GetPage(u url.URL) (p *Page) {
 	return p
 }
 
+func (p *Page) String() string {
+	return p.URL.String()
+}
+
 func (p *Page) Print() {
-	fmt.Printf("%s\n", p.URL.String())
-	for l, _ := range p.Links {
-		fmt.Printf("\t%s\n", l)
+	fmt.Printf("%40s: resp: %v links: %d\n", p.URL.String(), p.Elapsed, len(p.Links))
+	if config.Verbose {
+		for l, _ := range p.Links {
+			fmt.Printf("\t%s\n", l)
+		}
 	}
-	fmt.Printf("  elapsed time %v\n", p.Elapsed)
 }

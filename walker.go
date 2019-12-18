@@ -20,8 +20,6 @@ type Walker struct {
 
 // Walk the given page, setting the links and responding to request
 func (w *Walker) Walk() {
-	var urls []string
-
 	c := colly.NewCollector()
 
 	log.Infof("Visiting page %+v", w)
@@ -39,29 +37,28 @@ func (w *Walker) Walk() {
 	})
 
 	c.OnResponse(func(r *colly.Response) {
-		w.Page.RespTime = time.Now()
+		w.TimeStamp = NewTimestamp()
 		log.Infoln("Response ", r.Request.URL)
 	})
 
 	c.OnScraped(func(r *colly.Response) {
-		// The page scrape has completed
-		log.Debugf("\tLinks: %s", w.Page.URL.String())
+		// The page scrape has completed, set the response time
+		w.Page.SetResponseTime(time.Now())
+
+		// Now print some interactive user friendly stuff
+		log.Infof("    Links: %s", w.Page.URL.String())
 		for ustr, _ := range w.Page.Links {
-			log.Debugf("\t~> %s", ustr)
-			if config.Recurse {
-				urls = append(urls, ustr)
-			}
+			log.Infof("\t~> %s", ustr)
 		}
 	})
 
 	// Start the walk
-	w.Page.ReqTime = time.Now()
+	w.Page.TimeStamp = NewTimestamp()
 	c.Visit(w.Page.String())
 
-	// Walk is complete
-	w.Page.RespTime = time.Now()
-	w.Page.Elapsed = w.Page.RespTime.Sub(w.Page.ReqTime)
-
+	// Walk is complete, SetResponse time will set the time as
+	// advertised, but it will also calculate the elapsed time
+	// as a side effect.
 	links := []string{}
 	for l, _ := range w.Page.Links {
 		links = append(links, l)
@@ -121,6 +118,7 @@ func scrubURL(urlstr string) (u *url.URL) {
 		u.Scheme = "http"
 	}
 
+	// Recon struct
 	if u, err = url.Parse(u.String()); err != nil {
 		return nil
 	}
