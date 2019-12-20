@@ -18,3 +18,4 @@ moni
 crawl
 *.json
 *.log
+__debug_bin
