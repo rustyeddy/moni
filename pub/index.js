@@ -7,7 +7,7 @@ Vue.component('site-list', {
     data() {
 	axios.get('/api/sites')
 	    .then((response) => {
-		this.sites = response.data.Sites;
+		this.sites = response.data;
 	    }, (error) => {
 		console.log(error);
 	    });

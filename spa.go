@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -67,12 +68,11 @@ func doRouter(dir string, wg *sync.WaitGroup) {
 	router := mux.NewRouter()
 	defer wg.Done()
 
-	router.HandleFunc("/api/config", getConfig)
-	router.HandleFunc("/api/config/{key}/{val}", setConfig)
-	router.HandleFunc("/api/health", getHealth)
-	router.HandleFunc("/api/sites", getSites)
-	router.HandleFunc("/api/site/{url}", getSite)
-	router.HandleFunc("/api/pages", getPages)
+	router.HandleFunc("/api/config", handleGetConfig)
+	router.HandleFunc("/api/config/{key}/{val}", handleSetConfig)
+	router.HandleFunc("/api/health", handleGetHealth)
+	router.HandleFunc("/api/sites", handleGetSites)
+	router.HandleFunc("/api/site/{url}", handleGetSite)
 
 	spa := spaHandler{staticPath: dir, indexPath: "index.html"}
 	router.PathPrefix("/").Handler(spa)
@@ -88,17 +88,16 @@ func doRouter(dir string, wg *sync.WaitGroup) {
 	err = srv.ListenAndServe()
 }
 
-func getHealth(w http.ResponseWriter, r *http.Request) {
+func handleGetHealth(w http.ResponseWriter, r *http.Request) {
 	// an example API handler
 	json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 }
 
-func getConfig(w http.ResponseWriter, r *http.Request) {
-	// an example API handler
+func handleGetConfig(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(config)
 }
 
-func setConfig(w http.ResponseWriter, r *http.Request) {
+func handleSetConfig(w http.ResponseWriter, r *http.Request) {
 	var err error
 	vars := mux.Vars(r)
 	key := vars["key"]
@@ -119,33 +118,39 @@ func setConfig(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(config)
 }
 
-func getSites(w http.ResponseWriter, r *http.Request) {
-	sr := struct {
-		Sites []string
-	}{
-		GetSites(),
+func handleGetSites(w http.ResponseWriter, r *http.Request) {
+	var slist []string
+	for u, _ := range sites {
+		slist = append(slist, u.String())
 	}
-	json.NewEncoder(w).Encode(sr)
+	json.NewEncoder(w).Encode(slist)
 }
 
-func getSite(w http.ResponseWriter, r *http.Request) {
-	var url string
+func handleGetSite(w http.ResponseWriter, r *http.Request) {
+	var urlstr string
 
 	vars := mux.Vars(r)
-	if url = vars["url"]; url == "" {
+	if urlstr = vars["url"]; urlstr == "" {
 		fmt.Fprintln(w, "Bad Form ~> ParseForm()")
 		return
 	}
 
-	log.Infof("Adding %s to sitelist and walking", url)
-	AddSite(url)
+	log.Infof("Adding %s to sitelist and walking", urlstr)
+	u, err := url.Parse(urlstr)
+	if err != nil {
+		log.Warnf("bad url %s", urlstr)
+		fmt.Fprintln(w, "bad url")
+		return
+	}
+
+	site := GetSite(u)
+	plist := site.PageList()
+
+	resp := struct {
+		URL   string
+		Pages []string
+	}{site.URL.String(), plist}
 
 	// Process the site since it is new, it will return with
-	// json.NewEncoder(w.w).Encode(pg)
-	processURL(url, w)
-}
-
-func getPages(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("PAGES: %+v\n", pages)
-	json.NewEncoder(w).Encode(&pages)
+	json.NewEncoder(w).Encode(resp)
 }

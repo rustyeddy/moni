@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"net/url"
 	"sync"
 
 	"github.com/rustyeddy/store"
@@ -24,33 +23,32 @@ type Configuration struct {
 }
 
 var (
-	config   Configuration
-	err      error
-	acl      map[string]bool
-	pages    map[url.URL]*Page
-	sitelist []string
-	storage  *store.FileStore
+	config  Configuration
+	err     error
+	acl     map[string]bool
+	sites   Sites
+	storage *store.FileStore
 
-	doneChan chan bool
+	walkQ chan *Page
 )
 
 func init() {
 	flag.StringVar(&config.Addrport, "addr", "0.0.0.0:2222", "Address and port configuration")
 	flag.StringVar(&config.ConfigFile, "config", "crawl.json", "Moni config file")
-	flag.StringVar(&config.LogFile, "logfile", "crawl.log", "Crawl logfile")
+	flag.StringVar(&config.LogFile, "logfile", "", "Crawl logfile")
 	flag.StringVar(&config.LogFormat, "format", "", "format to print [json]")
 	flag.StringVar(&config.Pubdir, "pub", "pub", "the published dir")
 	flag.BoolVar(&config.Recurse, "recurse", true, "Recurse local")
-	flag.BoolVar(&config.Daemon, "daemon", false, "format to print [json]")
+	flag.BoolVar(&config.Daemon, "daemon", true, "Run as a service opening and listening to sockets")
 	flag.BoolVar(&config.Verbose, "verbose", false, "turn on or off verbosity")
 	flag.IntVar(&config.Wait, "wait", 5, "wait in minutes between check")
 
 	//storage, err := store.UseFileStore(".")
 	//errPanic(err)
 	acl = make(map[string]bool)
-	doneChan = make(chan bool)
-	pages = make(map[url.URL]*Page)
-	sitelist = nil
+
+	sites = make(Sites)
+	walkQ = make(chan *Page, 100)
 
 	// TODO read the acls from a file
 	acl["localhost"] = false
@@ -60,26 +58,18 @@ func init() {
 }
 
 func main() {
+	var wg sync.WaitGroup
+
 	flag.Parse()
 	setupLogging()
 	setupStorage()
 
-	// Process urls will filter bad, redundant and blocked URLs
-	// the urls that do not get blocked are then walked.
-	if urls := flag.Args(); urls != nil && len(urls) > 0 {
-		processURLs(urls, nil)
-	}
+	wg.Add(2)
+	go doRouter(config.Pubdir, &wg)
+	go doWalker(walkQ, &wg)
 
-	if config.Daemon {
-		var wg sync.WaitGroup
-		wg.Add(2)
-
-		// Start the scrubber, router
-		go doRouter(config.Pubdir, &wg)
-		go watchSites(&wg)
-
-		wg.Wait()
-	}
+	setupSites(walkQ, flag.Args())
+	wg.Wait()
 
 	log.Infoln("The end, good bye ... ")
 }
