@@ -13,13 +13,13 @@ import (
 func (p *Page) Walk() {
 	c := colly.NewCollector()
 
-	log.Infof("Visiting page %s", p.URL.String())
+	log.Infof("Walking page %s", p.URL.String())
 
 	// Setup all the collbacks
 	c.OnHTML("a", func(e *colly.HTMLElement) {
 		refurl := e.Attr("href")
 		link := e.Request.AbsoluteURL(refurl)
-		p.Links[link] = append(p.Links[link], e.Text)
+		p.Links[link]++ //append(p.Links[link], e.Text)
 	})
 
 	c.OnRequest(func(r *colly.Request) {
@@ -48,11 +48,12 @@ func (p *Page) Walk() {
 	c.Visit(p.String())
 }
 
-func doWalker(wQ chan *Page, wg *sync.WaitGroup) {
+func doWatcher(wQ chan *Page, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for {
 		select {
 		case p := <-wQ:
+			log.Infof("  wQ channel recieved page: %+v", p)
 			p.Walk()
 		}
 	}
@@ -68,11 +69,12 @@ func scrubURL(urlstr string) (u *url.URL) {
 
 	if u.Scheme == "" {
 		u.Scheme = "http"
-	}
 
-	// Recon struct
-	if u, err = url.Parse(u.String()); err != nil {
-		return nil
+		u, err = url.Parse(u.String())
+		if err != nil {
+			log.Errorf("Failed to reconstruct URL %+v, %v", u, err)
+			return nil
+		}
 	}
 
 	// if this hostname exists in the acl set as false,

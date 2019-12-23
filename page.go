@@ -3,19 +3,29 @@ package main
 import (
 	"fmt"
 	"net/url"
-	"time"
 )
+
+type Pages map[url.URL]*Page
 
 // Page represents a single web page
 type Page struct {
 	*Site      `json:"-"`
 	url.URL    `json:"url"`
-	Links      map[string][]string `json:"links"`
-	StatusCode int                 `json:"statusCode"`
+	Links      map[string]int `json:"links"`
+	StatusCode int            `json:"statusCode"`
 
-	*time.Ticker `json:"-"`
-	TimeStamp    `json:"timestamp"`
-	TimeStamps   []TimeStamp `json:"timestamps"`
+	TimeStamp  `json:"timestamp"`
+	TimeStamps []TimeStamp `json:"timestamps"`
+
+	*Watcher `json:"-"`
+}
+
+func NewPage(u *url.URL) (p *Page) {
+	p = &Page{
+		URL:   *u,
+		Links: make(map[string]int),
+	}
+	return p
 }
 
 func (p *Page) PageString() (s string) {

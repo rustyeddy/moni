@@ -16,6 +16,12 @@ func NewTimestamp() (t TimeStamp) {
 	}
 }
 
+func Timestamp(t time.Time) TimeStamp {
+	return TimeStamp{
+		ReqTime: t,
+	}
+}
+
 // SetResponseTime sets according to the argumented passed to us, as a side
 // effect the Elapsed property will also be set.
 func (ts *TimeStamp) SetResponseTime(now time.Time) time.Duration {

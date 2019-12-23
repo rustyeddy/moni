@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -64,15 +63,16 @@ func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.FileServer(http.Dir(h.staticPath)).ServeHTTP(w, r)
 }
 
-func doRouter(dir string, wg *sync.WaitGroup) {
+func doRouter(dir string, wg *sync.WaitGroup) (err error) {
 	router := mux.NewRouter()
 	defer wg.Done()
 
 	router.HandleFunc("/api/config", handleGetConfig)
-	router.HandleFunc("/api/config/{key}/{val}", handleSetConfig)
-	router.HandleFunc("/api/health", handleGetHealth)
-	router.HandleFunc("/api/sites", handleGetSites)
-	router.HandleFunc("/api/site/{url}", handleGetSite)
+	router.HandleFunc("/api/config/{key}/{val}", handleSetConfig).Methods("GET", "PUT", "POST")
+	router.HandleFunc("/api/health", handleGetHealth).Methods("GET")
+	router.HandleFunc("/api/sites", handleGetSites).Methods("GET")
+	router.HandleFunc("/api/site/{url}", handleGetSite).Methods("GET")
+	router.HandleFunc("/api/site/{url}", handlePostSite).Methods("POST")
 
 	spa := spaHandler{staticPath: dir, indexPath: "index.html"}
 	router.PathPrefix("/").Handler(spa)
@@ -86,6 +86,7 @@ func doRouter(dir string, wg *sync.WaitGroup) {
 		ReadTimeout:  15 * time.Second,
 	}
 	err = srv.ListenAndServe()
+	return err
 }
 
 func handleGetHealth(w http.ResponseWriter, r *http.Request) {
@@ -120,6 +121,7 @@ func handleSetConfig(w http.ResponseWriter, r *http.Request) {
 
 func handleGetSites(w http.ResponseWriter, r *http.Request) {
 	var slist []string
+	fmt.Printf("SITES: %+v\n", sites)
 	for u, _ := range sites {
 		slist = append(slist, u.String())
 	}
@@ -135,17 +137,8 @@ func handleGetSite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Infof("Adding %s to sitelist and walking", urlstr)
-	u, err := url.Parse(urlstr)
-	if err != nil {
-		log.Warnf("bad url %s", urlstr)
-		fmt.Fprintln(w, "bad url")
-		return
-	}
-
-	site := GetSite(u)
+	site := GetSite(urlstr)
 	plist := site.PageList()
-
 	resp := struct {
 		URL   string
 		Pages []string
@@ -153,4 +146,18 @@ func handleGetSite(w http.ResponseWriter, r *http.Request) {
 
 	// Process the site since it is new, it will return with
 	json.NewEncoder(w).Encode(resp)
+}
+
+func handlePostSite(w http.ResponseWriter, r *http.Request) {
+	var urlstr string
+
+	vars := mux.Vars(r)
+	if urlstr = vars["url"]; urlstr == "" {
+		fmt.Fprintln(w, "Bad Form ~> ParseForm()")
+		return
+	}
+	setupSites([]string{urlstr})
+
+	// Process the site since it is new, it will return with
+	json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 }

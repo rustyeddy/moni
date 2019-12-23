@@ -24,12 +24,10 @@ type Configuration struct {
 
 var (
 	config  Configuration
-	err     error
 	acl     map[string]bool
 	sites   Sites
 	storage *store.FileStore
-
-	walkQ chan *Page
+	walkQ   chan *Page
 )
 
 func init() {
@@ -43,18 +41,8 @@ func init() {
 	flag.BoolVar(&config.Verbose, "verbose", false, "turn on or off verbosity")
 	flag.IntVar(&config.Wait, "wait", 5, "wait in minutes between check")
 
-	//storage, err := store.UseFileStore(".")
-	//errPanic(err)
-	acl = make(map[string]bool)
-
 	sites = make(Sites)
 	walkQ = make(chan *Page, 100)
-
-	// TODO read the acls from a file
-	acl["localhost"] = false
-	acl["google.com"] = false
-	acl["github.com"] = false
-	acl["rustyeddy.com"] = true
 }
 
 func main() {
@@ -66,9 +54,12 @@ func main() {
 
 	wg.Add(2)
 	go doRouter(config.Pubdir, &wg)
-	go doWalker(walkQ, &wg)
+	go doWatcher(walkQ, &wg)
 
-	setupSites(walkQ, flag.Args())
+	slist := readSitesFile()
+	slist = append(flag.Args())
+
+	setupSites(slist)
 	wg.Wait()
 
 	log.Infoln("The end, good bye ... ")
