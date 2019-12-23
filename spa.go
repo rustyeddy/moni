@@ -153,14 +153,15 @@ func handleGetSite(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var pages []string
-	for u, _ := range site.Pages {
-		pages = append(pages, u.String())
+	for u, _ := range site.Links {
+		pages = append(pages, u)
 	}
 
 	resp := struct {
-		URL   string
-		Pages []string
-	}{site.URL.String(), pages}
+		URL     string
+		Pages   []string
+		Elapsed time.Duration
+	}{site.URL.String(), pages, site.Elapsed}
 
 	// Process the site since it is new, it will return with
 	json.NewEncoder(w).Encode(resp)
