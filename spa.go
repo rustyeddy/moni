@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -130,6 +131,9 @@ func handleGetSites(w http.ResponseWriter, r *http.Request) {
 
 func handleGetSite(w http.ResponseWriter, r *http.Request) {
 	var urlstr string
+	var u *url.URL
+	var err error
+	var ex bool
 
 	vars := mux.Vars(r)
 	if urlstr = vars["url"]; urlstr == "" {
@@ -137,12 +141,26 @@ func handleGetSite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	site := GetSite(urlstr)
-	plist := site.PageList()
+	if u = scrubURL(urlstr); u == nil {
+		log.Errorf("failed to get site for %s ~> %v", urlstr, err)
+		return
+	}
+
+	var site *Site
+	if site, ex = sites[*u]; !ex {
+		fmt.Fprintln(w, "site not found")
+		return
+	}
+
+	var pages []string
+	for u, _ := range site.Pages {
+		pages = append(pages, u.String())
+	}
+
 	resp := struct {
 		URL   string
 		Pages []string
-	}{site.URL.String(), plist}
+	}{site.URL.String(), pages}
 
 	// Process the site since it is new, it will return with
 	json.NewEncoder(w).Encode(resp)
