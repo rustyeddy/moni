@@ -48,6 +48,7 @@ func init() {
 func main() {
 	var wg sync.WaitGroup
 
+	// Parse command line arguments
 	flag.Parse()
 	setupLogging()
 	setupStorage()

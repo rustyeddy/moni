@@ -46,6 +46,7 @@ func (p *Page) Walk() {
 	// Start the walk
 	p.TimeStamp = NewTimestamp()
 	c.Visit(p.String())
+	log.Infof("    Elaspsed time: %v", p.Elapsed)
 }
 
 func doWatcher(wQ chan *Page, wg *sync.WaitGroup) {
