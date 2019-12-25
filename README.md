@@ -1,12 +1,32 @@
-# Crawl the Website Babby Sitter
+# Moni the Website Babby Sitter
 
-Crawl is a light weight website babby sitter.  It constantly monitors
-your website(s) for both reliability and performance. Crawl is
-written go (very small and fast) as a single executable with no
-required external dependencies (just copy the program and use it.)
+Moni is a light weight, self contianed (single executable) website
+walker and tracker of things connected to a network.  moni is a single
+executable that is small and really fast, because it was written with
+go it is also really cool. :)
 
-Crawl uses the excellent _Go package_[colly](http://gocolly.io) to do
-most of the hard work.
+Moni has no external dependencies, you can just run the executable,
+feed it resources to watch and let _moni_ go aboud doing her thing.
+
+## REST API
+
+Moni has been built as an API first, with _clients_ for the command
+line and WebUI are clients of the API. REST is currently up and
+running, with ~hopes~ plans for _websocket_ and _graph api_ lurking
+just over the horizon.
+
+Moni is also extensible, that is moni can indeed make use of external
+functionality for storage, caching and persistence, logging
+facilities. More on this topic later ...
+
+> Moni depends heavily on the  excellent _Go package_
+> [**colly**](http://gocolly.io) to do the actual fetch and parse of
+> the HTML pages. 
+
+It constantly monitors your website(s) for both reliability and
+performance. Crawl is written go (very small and fast) as a single
+executable with no required external dependencies (just copy the
+program and use it.)
 
 ## How to Use
 

@@ -122,10 +122,10 @@ func handleSetConfig(w http.ResponseWriter, r *http.Request) {
 
 func handleGetSites(w http.ResponseWriter, r *http.Request) {
 	var slist []string
-	fmt.Printf("SITES: %+v\n", sites)
 	for u, _ := range sites {
 		slist = append(slist, u.String())
 	}
+	log.Infof("handleGetSites return %d sites", len(slist))
 	json.NewEncoder(w).Encode(slist)
 }
 

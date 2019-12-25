@@ -22,7 +22,7 @@ func NewWatcher(p *Page) (w *Watcher) {
 	}
 }
 
-func (w *Watcher) StartWatching() {
+func (w *Watcher) StartTicking() {
 	for now := range w.tick {
 
 		// Send the page to the walk queue, the channel will handle

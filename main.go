@@ -8,7 +8,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Configuration manages all variables and parameters for a given run of moni.
+// Configuration manages all variables and parameters that
+// can be set at the beginning of the program, or changed
+// during the programs run time.  These variables will change
+// the behavior and outcome of the program.
 type Configuration struct {
 	Addrport   string
 	ConfigFile string
@@ -22,14 +25,20 @@ type Configuration struct {
 	Wait       int
 }
 
+// Global variables are all declared here, keeps them in
+// one easy to track spot.
 var (
-	config  Configuration
-	acl     map[string]bool
-	sites   Sites
-	storage *store.FileStore
-	walkQ   chan *Page
+	config  Configuration    // Configuration from above
+	acl     map[string]bool  // ACL controls which URLs are crawled or blocked
+	sites   Sites            // The map of Sites we are watching
+	storage *store.FileStore // Local file storage TODO: add DO and GCP
+	walkQ   chan *Page       // channel used to submit pages (or urls) to be walked
 )
 
+// Initialize the config file with defaults, and setup the program to accept
+// the respective command line flags and arguments.  We also initialize the
+// sites variable with an empty map.  We establish the walkQ channel with a
+// backlog of X, we'll see if we need to adjust.
 func init() {
 	flag.StringVar(&config.Addrport, "addr", "0.0.0.0:2222", "Address and port configuration")
 	flag.StringVar(&config.ConfigFile, "config", "crawl.json", "Moni config file")

@@ -20,6 +20,10 @@ func (p *Page) Walk() {
 		refurl := e.Attr("href")
 		link := e.Request.AbsoluteURL(refurl)
 		p.Links[link]++ //append(p.Links[link], e.Text)
+
+		if pg := processURL(link); pg != nil {
+			c.Visit(pg.URL.String())
+		}
 	})
 
 	c.OnRequest(func(r *colly.Request) {
@@ -60,6 +64,17 @@ func doWatcher(wQ chan *Page, wg *sync.WaitGroup) {
 	}
 }
 
+func processURL(urlstr string) (pg *Page) {
+	if u := scrubURL(urlstr); u != nil {
+		if site := GetSite(u); site != nil {
+			if pg := site.GetPage(*u); pg != nil {
+				return pg
+			}
+		}
+	}
+	return nil
+}
+
 func scrubURL(urlstr string) (u *url.URL) {
 	var err error
 
@@ -80,7 +95,8 @@ func scrubURL(urlstr string) (u *url.URL) {
 
 	// if this hostname exists in the acl set as false,
 	// we will just return
-	if f, ex := acl[u.Host]; ex && f == false {
+	f, ex := acl[u.Host]
+	if ex == false || f == false {
 		return nil
 	}
 	return u

@@ -27,6 +27,10 @@ func AddSite(u *url.URL) (s *Site) {
 	return s
 }
 
+// GetSite accepts either a string representing a URL or a parsed
+// url.URL, either way that URL is scrubbed and matched against the
+// ACL to determine if it is to be walked.  If so a site object is
+// obtained and returned.
 func GetSite(uval interface{}) (s *Site) {
 	var u *url.URL
 	var err error
@@ -81,7 +85,7 @@ func setupSites(slist []string) {
 				if page := site.HomePage(); page != nil {
 					log.Infof("Setting up timer for page walk: %+v\n", page)
 					page.Watcher = NewWatcher(page)
-					go page.StartWatching()
+					go page.StartTicking()
 				}
 			}
 		}
