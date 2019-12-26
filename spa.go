@@ -158,12 +158,13 @@ func handleGetSite(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := struct {
-		URL     string
-		Pages   []string
-		Elapsed time.Duration
+		URL     string        `json:"url"`
+		Pages   []string      `json:"pages"`
+		Elapsed time.Duration `json:"elapsed"`
 	}{site.URL.String(), pages, site.Elapsed}
 
 	// Process the site since it is new, it will return with
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
 }
 

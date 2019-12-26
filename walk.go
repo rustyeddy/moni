@@ -20,10 +20,6 @@ func (p *Page) Walk() {
 		refurl := e.Attr("href")
 		link := e.Request.AbsoluteURL(refurl)
 		p.Links[link]++ //append(p.Links[link], e.Text)
-
-		if pg := processURL(link); pg != nil {
-			c.Visit(pg.URL.String())
-		}
 	})
 
 	c.OnRequest(func(r *colly.Request) {
@@ -49,8 +45,20 @@ func (p *Page) Walk() {
 
 	// Start the walk
 	p.TimeStamp = NewTimestamp()
+
+	log.Infof("Starting visit for %s", p.String())
 	c.Visit(p.String())
+
 	log.Infof("    Elaspsed time: %v", p.Elapsed)
+
+	log.Infof("Now Visit some internal links")
+	for link, _ := range p.Links {
+		log.Infof("\tprocessing %s", link)
+		if pg := processURL(link); pg != nil {
+			log.Infof("\tvisiting %s", link)
+			c.Visit(pg.URL.String())
+		}
+	}
 }
 
 func doWatcher(wQ chan *Page, wg *sync.WaitGroup) {
