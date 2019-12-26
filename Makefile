@@ -9,7 +9,7 @@ run: $(gofiles)
 	go -v run $(gofiles)
 
 test:
-	go test -v *.go
+	go test -v
 
 install:
 	go install -o moni $(gofiles)

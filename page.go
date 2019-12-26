@@ -5,6 +5,8 @@ import (
 	"net/url"
 )
 
+// Pages is a collection (map) of pages that belong to the
+// same website.
 type Pages map[url.URL]*Page
 
 // Page represents a single web page
@@ -20,6 +22,8 @@ type Page struct {
 	*Watcher `json:"-"`
 }
 
+// NewPage will create a new page based on the URL, prepare the
+// Links map.
 func NewPage(u *url.URL) (p *Page) {
 	p = &Page{
 		URL:   *u,
