@@ -12,11 +12,12 @@ func TestSiteStorage(t *testing.T) {
 		t.Fatalf("Failed to open storage %s", err)
 	}
 
-	if err = st.ReadObject("sites.json", &sites); err != nil {
+	var sitelist []string
+	if err = st.ReadObject("sites.json", &sitelist); err != nil {
 		t.Fatalf("Failed to read sites.json %v", err)
 	}
 
-	if len(sites) < 1 {
-		t.Errorf("Sites expected > 1 got %d", len(sites))
+	if len(sitelist) < 1 {
+		t.Errorf("Sites expected > 1 got %d", len(sitelist))
 	}
 }

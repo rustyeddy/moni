@@ -29,7 +29,7 @@ type Configuration struct {
 // one easy to track spot.
 var (
 	config  Configuration    // Configuration from above
-	acl     map[string]bool  // ACL controls which URLs are crawled or blocked
+	acl     ACL              // ACL controls which URLs are crawled or blocked
 	sites   Sites            // The map of Sites we are watching
 	storage *store.FileStore // Local file storage TODO: add DO and GCP
 	walkQ   chan *Page       // channel used to submit pages (or urls) to be walked

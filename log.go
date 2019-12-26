@@ -12,6 +12,7 @@ func setupLogging() {
 		errFatal(err, "Failed to open "+config.LogFile)
 		log.SetOutput(f)
 	}
+
 	if config.LogFormat == "json" {
 		log.SetFormatter(&log.JSONFormatter{})
 	}

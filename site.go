@@ -31,22 +31,12 @@ func AddSite(u *url.URL) (s *Site) {
 // url.URL, either way that URL is scrubbed and matched against the
 // ACL to determine if it is to be walked.  If so a site object is
 // obtained and returned.
-func GetSite(uval interface{}) (s *Site) {
+func GetSite(urlstr string) (s *Site) {
 	var u *url.URL
 	var err error
 
-	// Make sure we have a url
-	switch t := uval.(type) {
-	case *url.URL:
-		u = uval.(*url.URL)
-	case string:
-		urlstr := uval.(string)
-		if u, err = url.Parse(urlstr); err != nil {
-			log.Errorf("converting url: %v", err)
-			return
-		}
-	default:
-		log.Errorf("unknown url type: %s", t)
+	if u, err = url.Parse(urlstr); err != nil {
+		log.Errorf("converting url: %v", err)
 		return
 	}
 
@@ -58,7 +48,7 @@ func GetSite(uval interface{}) (s *Site) {
 		u.Scheme = "http"
 		u, err = url.Parse(u.String())
 		if err != nil {
-			log.Errorln("Error with URL %+v", u)
+			log.Errorf("Error with URL %+v", u)
 			return
 		}
 	}
@@ -69,6 +59,7 @@ func GetSite(uval interface{}) (s *Site) {
 			sites[*u] = s
 		}
 	}
+
 	return s
 }
 
@@ -81,7 +72,7 @@ func GetSite(uval interface{}) (s *Site) {
 func setupSites(slist []string) {
 	for _, urlstr := range slist {
 		if u := scrubURL(urlstr); u != nil {
-			if site := GetSite(u); site != nil {
+			if site := GetSite(u.String()); site != nil {
 				if page := site.HomePage(); page != nil {
 					log.Infof("Setting up timer for page walk: %+v\n", page)
 					page.Watcher = NewWatcher(page)
@@ -121,7 +112,7 @@ func SaveSitesFile() (err error) {
 }
 
 func (s *Site) PageList() (plist []string) {
-	if s.HomePage == nil {
+	if s.HomePage() == nil {
 		return nil
 	}
 	for l, _ := range s.Links {

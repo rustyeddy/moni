@@ -105,7 +105,7 @@ func handleSetConfig(w http.ResponseWriter, r *http.Request) {
 	key := vars["key"]
 	val := vars["val"]
 	if r.Method != "POST" && r.Method != "PUT" {
-		fmt.Fprintln(w, "Request has bad method %s Bad Form", r.Method)
+		fmt.Fprintf(w, "Request has bad method %s Bad Form", r.Method)
 		return
 	}
 

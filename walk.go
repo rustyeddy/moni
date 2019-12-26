@@ -66,7 +66,7 @@ func doWatcher(wQ chan *Page, wg *sync.WaitGroup) {
 
 func processURL(urlstr string) (pg *Page) {
 	if u := scrubURL(urlstr); u != nil {
-		if site := GetSite(u); site != nil {
+		if site := GetSite(u.String()); site != nil {
 			if pg := site.GetPage(*u); pg != nil {
 				return pg
 			}
@@ -81,23 +81,28 @@ func scrubURL(urlstr string) (u *url.URL) {
 	log.Infoln("scrubURL with ", urlstr)
 
 	u, err = url.Parse(urlstr)
-	errPanic(err)
+	if err != nil {
+		log.Infof("\turlstring is bad %s...", urlstr)
+		return nil
+	}
 
 	if u.Scheme == "" {
 		u.Scheme = "http"
 
 		u, err = url.Parse(u.String())
 		if err != nil {
-			log.Errorf("Failed to reconstruct URL %+v, %v", u, err)
+			log.Infof("Failed to reconstruct URL %+v, %v", u, err)
 			return nil
 		}
 	}
 
 	// if this hostname exists in the acl set as false,
 	// we will just return
-	f, ex := acl[u.Host]
-	if ex == false || f == false {
+	ok := acl.Allow(u.Host)
+	if !ok {
+		log.Infof("\trejecting url do to acl %s", u.Host)
 		return nil
 	}
+
 	return u
 }
