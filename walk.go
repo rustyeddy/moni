@@ -72,17 +72,20 @@ func (p *Page) scheduleVisit() {
 	// We make this a closure to include the page in the scope
 	// of the call back
 	p.WalkTimer = time.AfterFunc(time.Duration(config.Wait)*time.Minute, func() {
+		log.Debugf("\twalk timer has errupted for %s", p.URL.String())
 		p.Walk()
 	})
 }
 
-func startWatcher(wQ chan *Page, wg *sync.WaitGroup) {
+func startWatcher(wQ chan string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for {
 		select {
-		case p := <-wQ:
-			log.Infof("  wQ channel recieved page: %+v", p)
-			p.scheduleVisit()
+		case s := <-wQ:
+			log.Infof("  wQ channel recieved page: %s", s)
+			if p := processURL(s); p != nil {
+				p.scheduleVisit()
+			}
 		}
 	}
 }

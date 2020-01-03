@@ -176,7 +176,7 @@ func handlePostSite(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "Bad Form ~> ParseForm()")
 		return
 	}
-	setupSites([]string{urlstr})
+	submitSites([]string{urlstr})
 
 	// Process the site since it is new, it will return with
 	json.NewEncoder(w).Encode(map[string]bool{"ok": true})

@@ -32,7 +32,7 @@ var (
 	acl     ACL              // ACL controls which URLs are crawled or blocked
 	sites   Sites            // The map of Sites we are watching
 	storage *store.FileStore // Local file storage TODO: add DO and GCP
-	walkQ   chan *Page       // channel used to submit pages (or urls) to be walked
+	walkQ   chan string      // the string needs to be parsed to URL and OKd
 )
 
 // Initialize the config file with defaults, and setup the program to accept
@@ -51,7 +51,7 @@ func init() {
 	flag.Int64Var(&config.Wait, "wait", 5, "wait in minutes between check")
 
 	sites = make(Sites)
-	walkQ = make(chan *Page, 100)
+	walkQ = make(chan string, 100)
 }
 
 func main() {
@@ -69,7 +69,7 @@ func main() {
 	slist := readSitesFile()
 	slist = append(flag.Args())
 
-	setupSites(slist)
+	submitSites(slist)
 	wg.Wait()
 
 	log.Infoln("The end, good bye ... ")
