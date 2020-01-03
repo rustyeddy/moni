@@ -23,6 +23,29 @@ type Page struct {
 	WalkTimer *time.Timer
 }
 
+type PageInfo struct {
+	URL           string               `json:"url"`
+	Pages         map[string]*PageInfo `json:"pages"`
+	time.Duration `json:elapsed`
+	StatusCode    int
+}
+
+func (p *Page) Info() (pi *PageInfo) {
+	pi = &PageInfo{
+		URL:        p.URL.String(),
+		Duration:   p.Elapsed,
+		StatusCode: p.StatusCode,
+		Pages:      make(map[string]*PageInfo),
+	}
+
+	for l, _ := range p.Links {
+		if pg := processURL(l); pg != nil {
+			pi.Pages[l] = pg.Info()
+		}
+	}
+	return pi
+}
+
 // NewPage will create a new page based on the URL, prepare the
 // Links map.
 func NewPage(u *url.URL) (p *Page) {

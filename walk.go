@@ -59,6 +59,9 @@ func (p *Page) Walk() {
 			pg.scheduleVisit()
 		}
 	}
+
+	// Schedule new visit for website
+	p.scheduleVisit()
 }
 
 func (p *Page) scheduleVisit() {

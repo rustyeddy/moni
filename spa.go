@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -131,9 +130,8 @@ func handleGetSites(w http.ResponseWriter, r *http.Request) {
 
 func handleGetSite(w http.ResponseWriter, r *http.Request) {
 	var urlstr string
-	var u *url.URL
+	var pg *Page
 	var err error
-	var ex bool
 
 	vars := mux.Vars(r)
 	if urlstr = vars["url"]; urlstr == "" {
@@ -141,31 +139,15 @@ func handleGetSite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if u = scrubURL(urlstr); u == nil {
+	if pg = processURL(urlstr); pg == nil {
 		log.Errorf("failed to get site for %s ~> %v", urlstr, err)
 		return
 	}
-
-	var site *Site
-	if site, ex = sites[*u]; !ex {
-		fmt.Fprintln(w, "site not found")
-		return
-	}
-
-	var pages []string
-	for u, _ := range site.Links {
-		pages = append(pages, u)
-	}
-
-	resp := struct {
-		URL     string        `json:"url"`
-		Pages   []string      `json:"pages"`
-		Elapsed time.Duration `json:"elapsed"`
-	}{site.URL.String(), pages, site.Elapsed}
+	pi := pg.Info()
 
 	// Process the site since it is new, it will return with
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	json.NewEncoder(w).Encode(pi)
 }
 
 func handlePostSite(w http.ResponseWriter, r *http.Request) {
