@@ -64,7 +64,7 @@ func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.FileServer(http.Dir(h.staticPath)).ServeHTTP(w, r)
 }
 
-func doRouter(dir string, wg *sync.WaitGroup) (err error) {
+func startRouter(dir string, wg *sync.WaitGroup) (err error) {
 	router := mux.NewRouter()
 	defer wg.Done()
 
@@ -111,7 +111,7 @@ func handleSetConfig(w http.ResponseWriter, r *http.Request) {
 
 	switch key {
 	case "wait":
-		if config.Wait, err = strconv.Atoi(val); err != nil {
+		if config.Wait, err = strconv.ParseInt(val, 0, 64); err != nil {
 			log.Errorf("failed to set configuration %v", err)
 			fmt.Fprintln(w, "Error Bad Form ~> ParseForm()")
 			return

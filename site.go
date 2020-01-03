@@ -75,8 +75,7 @@ func setupSites(slist []string) {
 			if site := GetSite(u.String()); site != nil {
 				if page := site.HomePage(); page != nil {
 					log.Infof("Setting up timer for page walk: %+v\n", page)
-					page.Watcher = NewWatcher(page)
-					go page.StartTicking()
+					page.scheduleVisit()
 				}
 			}
 		}

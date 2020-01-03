@@ -39,7 +39,7 @@ func (p *Page) Walk() {
 		// Now print some interactive user friendly stuff
 		log.Infof("    Links: %s", p.URL.String())
 		for ustr, _ := range p.Links {
-			log.Infof("\t~> %s", ustr)
+			log.Infof("\t~ %s", ustr)
 		}
 	})
 
@@ -56,18 +56,33 @@ func (p *Page) Walk() {
 		log.Infof("\tprocessing %s", link)
 		if pg := processURL(link); pg != nil {
 			log.Infof("\tvisiting %s", link)
-			c.Visit(pg.URL.String())
+			pg.scheduleVisit()
 		}
 	}
 }
 
-func doWatcher(wQ chan *Page, wg *sync.WaitGroup) {
+func (p *Page) scheduleVisit() {
+
+	// if we have a walktimer a visit has already been scheduled
+	if p.WalkTimer != nil {
+		log.Debugf("visit already schedule, ignore: %s", p.URL.String())
+		return
+	}
+
+	// We make this a closure to include the page in the scope
+	// of the call back
+	p.WalkTimer = time.AfterFunc(time.Duration(config.Wait)*time.Minute, func() {
+		p.Walk()
+	})
+}
+
+func startWatcher(wQ chan *Page, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for {
 		select {
 		case p := <-wQ:
 			log.Infof("  wQ channel recieved page: %+v", p)
-			p.Walk()
+			p.scheduleVisit()
 		}
 	}
 }

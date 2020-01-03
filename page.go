@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/url"
+	"time"
 )
 
 // Pages is a collection (map) of pages that belong to the
@@ -19,7 +20,7 @@ type Page struct {
 	TimeStamp  `json:"timestamp"`
 	TimeStamps []TimeStamp `json:"timestamps"`
 
-	*Watcher `json:"-"`
+	WalkTimer *time.Timer
 }
 
 // NewPage will create a new page based on the URL, prepare the

@@ -1,12 +1,13 @@
 # Moni the Website Babby Sitter
 
 Moni is a light weight, self contianed (single executable) website
-walker and tracker of things connected to a network.  moni is a single
-executable that is small and really fast, because it was written with
-go it is also really cool. :)
+walker and tracker of things connected to networks.  moni is small and
+really fast, because it was written with go, check it out if you are
+interested!  It is also really cool. :)
 
-Moni has no external dependencies, you can just run the executable,
-feed it resources to watch and let _moni_ go aboud doing her thing.
+While _moni_ has no required external dependencies, you can just run
+the executable, feed it resources to watch and let _moni_ go aboud
+doing her thing.
 
 ## REST API
 
