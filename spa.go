@@ -143,7 +143,14 @@ func handleGetSite(w http.ResponseWriter, r *http.Request) {
 		log.Errorf("failed to get site for %s ~> %v", urlstr, err)
 		return
 	}
-	pi := pg.Info()
+
+	pi := &PageInfo{
+		URL:      pg.URL.String(),
+		Response: pg.Elapsed,
+	}
+	for _, l := range pg.Links {
+		pi.Links = append(pi.Links, l)
+	}
 
 	// Process the site since it is new, it will return with
 	w.Header().Set("Content-Type", "application/json")
@@ -162,4 +169,22 @@ func handlePostSite(w http.ResponseWriter, r *http.Request) {
 
 	// Process the site since it is new, it will return with
 	json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+}
+
+func handleGetPage(w http.ResponseWriter, r *http.Request) {
+	var urlstr string
+	vars := mux.Vars(r)
+
+	log.Infof("vars: %+v", vars)
+
+	if urlstr = vars["url"]; urlstr == "" {
+		fmt.Fprintln(w, "Bad Form ~> ParseForm()")
+		return
+	}
+	if pg := processURL(urlstr); pg != nil {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(pg)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode("")
 }

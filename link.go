@@ -2,15 +2,21 @@ package main
 
 import (
 	"net/url"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
 
 type Link struct {
-	*url.URL          // URL of this link
-	*Page             // Option link to the actual page
-	Anchors  []string // string of anchor text used to point to this link
-	Internal bool     // Is this link internal or external
+	URL        string        `json:"url"`
+	Anchors    []string      `json:"anchors"`
+	Internal   bool          `json:"internal"`
+	Reachable  bool          `json:"reachable"`
+	Response   time.Duration `json:"response"`
+	StatusCode int           `json:"statuscode"`
+	Last       time.Time     `json:"last"`
+
+	*Page `json:"-"`
 }
 
 // NewLink creates a new link that will be collected by the parent page
@@ -22,7 +28,7 @@ func NewLink(urlstr string) (l *Link) {
 		return nil
 	}
 	l = &Link{
-		URL: u,
+		URL: u.String(),
 	}
 	return l
 }

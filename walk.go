@@ -18,8 +18,10 @@ func (p *Page) Walk() {
 	// Setup all the collbacks
 	c.OnHTML("a", func(e *colly.HTMLElement) {
 		refurl := e.Attr("href")
-		link := e.Request.AbsoluteURL(refurl)
-		p.Links[link]++ //append(p.Links[link], e.Text)
+		lstr := e.Request.AbsoluteURL(refurl)
+		if lstr != "" {
+			p.Links[lstr] = NewLink(lstr)
+		}
 	})
 
 	c.OnRequest(func(r *colly.Request) {
@@ -49,6 +51,9 @@ func (p *Page) Walk() {
 	log.Infof("Starting visit for %s", p.String())
 	c.Visit(p.String())
 
+	// Schedule new visit for website
+	p.scheduleVisit()
+
 	log.Infof("    Elaspsed time: %v", p.Elapsed)
 
 	log.Infof("Now Visit some internal links")
@@ -59,25 +64,16 @@ func (p *Page) Walk() {
 			pg.scheduleVisit()
 		}
 	}
-
-	// Schedule new visit for website
-	p.scheduleVisit()
 }
 
 func (p *Page) scheduleVisit() {
 
 	// if we have a walktimer a visit has already been scheduled
-	if p.WalkTimer != nil {
-		log.Debugf("visit already schedule, ignore: %s", p.URL.String())
-		return
-	}
-
-	// We make this a closure to include the page in the scope
-	// of the call back
-	p.WalkTimer = time.AfterFunc(time.Duration(config.Wait)*time.Minute, func() {
-		log.Debugf("\twalk timer has errupted for %s", p.URL.String())
+	if p.WalkTimer == nil {
+		log.Debugf("visit already scheduled, ignore: %s", p.URL.String())
+		p.WalkTimer = time.NewTimer(time.Minute * time.Duration(config.Wait))
 		p.Walk()
-	})
+	}
 }
 
 func startWatcher(wQ chan string, wg *sync.WaitGroup) {
@@ -107,8 +103,6 @@ func processURL(urlstr string) (pg *Page) {
 func scrubURL(urlstr string) (u *url.URL) {
 	var err error
 
-	log.Infoln("scrubURL with ", urlstr)
-
 	u, err = url.Parse(urlstr)
 	if err != nil {
 		log.Infof("\turlstring is bad %s...", urlstr)
@@ -132,6 +126,5 @@ func scrubURL(urlstr string) (u *url.URL) {
 		log.Infof("\trejecting url do to acl %s", u.Host)
 		return nil
 	}
-
 	return u
 }

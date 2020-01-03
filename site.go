@@ -71,6 +71,7 @@ func GetSite(urlstr string) (s *Site) {
 // added to the watchlist to be walked and scheduled for future walks.
 func submitSites(slist []string) {
 	for _, s := range slist {
+		log.Infof("submitSites to walkQ <- %s", s)
 		walkQ <- s
 	}
 }

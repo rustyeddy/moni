@@ -14,36 +14,18 @@ type Pages map[url.URL]*Page
 type Page struct {
 	*Site      `json:"-"`
 	url.URL    `json:"url"`
-	Links      map[string]int `json:"links"`
-	StatusCode int            `json:"statusCode"`
+	Links      map[string]*Link `json:"links"`
+	StatusCode int              `json:"statusCode"`
 
 	TimeStamp  `json:"timestamp"`
 	TimeStamps []TimeStamp `json:"timestamps"`
-
-	WalkTimer *time.Timer
+	WalkTimer  *time.Timer
 }
 
 type PageInfo struct {
-	URL           string               `json:"url"`
-	Pages         map[string]*PageInfo `json:"pages"`
-	time.Duration `json:elapsed`
-	StatusCode    int
-}
-
-func (p *Page) Info() (pi *PageInfo) {
-	pi = &PageInfo{
-		URL:        p.URL.String(),
-		Duration:   p.Elapsed,
-		StatusCode: p.StatusCode,
-		Pages:      make(map[string]*PageInfo),
-	}
-
-	for l, _ := range p.Links {
-		if pg := processURL(l); pg != nil {
-			pi.Pages[l] = pg.Info()
-		}
-	}
-	return pi
+	URL      string        `json:"url"`
+	Links    []*Link       `json"links"`
+	Response time.Duration `json:"duration"`
 }
 
 // NewPage will create a new page based on the URL, prepare the
@@ -51,7 +33,7 @@ func (p *Page) Info() (pi *PageInfo) {
 func NewPage(u *url.URL) (p *Page) {
 	p = &Page{
 		URL:   *u,
-		Links: make(map[string]int),
+		Links: make(map[string]*Link),
 	}
 	return p
 }
