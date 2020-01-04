@@ -18,8 +18,10 @@ func (p *Page) Walk() {
 	// Setup all the collbacks
 	c.OnHTML("a", func(e *colly.HTMLElement) {
 		refurl := e.Attr("href")
-		link := e.Request.AbsoluteURL(refurl)
-		p.Links[link]++ //append(p.Links[link], e.Text)
+		lstr := e.Request.AbsoluteURL(refurl)
+		if lstr != "" {
+			p.Links[lstr] = NewLink(lstr)
+		}
 	})
 
 	c.OnRequest(func(r *colly.Request) {
@@ -39,7 +41,7 @@ func (p *Page) Walk() {
 		// Now print some interactive user friendly stuff
 		log.Infof("    Links: %s", p.URL.String())
 		for ustr, _ := range p.Links {
-			log.Infof("\t~> %s", ustr)
+			log.Infof("\t~ %s", ustr)
 		}
 	})
 
@@ -49,6 +51,9 @@ func (p *Page) Walk() {
 	log.Infof("Starting visit for %s", p.String())
 	c.Visit(p.String())
 
+	// Schedule new visit for website
+	p.scheduleVisit()
+
 	log.Infof("    Elaspsed time: %v", p.Elapsed)
 
 	log.Infof("Now Visit some internal links")
@@ -56,18 +61,30 @@ func (p *Page) Walk() {
 		log.Infof("\tprocessing %s", link)
 		if pg := processURL(link); pg != nil {
 			log.Infof("\tvisiting %s", link)
-			c.Visit(pg.URL.String())
+			pg.scheduleVisit()
 		}
 	}
 }
 
-func doWatcher(wQ chan *Page, wg *sync.WaitGroup) {
+func (p *Page) scheduleVisit() {
+
+	// if we have a walktimer a visit has already been scheduled
+	if p.WalkTimer == nil {
+		log.Debugf("visit already scheduled, ignore: %s", p.URL.String())
+		p.WalkTimer = time.NewTimer(time.Minute * time.Duration(config.Wait))
+		p.Walk()
+	}
+}
+
+func startWatcher(wQ chan string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for {
 		select {
-		case p := <-wQ:
-			log.Infof("  wQ channel recieved page: %+v", p)
-			p.Walk()
+		case s := <-wQ:
+			log.Infof("  wQ channel recieved page: %s", s)
+			if p := processURL(s); p != nil {
+				p.scheduleVisit()
+			}
 		}
 	}
 }
@@ -85,8 +102,6 @@ func processURL(urlstr string) (pg *Page) {
 
 func scrubURL(urlstr string) (u *url.URL) {
 	var err error
-
-	log.Infoln("scrubURL with ", urlstr)
 
 	u, err = url.Parse(urlstr)
 	if err != nil {
@@ -111,6 +126,5 @@ func scrubURL(urlstr string) (u *url.URL) {
 		log.Infof("\trejecting url do to acl %s", u.Host)
 		return nil
 	}
-
 	return u
 }

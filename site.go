@@ -69,17 +69,10 @@ func GetSite(urlstr string) (s *Site) {
 // determine if the given URL will be walked or not.  If not, it is
 // represented by a _blank-page_. If the URL is to be walked, it is
 // added to the watchlist to be walked and scheduled for future walks.
-func setupSites(slist []string) {
-	for _, urlstr := range slist {
-		if u := scrubURL(urlstr); u != nil {
-			if site := GetSite(u.String()); site != nil {
-				if page := site.HomePage(); page != nil {
-					log.Infof("Setting up timer for page walk: %+v\n", page)
-					page.Watcher = NewWatcher(page)
-					go page.StartTicking()
-				}
-			}
-		}
+func submitSites(slist []string) {
+	for _, s := range slist {
+		log.Infof("submitSites to walkQ <- %s", s)
+		walkQ <- s
 	}
 }
 
