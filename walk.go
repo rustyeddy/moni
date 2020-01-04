@@ -73,6 +73,12 @@ func (p *Page) scheduleVisit() {
 		log.Debugf("visit already scheduled, ignore: %s", p.URL.String())
 		p.WalkTimer = time.NewTimer(time.Minute * time.Duration(config.Wait))
 		p.Walk()
+		go func() {
+			for {
+				<-p.WalkTimer.C
+				p.Walk()
+			}
+		}()
 	}
 }
 
