@@ -22,6 +22,7 @@ func (p *Page) Walk() {
 		if lstr != "" {
 			p.Links[lstr] = NewLink(lstr)
 		}
+		walkQ <- lstr
 	})
 
 	c.OnRequest(func(r *colly.Request) {
@@ -52,27 +53,20 @@ func (p *Page) Walk() {
 	c.Visit(p.String())
 
 	// Schedule new visit for website
-	p.scheduleVisit()
+	//scheduleVisit(p)
+	walkQ <- p.URL.String()
 
 	log.Infof("    Elaspsed time: %v", p.Elapsed)
-
-	log.Infof("Now Visit some internal links")
-	for link, _ := range p.Links {
-		log.Infof("\tprocessing %s", link)
-		if pg := processURL(link); pg != nil {
-			log.Infof("\tvisiting %s", link)
-			pg.scheduleVisit()
-		}
-	}
 }
 
-func (p *Page) scheduleVisit() {
-
+func scheduleVisit(p *Page) {
+	
 	// if we have a walktimer a visit has already been scheduled
 	if p.WalkTimer == nil {
 		log.Debugf("visit already scheduled, ignore: %s", p.URL.String())
 		p.WalkTimer = time.NewTimer(time.Minute * time.Duration(config.Wait))
 		p.Walk()
+
 		go func() {
 			for {
 				<-p.WalkTimer.C
@@ -89,7 +83,7 @@ func startWatcher(wQ chan string, wg *sync.WaitGroup) {
 		case s := <-wQ:
 			log.Infof("  wQ channel recieved page: %s", s)
 			if p := processURL(s); p != nil {
-				p.scheduleVisit()
+				scheduleVisit(p)
 			}
 		}
 	}
