@@ -1,33 +1,34 @@
-# Moni the Website Babby Sitter
+# Moni the Web Watcher
 
 Moni is a light weight, self contianed (single executable) website
-walker and tracker of things connected to a network.  moni is a single
-executable that is small and really fast, because it was written with
-go it is also really cool. :)
+walker and analyzer. It is basically like a "ping" for an entire
+website. 
 
-Moni has no external dependencies, you can just run the executable,
-feed it resources to watch and let _moni_ go aboud doing her thing.
+Just point at one or more websites that you manage, moni will grab
+every page of your website, record errors it found some, otherwise the
+pages response time will also be recorded.
 
-## REST API
+You will be able to tell pretty quickly if there are any problems with
+your website, including its responsiveness. Moni was written in go
+with concurrency in mind, moni is light, tight and fast.
 
-Moni has been built as an API first, with _clients_ for the command
-line and WebUI are clients of the API. REST is currently up and
-running, with ~hopes~ plans for _websocket_ and _graph api_ lurking
-just over the horizon.
+## What Moni Find for You
 
-Moni is also extensible, that is moni can indeed make use of external
-functionality for storage, caching and persistence, logging
-facilities. More on this topic later ...
+- Websites
+  - Walk all pages it can find
+  - Are all of your web pages accessible?
+  - How fast are they responding?
+  - What resources do they require (css, javascript and images)?
+  - What internal links does this page have?
+  - What external links does this page have?
+  - Are ANY links broken? 
+  - ACL limits access to webpages we are monitoring
 
-> Moni depends heavily on the  excellent _Go package_
-> [**colly**](http://gocolly.io) to do the actual fetch and parse of
-> the HTML pages. 
+### 
 
-It constantly monitors your website(s) for both reliability and
-performance. Crawl is written go (very small and fast) as a single
-executable with no required external dependencies (just copy the
-program and use it.)
-
+Moni has no external dependencies, just provide one or more URLs and
+determine if your website is behaving like you expect it to.
+ 
 ## How to Use
 
 Crawl is both a _daemon_ and an _angel_ (JK :) and a _command line
@@ -40,7 +41,7 @@ availability and performance of the list of websites.
 ## Command Line
 
 ```bash
-% ./crawl rustyeddy.com
+% ./moni rustyeddy.com
 http://rustyeddy.com
 	https://rustyeddy.com/projects
 	https://rustyeddy.com/contact
@@ -64,42 +65,30 @@ Or watch a group of websites with a quick and easy single line output:
                    http://mobilerobot.io: resp: 1.042628ms links: 7
 ```
 
-This is handy if you manage a lot of websites.
-
-## Service
-
-As a daemon Crawl provides the following REST API
-
-- GET  /api/healthcheck			= Are we alive?
-
-- GET  /api/config				= Working Configuration file
-- PUT  /api/config/wait/_{T}_	= Set wait time to T minutes
-
-- GET  /api/sites				= Get list of sites on watch list
-- GET  /api/site/_{url}_		= Get information about specific site
-- POST /api/site/_{url}_		= Add the URL to the watch list
-
+This is handy if you manage a lot of websites, or just want to get a
+quick summary of how your web properties are doing..
 
 ## Crawling Websites
 
-Crawl walk a given web page (URL) gather all links from the page, it
-will very that each link of the given page is reachable, and if so how
-responsive is it?
+Moni walks every page of a website, that it can find, and reports back
+with the stats gathered above. The output will be produced according
+to your desires!  Text or JSON? You got it!
 
-This allows you to quickly determine if something in your web has
-become unreachable, or unacceptably slow.
+If desired, Moni will also walk every sub-page of the website, however
+all external links with NOT be walked otherwise we will quickly be
+walking every website in the world, and be the next Google.
 
-## How it Works
+We don't want to do that, we just want to ensure the good health of
+our own web properties, and find out immediately when something goes
+wrong (and it will, this is tech after all).
 
-List of crawlable website is loaded into memory, then each of these
-sites is periodically crawled and compared to previous crawls.
+## Moni is Built on Colly!
 
-### Crawl with Colly
-
-Crawl uses the go package colly to monitor given websites. Colly makes
-a standard _get_ request to a given URL, gathers the links from that
-web page, as well as text and other elements, then returns. The return
-gets a timestamp that we use to record the elapsed time.
+Moni uses the go package [colly](http://getcolly.io) to monitor given
+websites. Colly makes a standard _get_ request to a given URL, gathers
+the links from that web page, as well as text and other elements, then
+returns. The return gets a timestamp that we use to record the elapsed
+time.
 
 #### Internal vs External Links
 
@@ -140,10 +129,3 @@ flagged as a _broken link_.
 We do not collect any content from the Reachability test and hence we
 do not have any additional links to crawl.
 
-## Software Details
-
-In support of our Crawl capability this software has a _REST API
-service_ and a periodic website walking service.
-
-Both services run a Go routines, both run forever in there own little
-space. The program is synchronized using a _wait group_.

@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"sync"
 
 	"github.com/rustyeddy/store"
 	log "github.com/sirupsen/logrus"
@@ -55,22 +54,18 @@ func init() {
 }
 
 func main() {
-	var wg sync.WaitGroup
-
-	// Parse command line arguments
 	flag.Parse()
 	setupLogging()
 	setupStorage()
 
-	wg.Add(2)
-	go doRouter(config.Pubdir, &wg)
-	go doWatcher(walkQ, &wg)
-
 	slist := readSitesFile()
 	slist = append(flag.Args())
 
-	setupSites(slist)
-	wg.Wait()
-
+	// scrubSites returns a channel from a go routine producing *Page
+	// objects from raw, unscrubed URLs. If the URL is rejected it will
+	// not be returned as a page structure.
+	for page := range scrubSites(slist) {
+		page.Walk()
+	}
 	log.Infoln("The end, good bye ... ")
 }

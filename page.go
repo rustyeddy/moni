@@ -18,8 +18,6 @@ type Page struct {
 
 	TimeStamp  `json:"timestamp"`
 	TimeStamps []TimeStamp `json:"timestamps"`
-
-	*Watcher `json:"-"`
 }
 
 // NewPage will create a new page based on the URL, prepare the

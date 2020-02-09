@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/url"
-	"sync"
 	"time"
 
 	"github.com/gocolly/colly"
@@ -57,17 +56,6 @@ func (p *Page) Walk() {
 		if pg := processURL(link); pg != nil {
 			log.Infof("\tvisiting %s", link)
 			c.Visit(pg.URL.String())
-		}
-	}
-}
-
-func doWatcher(wQ chan *Page, wg *sync.WaitGroup) {
-	defer wg.Done()
-	for {
-		select {
-		case p := <-wQ:
-			log.Infof("  wQ channel recieved page: %+v", p)
-			p.Walk()
 		}
 	}
 }
