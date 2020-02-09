@@ -1,6 +1,7 @@
 # Moni the Web Watcher
 
 Moni is a light weight, self contianed (single executable) website
+<<<<<<< HEAD
 walker and analyzer. It is basically like a "ping" for an entire
 website. 
 
@@ -29,6 +30,36 @@ with concurrency in mind, moni is light, tight and fast.
 Moni has no external dependencies, just provide one or more URLs and
 determine if your website is behaving like you expect it to.
  
+=======
+walker and tracker of things connected to networks.  moni is small and
+really fast, because it was written with go, check it out if you are
+interested!  It is also really cool. :)
+
+While _moni_ has no required external dependencies, you can just run
+the executable, feed it resources to watch and let _moni_ go aboud
+doing her thing.
+
+## REST API
+
+Moni has been built as an API first, with _clients_ for the command
+line and WebUI are clients of the API. REST is currently up and
+running, with ~hopes~ plans for _websocket_ and _graph api_ lurking
+just over the horizon.
+
+Moni is also extensible, that is moni can indeed make use of external
+functionality for storage, caching and persistence, logging
+facilities. More on this topic later ...
+
+> Moni depends heavily on the  excellent _Go package_
+> [**colly**](http://gocolly.io) to do the actual fetch and parse of
+> the HTML pages. 
+
+It constantly monitors your website(s) for both reliability and
+performance. Crawl is written go (very small and fast) as a single
+executable with no required external dependencies (just copy the
+program and use it.)
+
+>>>>>>> 74e7161b9026bfee04893cf7115559b79c5c6ce2
 ## How to Use
 
 Crawl is both a _daemon_ and an _angel_ (JK :) and a _command line

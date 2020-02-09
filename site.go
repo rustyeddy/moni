@@ -98,7 +98,7 @@ func readSitesFile() []string {
 }
 
 // SaveSites saves the sites structure.
-func SaveSitesFile() (err error) {
+func saveSitesFile() (err error) {
 
 	var sitelist []string
 	sitelist = make([]string, 1)

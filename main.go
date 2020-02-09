@@ -21,7 +21,7 @@ type Configuration struct {
 	Pubdir     string
 	Recurse    bool
 	Verbose    bool
-	Wait       int
+	Wait       int64
 }
 
 // Global variables are all declared here, keeps them in
@@ -31,7 +31,7 @@ var (
 	acl     ACL              // ACL controls which URLs are crawled or blocked
 	sites   Sites            // The map of Sites we are watching
 	storage *store.FileStore // Local file storage TODO: add DO and GCP
-	walkQ   chan *Page       // channel used to submit pages (or urls) to be walked
+	walkQ   chan string      // the string needs to be parsed to URL and OKd
 )
 
 // Initialize the config file with defaults, and setup the program to accept
@@ -47,10 +47,10 @@ func init() {
 	flag.BoolVar(&config.Recurse, "recurse", true, "Recurse local")
 	flag.BoolVar(&config.Daemon, "daemon", true, "Run as a service opening and listening to sockets")
 	flag.BoolVar(&config.Verbose, "verbose", false, "turn on or off verbosity")
-	flag.IntVar(&config.Wait, "wait", 5, "wait in minutes between check")
+	flag.Int64Var(&config.Wait, "wait", 5, "wait in minutes between check")
 
 	sites = make(Sites)
-	walkQ = make(chan *Page, 100)
+	walkQ = make(chan string, 100)
 }
 
 func main() {

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/url"
+	"time"
 )
 
 // Pages is a collection (map) of pages that belong to the
@@ -13,11 +14,18 @@ type Pages map[url.URL]*Page
 type Page struct {
 	*Site      `json:"-"`
 	url.URL    `json:"url"`
-	Links      map[string]int `json:"links"`
-	StatusCode int            `json:"statusCode"`
+	Links      map[string]*Link `json:"links"`
+	StatusCode int              `json:"statusCode"`
 
 	TimeStamp  `json:"timestamp"`
 	TimeStamps []TimeStamp `json:"timestamps"`
+	WalkTimer  *time.Timer
+}
+
+type PageInfo struct {
+	URL      string        `json:"url"`
+	Links    []*Link       `json"links"`
+	Response time.Duration `json:"duration"`
 }
 
 // NewPage will create a new page based on the URL, prepare the
@@ -25,7 +33,7 @@ type Page struct {
 func NewPage(u *url.URL) (p *Page) {
 	p = &Page{
 		URL:   *u,
-		Links: make(map[string]int),
+		Links: make(map[string]*Link),
 	}
 	return p
 }
